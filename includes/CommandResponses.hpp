@@ -10,6 +10,7 @@
 # define RPL_WELCOME(nick, user, host)								("Welcome to the Internet Relay Network " + nick + "!" + user + "@" +  host + "\r\n") //001
 # define RPL_CREATED(date)											(":This server was created " + date + "\r\n") //003
 # define RPL_BOUNCE(server_name, port)								("Try server " + server_name + ", port " + port + "\r\n") //005
+# define RPL_YOURESERVICE(servicename)								("You are service " + servicename + "\r\n") //383
 //Service
 # define RPL_YOURHOST(servername, version)							(":Your host is " + servername + ", running version " + version + "\r\n") //002
 # define RPL_MYINFO(servername, version, user_modes, chann_modes)	(":" + servername + " " + version + " " + user_modes + " " + chann_modes + "\r\n")//004
@@ -25,12 +26,13 @@
 # define RPL_AWAY(pseudo, message)									(pseudo + " " + message + "\r\n") //301
 # define RPL_INVITING(channel, nick)								(channel + " " + nick + "\r\n") //341
 //WHO
-# define RPL_WHOREPLY(chan, usr, host, server, nick, presence, role, status, hopcount, real_name)		(chan + " " + usr + " " + host + " " + server + " " + nick + " " + presence + role + status )
+# define RPL_WHOREPLY(chan, usr, host, server, nick, presence, role, status, real_name)		(chan + " " + usr + " " + host + " " + server + " " + nick + " " + presence + role + status ":0 " + real_name + "\r\n")
+# define RPL_ENDOFWHO(name)											(name + " :End of WHO list\r\n"); //315
 // AWAY
 # define RPL_UNAWAY													(":You are no longer marked as being away\r\n") //305
 # define RPL_NOWAWAY												(":You have been marked as being away\r\n") //306
 // WHOIS
-# define RPL_WHOISUSER(nick, user, host, realname)					(nick + " " + user + " " + host + " * :" + realname + "\r\n") //311
+# define RPL_WHOISUSER(nick, user, host, realname)					(nick + " " + user + " " + host + " * :" + realname + "\r\n")  //311
 # define RPL_WHOISSERVER(nick, server, info_server)					(nick + " " + server + " :" +  info + "\r\n") //312
 # define RPL_WHOISOPERATOR(nick)									(nick + " :is an IRC operator\r\n") //313
 # define RPL_WHOISIDLE(nick, integer)								(nick + " " + integer + " :seconds idle\r\n") //317
@@ -53,10 +55,44 @@
 # define RPL_NOTOPIC(channel)										(channel + " :No topic is set\r\n") //331
 # define RPL_TOPIC(channel, topic)									(channel + " :" + topic) //332
 //SUMMON
-# define RPL_SUMMONING(user)										(user + " :Summoning user to IRC") //342
+# define RPL_SUMMONING(user)										(user + " :Summoning user to IRC\r\n") //342
 //VERSION
 # define RPL_VERSION(version, debuglevel, server, comment)			(version + "." + debuglevel + " " + server + " :" + comment + "\r\n") //351
-# define RPL_WHOREPLY
+//JOIN
+# define RPL_NAMREPLY(channelStatus, channel, nick)					(channelStatus + " " + channel + " :" + nick + "\r\n") //353
+//NAMES
+# define RPL_ENDOFNAMES(channel)									(channel + " :End of NAMES list\r\n") //366
+//LINKS
+# define RPL_LINKS(mask, server, server_info)						(mask + " " + server + " :0 " + server_info + "\r\n") // 364
+# define RPL_ENDOFLINKS(mask)										(mask + " :End of LINKS list" + "\r\n") //365
+//MODE
+# define RPL_BANLIST(channel, banmask)								(channel + " " + banmask + "\r\n") //367
+# define RPL_ENDOFBANLIST(channel)									(channel + " :End of channel ban list\r\n") //368
+//INFO
+# define RPL_INFO(string)											(":" + string + "\r\n") //371
+# define RPL_ENDOFINFO												(":End of INFO list\r\n") //374
+//MOTD
+# define RPL_MOTDSTART(server)										(":- " + server + " Message of the day - \r\n") //375
+# define RPL_MOTD(text)												(":- " + text + "\r\n") //372
+# define RPL_ENDOFMOTD												(":End of MOTD command") //376
+//OPER
+# define RPL_YOUREOPER												(":You are now an IRC operator\r\n") //381
+//REHASH
+# define RPL_REHASHING(config_file)									(config_file + " :Rehashing\r\n") //382
+//TIME
+# define RPL_TIME(server, time)										(server + " :" + time + "\r\n") //391
+//USERS
+# define RPL_USERSSTART												(":UserID   Terminal  Host\r\n") //392
+# define RPL_USERS(username, ttyline, hostname)						(":" + username + " " + ttyline + " " + hostname + "\r\n") //393
+# define RPL_ENDOFUSERS												(":End of users\r\n") //394
+# define RPL_NOUSERS												(":Nobody logged in\r\n") //395
+//TRACE
+# define RPL_TRACELINK(version, destination, server)				("Link " + version + " " + destination + " " + server + "\r\n") //200
+# define RPL_TRACECONNECTING(classe, server)							("Try. " + class + " " + server + "\r\n") //201
+# define RPL_TRACEHANDSHAKE(classe, server)							("H.S " +  classe + " " + server) //202
+
+
+
 
 ////////////////////////////////GLOBAL ERRORS/////////////////////////////////////////////
 
@@ -72,7 +108,7 @@
 # define ERR_NICKNAMEINUSE(nick)									(nick + " :Nickname is already in use\r\n")
 # define ERR_ERRONEUSNICKNAME(nick)									(nick + " :Erroneous nickname\r\n")
 # define ERR_NICKCOLLISION(nick, host, user)						(nick + " :Nickname collision KILL from " + user + "@" + host + "\r\n")
-# define ERR_RESTRICTED												(":Your connection is restricted!")
+# define ERR_RESTRICTED												(":Your connection is restricted!\r\n")
 # define ERR_UNAVAILRESOURCE(nickChannel)							(nickChannel + " :Nick/channel is temporarily unavailable\r\n")
 
 
