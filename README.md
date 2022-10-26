@@ -9,6 +9,7 @@
 - PASS
 - QUIT
 - USER
+- SERVICE
 
 ### User
 - WHO
@@ -24,7 +25,7 @@
 - PART
 - TOPIC
 
-### Server
+### Server queries and commands
 - ADMIN
 - INFO
 - MODT
