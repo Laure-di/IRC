@@ -86,11 +86,9 @@
 # define RPL_USERS(username, ttyline, hostname)						(":" + username + " " + ttyline + " " + hostname + "\r\n") //393
 # define RPL_ENDOFUSERS												(":End of users\r\n") //394
 # define RPL_NOUSERS												(":Nobody logged in\r\n") //395
-//TRACE
-# define RPL_TRACELINK(version, destination, server)				("Link " + version + " " + destination + " " + server + "\r\n") //200
-# define RPL_TRACECONNECTING(classe, server)							("Try. " + class + " " + server + "\r\n") //201
-# define RPL_TRACEHANDSHAKE(classe, server)							("H.S " +  classe + " " + server + "\r\n") //202
-# define 
+//USER MODE
+# define RPL_UMODEIS(userMode)										(userMode + "\r\n") //221
+# define RPL_LUSERCLIENT(nb_user, nb_services, nb_servers)			(":There are " + nb_user + " users and " + nb_services +" services on" + nb_servers + "servers")//251
 
 
 
