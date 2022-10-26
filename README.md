@@ -11,9 +11,9 @@
 - USER
 
 ### User
--WHO
--WHOIS
--WHOWAS
+- WHO
+- WHOIS
+- WHOWAS
 
 ### Channel
 - INVITE
