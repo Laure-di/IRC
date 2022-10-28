@@ -7,22 +7,23 @@ _mast#ifndef SERVER_HPP
 class Server
 {
 	private:
+		void				_createPoll(void);
+		int					_waitPool(void);
+
 		int					_port;
 		std::string			_hostname;
 		std::string			_password;
 		struct sockaddr_in	_addr;
-		int					_masterSocket, _newSocket, _clientSocket[MAX_CLIENTS]; //TODO need to define MAX_CLIENTS
+		int					_masterSocket, _clientSocket;
+		struct epoll_event	_ev, _ep_event[MAX_EVENTS];//TODO define MAX_EVENTS
 		fd_set				_readfds;
-		char				_buffer[1025];//class or straight to the code?
+		char				_buffer[1025];//map ??
 	public:
 		Server(int port, std::string password);
-
-		const std::string&		getHostaneme(void) const;
+		void					execute(void);
+		const std::string&		getHostname(void) const;
 		const int&				getMasterSocket(void) const;
 
-		//METHOD A IMPLEMENTER
-		//create_socket
-		//bind_socket
 }
 
 #endif
