@@ -7,32 +7,25 @@
 Server::Server(int port, std::string password)
 {
 	int			optval = 1;
-	std::string	hostname[1024];
 
 	this->_password = password;
 	this->_port = port;
-	//gethostname(hostname, 1024);
-	//std::cout << "DEBUG hostname display : " << hostname << std::endl;
 	this->_hostname = HOSTNAME;
 	//Creation of the master socket
 	if ((this->_masterSocket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-	{
 		std::cerr << std::strerror(errno) << std::endl;
-		exit(EXIT_FAILURE);
-	}
 	//Set socket to allow multi connections && reuse of socket
 	if (setsockopt(this->_masterSocket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
-	{
 		std::cerr << std::strerror(errno) << std::endl;
-		exit(EXIT_FAILURE);
-	}
 	this->_addr.sin_family = AF_INET;
-    this->_addr.sin_addr.s_addr = INADDR_ANY;
-    this->_addr.sin_port = htons(port);
+	this->_addr.sin_addr.s_addr = INADDR_ANY;
+	this->_addr.sin_port = htons(port);
 	//binding the socket to the port
 	if (bind(this->_masterSocket,(const struct sockaddr *)&this->_addr, sizeof(this->_addr)) == -1)
 	{
 		std::cerr << std::strerror(errno) << std::endl;
+		if (close(this->_masterSocket) == -1)
+			std::cerr << "Error: couldn't close properly the server's socket" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	if (listen(this->_masterSocket, 1) == -1) //TODO Define Baklog 1
@@ -59,7 +52,6 @@ void	Server::_acceptNewClient(int masterSocket, int clientSocket)
 {
 	socklen_t				addrlen;
 	struct sockaddr_storage client_addr;
-	//struct sockaddr_in		*ptr;
 	int						client_fd;
 
 	addrlen = sizeof(struct sockaddr_storage);
