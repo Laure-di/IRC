@@ -1,4 +1,4 @@
-#include "../includes/Server.hpp"
+#include "../includes/Class/Server.hpp"
 
 //TODO handle signal
 
@@ -16,5 +16,6 @@ int		main(int argc, char **argv)
 	port = std::atoi(argv[1]);
 	pwd = argv[2];
 
-	//Server IRCServer(port, pwd);
+	Server IRCServer(port, pwd);
+	IRCServer.execute();
 }

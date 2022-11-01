@@ -19,7 +19,10 @@ OBJSDIR	=	objs
 #            SOURCE FILES            #
 ######################################
 
+SRCS_DIR	=	srcs/
+
 SRCS	=	main.cpp		\
+			Server.cpp
 
 INC		= includes
 ######################################
@@ -48,7 +51,7 @@ $(NAME): ${OBJS}
 			${CC} ${FLAGS} ${OBJS} -o $@
 
 -include $(DEP)
-${OBJSDIR}/%.o:%.cpp | $(OBJSDIR)
+${OBJSDIR}/%.o:${SRCS_DIR}%.cpp | $(OBJSDIR)
 			${CC} ${FLAGS} -c $< -o $@
 
 $(OBJSDIR):
