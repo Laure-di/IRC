@@ -28,7 +28,7 @@ Server::Server(int port, std::string password)
 			std::cerr << "Error: couldn't close properly the server's socket" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	if (listen(this->_masterSocket, 1) == -1) //TODO Define Baklog 1
+	if (listen(this->_masterSocket, BACKLOG) == -1) //TODO Define Baklog 10
 	{
 		std::cerr << std::strerror(errno)<< std::endl;
 		exit(EXIT_FAILURE);
@@ -65,6 +65,31 @@ void	Server::_acceptNewClient(int masterSocket, int clientSocket)
 	std::cout << "nouvelle connexion" << std::endl;
 }
 
+void	Server::_handleMessage(int i)
+{
+	char	buffer[BUFFER_SIZE];//TODO define a BUFFER_SIZE
+	ssize_t	numbytes;
+
+	memset(buffer, 0, BUFFER_SIZE);
+	numbytes = recv(this->_ep_event[i].data.fd, buffer, BUFFER_SIZE, 0);
+	if (numbytes == -1)
+		std::cerr << "recv error" << std::endl;
+	else if (numbytes == 0) //client close connection
+	{
+		std::cerr << "Socket closed by client" << std::endl;
+		if (epoll_ctl(this->_clientSocket, EPOLL_CTL_DEL, this->_ep_event[i].data.fd, &this->_ev) == -1)
+			std::cerr << std::strerror(errno) << std::endl;
+		if (close(this->_ep_event[i].data.fd) == -1)
+			std::cerr << std::strerror(errno) << std::endl;
+	}
+	else
+	{
+		buffer[numbytes] = '\0';
+		std::cout << buffer << std::endl;
+	}
+
+}
+
 void	Server::execute(void)
 {
 	int	nfds = 0;
@@ -81,8 +106,7 @@ void	Server::execute(void)
 					this->_acceptNewClient(this->_masterSocket, this->_clientSocket);
 				else
 				{
-					std::cout << "manage data" << std::endl;
-					//Receive data from existing connection
+					this->_handleMessage(i);
 				}
 			}
 		}

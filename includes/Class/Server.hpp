@@ -14,6 +14,8 @@
 
 #define MAX_EVENTS	500000
 #define HOSTNAME	"localhost"
+#define BUFFER_SIZE	50000
+#define BACKLOG		10
 
 class Server
 {
@@ -21,13 +23,13 @@ class Server
 		void				_createPoll(void);
 		int					_waitPool(void);
 		void				_acceptNewClient(int masterSocket, int clientSocket);
+		void				_handleMessage(int i);
 		int					_port;
 		std::string			_hostname;
 		std::string			_password;
 		struct sockaddr_in	_addr;
 		int					_masterSocket, _clientSocket;
 		struct epoll_event	_ev, _ep_event[MAX_EVENTS];//TODO define MAX_EVENTS
-		char				_buffer[1025];//map ??
 	public:
 		Server(int port, std::string password);
 		void					execute(void);

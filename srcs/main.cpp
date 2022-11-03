@@ -9,12 +9,10 @@ int		main(int argc, char **argv)
 		std::cerr << "To launch IRC : ./ircserv <port> <password>" << std::endl;
 		return (1);
 	}
-	//No Issue we are building the server
 	int			port;
-	std::string pwd;
+	std::string	pwd(argv[2]);
 
 	port = std::atoi(argv[1]);
-	pwd = argv[2];
 
 	Server IRCServer(port, pwd);
 	IRCServer.execute();
