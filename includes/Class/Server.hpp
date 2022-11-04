@@ -29,7 +29,10 @@ class Server
 		std::string			_password;
 		sockaddr_in	_addr;
 		int					_listenSocket, _poolSocket;
-		epoll_event	_ev, _ep_event[MAX_EVENTS];//TODO define MAX_EVENTS
+		epoll_event	_ev, _ep_event[MAX_EVENTS];
+
+
+
 	public:
 		Server(int port, std::string password);
 		void					execute(void);

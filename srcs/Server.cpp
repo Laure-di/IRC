@@ -61,6 +61,7 @@ void	Server::_acceptNewClient(int masterSocket, int clientSocket)
 	if ((client_fd = accept(masterSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
 		std::cerr << std::strerror(errno) << std::endl;
 	//TODO create a new User
+	std::cout << client_fd << std::endl;
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = client_fd;
 	if (epoll_ctl(clientSocket, EPOLL_CTL_ADD, client_fd, &_ev) == -1)

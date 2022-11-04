@@ -15,7 +15,8 @@ class User
 		//TODO add channels
 	
 	public:
-		User(int fd, int hostname);
+		User(int fd, std::string hostname);
+		~User();
 		std::string		getNickname(void)const;
 		std::string		getUsername(void)const;
 		const int		getFd(void)const;
@@ -26,6 +27,6 @@ class User
 		void			setUsername(std::string username);
 		void			setMode(int mode);
 		void			setStatus(int status);
-}
+};
 
 #endif
