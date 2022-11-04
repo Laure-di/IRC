@@ -22,7 +22,7 @@ class Server
 	private:
 		void				_createPoll(void);
 		int					_waitPool(void);
-		void				_acceptNewClient(int masterSocket, int clientSocket);
+		void				_acceptNewClient(int listenSocket, int poolSocket);
 		void				_handleMessage(int i);
 		int					_port;
 		std::string			_hostname;

@@ -4,16 +4,13 @@
 
 #include "../includes/Class/Server.hpp"
 
-Server::Server(int port, std::string password)
+Server::Server(int port, std::string password):_password(password), _port(port), _hostname(HOSTNAME)
 {
 	int			optval = 1;
 
 	memset(&this->_ev, 0, sizeof(epoll_event));
 	memset(&this->_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
 	memset(&this->_addr, 0, sizeof(sockaddr_in));
-	this->_password = password;
-	this->_port = port;
-	this->_hostname = HOSTNAME;
 	//Creation of the master socket
 	if ((this->_listenSocket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 		std::cerr << std::strerror(errno) << std::endl;
@@ -51,20 +48,20 @@ void	Server::_createPoll(void)
 	}
 }
 
-void	Server::_acceptNewClient(int masterSocket, int clientSocket)
+void	Server::_acceptNewClient(int listenSocket, int poolSocket)
 {
 	socklen_t				addrlen;
 	struct sockaddr_storage client_addr;
 	int						client_fd;
 
 	addrlen = sizeof(struct sockaddr_storage);
-	if ((client_fd = accept(masterSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
+	if ((client_fd = accept(listenSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
 		std::cerr << std::strerror(errno) << std::endl;
 	//TODO create a new User
 	std::cout << client_fd << std::endl;
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = client_fd;
-	if (epoll_ctl(clientSocket, EPOLL_CTL_ADD, client_fd, &_ev) == -1)
+	if (epoll_ctl(poolSocket, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
 		std::cerr << strerror(errno) << std::endl;
 	std::cout << "nouvelle connexion" << std::endl;
 }
@@ -141,7 +138,7 @@ const std::string&		Server::getHostname(void)const
 	return (this->_hostname);
 }
 
-const int&				Server::getMasterSocket(void)const
+const int&				Server::getListenSocket(void)const
 {
 	return (this->_listenSocket);
 }
