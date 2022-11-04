@@ -28,7 +28,7 @@ class Server
 		std::string			_hostname;
 		std::string			_password;
 		struct sockaddr_in	_addr;
-		int					_masterSocket, _clientSocket;
+		int					_listenSocket, _poolSocket;
 		struct epoll_event	_ev, _ep_event[MAX_EVENTS];//TODO define MAX_EVENTS
 	public:
 		Server(int port, std::string password);
