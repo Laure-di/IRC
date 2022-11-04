@@ -16,4 +16,5 @@ int		main(int argc, char **argv)
 
 	Server IRCServer(port, pwd);
 	IRCServer.execute();
+	return (0);
 }

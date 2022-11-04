@@ -8,6 +8,9 @@ Server::Server(int port, std::string password)
 {
 	int			optval = 1;
 
+	memset(&this->_ev, 0, sizeof(epoll_event));
+	memset(&this->_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
+	memset(&this->_addr, 0, sizeof(sockaddr_in));
 	this->_password = password;
 	this->_port = port;
 	this->_hostname = HOSTNAME;
@@ -115,7 +118,7 @@ void	Server::execute(void)
 }
 
 
-void	Server::exit(void)
+void	Server::quit(void)
 {
 	if (close(this->_listenSocket) == -1)
 		std::cerr << "close issue" << std::endl;
