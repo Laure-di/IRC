@@ -36,6 +36,7 @@ class Server
 		const std::string&		getHostname(void) const;
 		const int&				getMasterSocket(void) const;
 		void					setHostname(std::string);
+		void					exit(void);
 
 };
 
