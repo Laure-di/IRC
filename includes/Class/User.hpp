@@ -19,7 +19,7 @@ class User
 		~User();
 		std::string		getNickname(void)const;
 		std::string		getUsername(void)const;
-		const int		getFd(void)const;
+		int				getFd(void)const;
 		std::string		getHostname(void)const;
 		int				getStatus(void)const;
 		int				getMode(void)const;

@@ -1,6 +1,6 @@
 //TODO define mode and status and add to constructor
 
-User::User(int fd, std::string hostname): _nickname(""), _username(""), _fd(fd), _hostname(hostname), _mode(), _status()
+User::User(int fd, std::string hostname): _nickname(""), _username(""), _fd(fd), _hostname(hostname), _mode(0), _status(0)//changer mode et status
 {
 }
 

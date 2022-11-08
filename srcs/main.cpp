@@ -1,4 +1,5 @@
 #include "../includes/Class/Server.hpp"
+#include "../includes/Exceptions.hpp"
 
 //TODO handle signal
 
@@ -14,7 +15,14 @@ int		main(int argc, char **argv)
 
 	port = std::atoi(argv[1]);
 
-	Server IRCServer(port, pwd);
-	IRCServer.execute();
+	try
+	{
+		Server IRCServer(port, pwd);
+		IRCServer.execute();
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
 	return (0);
 }
