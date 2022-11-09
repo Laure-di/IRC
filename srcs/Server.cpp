@@ -64,7 +64,7 @@ void	Server::_acceptNewClient(int listenSocket, int pollfd)
 	this->_ev.data.fd = client_fd;
 	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
 		throw serverError("epoll_ctl", strerror(errno));
-	//this->printAllUsersFd();
+	this->printAllUsersFd();
 	std::cout << "nouvelle connexion" << std::endl;
 }
 
@@ -80,7 +80,6 @@ void	Server::_handleMessage(int i)
 	else if (numbytes == 0) //INFO client close connection
 	{
 		User* userToDel = this->getUserByFd(this->_ep_event[i].data.fd);
-		std::cout << "we find a matching user" << userToDel->getFd() << std::endl;
 		std::cerr << "Socket closed by client" << std::endl; //TODO delete before set as finish
 		if (epoll_ctl(this->_pollfd, EPOLL_CTL_DEL, this->_ep_event[i].data.fd, &this->_ev) == -1)
 			throw serverError("epoll_ctl", strerror(errno));
@@ -111,7 +110,7 @@ void	Server::execute(void)
 	while (is_running)
 	{
 		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
-			throw serverError("epoll_wait", strerror(errno));
+			std::cerr << "QUID MESSAGE OU NON" << std::endl;
 		for (int i = 0; i < nfds; i++)
 		{
 			if ((this->_ep_event[i].events & EPOLLIN) == EPOLLIN)
@@ -125,6 +124,7 @@ void	Server::execute(void)
 			}
 		}
 	}
+	signal(SIGINT, SIG_DFL);
 }
 
 
@@ -146,13 +146,13 @@ void	Server::clearServer(void) //TODO link with signal??!!
 					if (close(it_begin->second->getFd()) == -1)
 						throw serverError("close", strerror(errno));
 				}
+				delete it_begin->second;
 			}
 			catch (std::exception &e)
 			{
 				std::cerr << e.what() << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			delete it_begin->second;
 		}
 	}
 	if (close(this->_listenSocket) == -1)
@@ -208,7 +208,7 @@ void	Server::printAllUsersFd(void)
 		std::map<int, User*>::const_iterator ite = this->_usersOnServer.end();
 		for (it = this->_usersOnServer.begin(); it != ite; it++)
 		{
-			std::cout << (it->second)->getFd() << std::endl;
+			std::cout << (it->second)->getHostname() << std::endl;
 		}
 	}
 
@@ -223,6 +223,7 @@ void	Server::deleteUser(User* user)
 		if (user == it->second)
 		{
 			delete it->second;
+			//close (it->second->getFd());
 			this->_usersOnServer.erase(it++);
 		}
 		else
