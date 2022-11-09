@@ -19,6 +19,7 @@ int		main(int argc, char **argv)
 	{
 		Server IRCServer(port, pwd);
 		IRCServer.execute();
+		IRCServer.clearServer();
 	}
 	catch (std::exception &e)
 	{

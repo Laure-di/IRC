@@ -4,6 +4,9 @@
 
 #include "../includes/Class/Server.hpp"
 #include "../includes/Class/User.hpp"
+#include <signal.h> //TODO mettre dans Server.hpp
+
+static bool	is_running=true;
 
 Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _password(password)
 {
@@ -34,19 +37,19 @@ Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME),
 
 void	Server::_createPoll(void)
 {
-	if ((this->_poolSocket = epoll_create1(0)) == -1)
+	if ((this->_pollfd = epoll_create1(0)) == -1)
 		throw serverError("epoll_create1", strerror(errno));
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = this->_listenSocket;
-	if (epoll_ctl(this->_poolSocket, EPOLL_CTL_ADD, this->_listenSocket, &this->_ev) == -1)
+	if (epoll_ctl(this->_pollfd, EPOLL_CTL_ADD, this->_listenSocket, &this->_ev) == -1)
 	{
-		close(this->_poolSocket);
+		close(this->_pollfd);
 		close(this->_listenSocket);
 		throw serverError("epoll_ctl", strerror(errno));
 	}
 }
 
-void	Server::_acceptNewClient(int listenSocket, int poolSocket)
+void	Server::_acceptNewClient(int listenSocket, int pollfd)
 {
 	socklen_t				addrlen;
 	struct sockaddr_storage client_addr;
@@ -59,8 +62,9 @@ void	Server::_acceptNewClient(int listenSocket, int poolSocket)
 	this->_usersOnServer[client_fd] = new User(client_fd, this->getHostname()); //TODO check hostname
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = client_fd;
-	if (epoll_ctl(poolSocket, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
+	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
 		throw serverError("epoll_ctl", strerror(errno));
+	//this->printAllUsersFd();
 	std::cout << "nouvelle connexion" << std::endl;
 }
 
@@ -75,12 +79,14 @@ void	Server::_handleMessage(int i)
 		std::cerr << "recv error" << std::endl;
 	else if (numbytes == 0) //INFO client close connection
 	{
+		User* userToDel = this->getUserByFd(this->_ep_event[i].data.fd);
+		std::cout << "we find a matching user" << userToDel->getFd() << std::endl;
 		std::cerr << "Socket closed by client" << std::endl; //TODO delete before set as finish
-		if (epoll_ctl(this->_poolSocket, EPOLL_CTL_DEL, this->_ep_event[i].data.fd, &this->_ev) == -1)
+		if (epoll_ctl(this->_pollfd, EPOLL_CTL_DEL, this->_ep_event[i].data.fd, &this->_ev) == -1)
 			throw serverError("epoll_ctl", strerror(errno));
 		if (close(this->_ep_event[i].data.fd) == -1)
 			throw serverError("close", strerror(errno));
-		//TODO delete User
+		this->deleteUser(userToDel);
 	}
 	else
 	{
@@ -89,20 +95,29 @@ void	Server::_handleMessage(int i)
 
 }
 
+void	stopServer(int signal)
+{
+	(void)signal;
+	std::cout << "\r";
+	is_running = false;
+}
+
 void	Server::execute(void)
 {
 	int	nfds = 0;
 	this->_createPoll();
-	while (1)
+	is_running = true;
+	signal(SIGINT, stopServer);
+	while (is_running)
 	{
-		if ((nfds = epoll_wait(this->_poolSocket, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
+		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
 			throw serverError("epoll_wait", strerror(errno));
 		for (int i = 0; i < nfds; i++)
 		{
 			if ((this->_ep_event[i].events & EPOLLIN) == EPOLLIN)
 			{
 				if (this->_ep_event[i].data.fd == this->_listenSocket)
-					this->_acceptNewClient(this->_listenSocket, this->_poolSocket);
+					this->_acceptNewClient(this->_listenSocket, this->_pollfd);
 				else
 				{
 					this->_handleMessage(i);
@@ -113,18 +128,37 @@ void	Server::execute(void)
 }
 
 
-void	Server::quit(void)
+void	Server::clearServer(void) //TODO link with signal??!!
 {
+	//TODO delete channels before user bc channels are links to users
+	//Close connection and fd and delete users
+	if (!this->_usersOnServer.empty())
+	{
+		std::map<int, User*>::const_iterator it_end = this->_usersOnServer.end();
+		for (std::map<int, User*>::const_iterator it_begin = this->_usersOnServer.begin(); it_begin != it_end; it_begin++)
+		{
+			try
+			{
+				if (epoll_ctl(this->_pollfd, EPOLL_CTL_DEL, it_begin->second->getFd(), &this->_ev) == -1)
+					throw serverError("epoll_ctl_del", strerror(errno));
+				if (it_begin->second)
+				{
+					if (close(it_begin->second->getFd()) == -1)
+						throw serverError("close", strerror(errno));
+				}
+			}
+			catch (std::exception &e)
+			{
+				std::cerr << e.what() << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			delete it_begin->second;
+		}
+	}
 	if (close(this->_listenSocket) == -1)
 		std::cerr << "close issue" << std::endl;
-	if (close(this->_poolSocket) == -1)
+	if (close(this->_pollfd) == -1)
 		std::cerr << "close issue" << std::endl;
-	for (int i = 0; i < MAX_EVENTS; i++)
-	{
-		if (close(this->_ep_event[i].data.fd) == -1)
-			std::cerr << "close issue" << std::endl;
-	}
-	//TODO delete all user
 }
 
 //TO DO 2 Functions
@@ -164,6 +198,34 @@ User*	Server::getUserByFd(const int fd)const
 	if (this->_usersOnServer.find(fd) != it)
 		return (this->_usersOnServer.find(fd)->second);
 	return (NULL);
+}
+
+void	Server::printAllUsersFd(void)
+{
+	if (!this->_usersOnServer.empty())
+	{
+		std::map<int, User*>::const_iterator it;
+		std::map<int, User*>::const_iterator ite = this->_usersOnServer.end();
+		for (it = this->_usersOnServer.begin(); it != ite; it++)
+		{
+			std::cout << (it->second)->getFd() << std::endl;
+		}
+	}
 
 }
 
+void	Server::deleteUser(User* user)
+{
+	std::map<int, User*>::iterator it;
+	std::map<int, User*>::iterator ite = this->_usersOnServer.end();
+	for (it = this->_usersOnServer.begin(); it != ite;)
+	{
+		if (user == it->second)
+		{
+			delete it->second;
+			this->_usersOnServer.erase(it++);
+		}
+		else
+			it++;
+	}
+}

@@ -33,8 +33,8 @@ class Server
 		std::string					_hostname;
 		std::string					_password;
 		sockaddr_in					_addr;
-		int							_listenSocket, _poolSocket;
-		epoll_event					_ev, _ep_event[MAX_EVENTS];
+		int							_listenSocket, _pollfd;
+		epoll_event					_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
 		std::map<const int, User*>	_usersOnServer;
 
 
@@ -48,7 +48,9 @@ class Server
 		User*						getUserByNickname(std::string nickname)const;
 		User*						getUserByFd(const int fd)const;
 		void						setHostname(std::string);
-		void						quit(void);
+		void						clearServer(void);
+		void						deleteUser(User* user);
+		void						printAllUsersFd(void);//TODO delete just debug
 
 };
 

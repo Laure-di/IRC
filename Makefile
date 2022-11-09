@@ -22,7 +22,8 @@ OBJSDIR	=	objs
 SRCS_DIR	=	srcs/
 
 SRCS	=	main.cpp		\
-			Server.cpp
+			Server.cpp		\
+			User.cpp
 
 INC		= includes
 ######################################
