@@ -12,9 +12,10 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <map>
+#include <deque>
 
-#include "User.hpp"
 #include "../Exceptions.hpp"
+#include "User.hpp"
 
 #define MAX_EVENTS	512
 #define HOSTNAME	"localhost"
@@ -43,6 +44,9 @@ class Server
 		void						execute(void);
 		const std::string&			getHostname(void) const;
 		const int&					getListenSocket(void) const;
+		std::deque<User*>			getAllUsers(void)const;
+		User*						getUserByNickname(std::string nickname)const;
+		User*						getUserByFd(const int fd)const;
 		void						setHostname(std::string);
 		void						quit(void);
 

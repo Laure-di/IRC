@@ -1,6 +1,8 @@
 //TODO define mode and status and add to constructor
+//TODO change mode and status in consructor
+#include "../includes/Class/User.hpp"
 
-User::User(int fd, std::string hostname): _nickname(""), _username(""), _fd(fd), _hostname(hostname), _mode(0), _status(0)//changer mode et status
+User::User(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(0), _status(0)
 {
 }
 
@@ -17,7 +19,7 @@ std::string	User::getUsername(void)const
 	return (this->_username);
 }
 
-const int	User::getFd(void)const
+int	User::getFd(void)const
 {
 	return (this->_fd);
 }
@@ -43,7 +45,7 @@ void	User::setNickname(std::string nickname)
 	this->_nickname = nickname;
 }
 
-void	User::setUsername(void)
+void	User::setUsername(std::string username)
 {
 	this->_username = username;
 }
@@ -56,4 +58,9 @@ void	User::setMode(int mode)
 void	User::setStatus(int status)
 {
 	this->_status = status;
+}
+
+void	User::setFullName(std::string fullName)
+{
+	this->_fullName = fullName;
 }

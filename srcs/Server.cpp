@@ -3,8 +3,9 @@
 //TODO add client message
 
 #include "../includes/Class/Server.hpp"
+#include "../includes/Class/User.hpp"
 
-Server::Server(int port, std::string password):_password(password), _port(port), _hostname(HOSTNAME)
+Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _password(password)
 {
 	int			optval = 1;
 
@@ -55,7 +56,7 @@ void	Server::_acceptNewClient(int listenSocket, int poolSocket)
 	memset(&client_addr, 0, sizeof(sockaddr_storage));
 	if ((client_fd = accept(listenSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
 		std::cerr << std::strerror(errno) << std::endl; //QUID throw an exception or just a error?!
-	this->_usersOnServer[client_fd] = new User(client_fd, HOSTNAME); //TODO check hostname
+	this->_usersOnServer[client_fd] = new User(client_fd, this->getHostname()); //TODO check hostname
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = client_fd;
 	if (epoll_ctl(poolSocket, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
@@ -123,6 +124,7 @@ void	Server::quit(void)
 		if (close(this->_ep_event[i].data.fd) == -1)
 			std::cerr << "close issue" << std::endl;
 	}
+	//TODO delete all user
 }
 
 //TO DO 2 Functions
@@ -142,5 +144,26 @@ const int&				Server::getListenSocket(void)const
 void				Server::setHostname(std::string hostname)
 {
 	this->_hostname = hostname;
+}
+
+std::deque<User*>	Server::getAllUsers(void)const
+{
+	std::deque<User*> allUsers;
+
+	for (std::map<int, User*>::const_iterator it = this->_usersOnServer.begin(); it!= this->_usersOnServer.end(); it++)
+	{
+		allUsers.push_back(it->second);
+	}
+
+	return (allUsers);
+}
+
+User*	Server::getUserByFd(const int fd)const
+{
+	std::map<int, User*>::const_iterator it = this->_usersOnServer.end();
+	if (this->_usersOnServer.find(fd) != it)
+		return (this->_usersOnServer.find(fd)->second);
+	return (NULL);
+
 }
 

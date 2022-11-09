@@ -6,6 +6,7 @@ class User
 	private:
 		std::string			_nickname;//unique nickname
 		std::string			_username;
+		std::string			_fullName;
 		const int			_fd;
 		std::string			_hostname;
 		int					_mode;
@@ -15,7 +16,7 @@ class User
 		//TODO add channels
 	
 	public:
-		User(int fd, std::string hostname);
+		User(const int fd, std::string hostname);
 		~User();
 		std::string		getNickname(void)const;
 		std::string		getUsername(void)const;
@@ -25,6 +26,7 @@ class User
 		int				getMode(void)const;
 		void			setNickname(std::string nickname);
 		void			setUsername(std::string username);
+		void			setFullName(std::string fullName);
 		void			setMode(int mode);
 		void			setStatus(int status);
 };
