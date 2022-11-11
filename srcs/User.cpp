@@ -2,7 +2,7 @@
 //TODO change mode and status in consructor
 #include "../includes/Class/User.hpp"
 
-User::User(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(0), _status(0)
+User::User(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(0), _status(0), _pwd(false)
 {
 }
 
@@ -39,6 +39,11 @@ int		User::getMode(void)const
 	return (this->_mode);
 }
 
+bool User::getPwd(void)const
+{
+	return (this->_pwd);
+}
+
 void	User::setNickname(std::string nickname)
 {
 	//TODO faire les check nickname
@@ -63,4 +68,9 @@ void	User::setStatus(int status)
 void	User::setFullName(std::string fullName)
 {
 	this->_fullName = fullName;
+}
+
+void	User::setPwd(bool pwd)
+{
+	this->_pwd = pwd;
 }

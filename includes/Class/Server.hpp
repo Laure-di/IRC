@@ -19,10 +19,28 @@
 #include "User.hpp"
 #include "Channel.hpp"
 
-#define MAX_EVENTS	512
+//Variables server use
+#define MAX_EVENTS	20
 #define HOSTNAME	"localhost"
 #define BUFFER_SIZE	50000
 #define BACKLOG		10
+
+//Variables commands use
+#define	CMD_MAX_LGHT	510
+#define MAX_PARAM		15
+
+struct	commands
+{
+	std::string				command;
+	std::string				prefix;
+	std::deque<std::string>	params;
+	commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
+	{
+		command = cmd;
+		prefix = pref;
+		params = parameters;
+	}
+};
 
 class Server
 {

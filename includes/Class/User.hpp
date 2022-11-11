@@ -14,6 +14,7 @@ class User
 		std::string			_hostname;
 		int					_mode;
 		int					_status;
+		bool				_pwd;
 		//TODO last ping (time)
 		//TODO last activity (time)
 		//TODO add channels
@@ -27,11 +28,13 @@ class User
 		std::string		getHostname(void)const;
 		int				getStatus(void)const;
 		int				getMode(void)const;
+		bool			getPwd(void)const;
 		void			setNickname(std::string nickname);
 		void			setUsername(std::string username);
 		void			setFullName(std::string fullName);
 		void			setMode(int mode);
 		void			setStatus(int status);
+		void			setPwd(bool pwd);
 };
 
 #endif
