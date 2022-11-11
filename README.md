@@ -50,6 +50,9 @@ List of all the command responses well explain and detailed : https://modern.irc
 
 ## Ressources
 
+
+### Map of function pointers
+
 ### Exceptions
 
 - Exceptions with arguments : https://stackoverflow.com/questions/23742448/c-how-to-pass-parameters-to-custom-exceptions

@@ -15,7 +15,9 @@
 #include <deque>
 
 #include "../Exceptions.hpp"
+#include "../Commands.hpp"
 #include "User.hpp"
+#include "Channel.hpp"
 
 #define MAX_EVENTS	512
 #define HOSTNAME	"localhost"
@@ -36,7 +38,8 @@ class Server
 		int							_listenSocket, _pollfd;
 		epoll_event					_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
 		std::map<const int, User*>	_usersOnServer;
-
+		std::deque<Channel *>		_channels;
+		cmd_dict					_cmd_dict;
 
 
 	public:
@@ -51,6 +54,8 @@ class Server
 		void						clearServer(void);
 		void						deleteUser(User* user);
 		void						printAllUsersFd(void);//TODO delete just debug
+		void						sendMsgToFd(std::string msg, int fd);
+		void						createCmdDict(void);
 
 };
 
