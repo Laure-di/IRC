@@ -64,7 +64,7 @@ void	Server::_acceptNewClient(int listenSocket, int pollfd)
 	this->_ev.data.fd = client_fd;
 	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
 		throw serverError("epoll_ctl", strerror(errno));
-	this->printAllUsersFd();
+	//this->printAllUsersFd();
 	std::cout << "nouvelle connexion" << std::endl;
 }
 
@@ -74,6 +74,7 @@ void	Server::_handleMessage(int i)
 	ssize_t	numbytes;
 
 	memset(buffer, 0, BUFFER_SIZE);
+	//est ce que je dois utiliser le fd de la struct event ou user?? 
 	numbytes = recv(this->_ep_event[i].data.fd, buffer, BUFFER_SIZE, 0);
 	if (numbytes == -1)
 		std::cerr << "recv error" << std::endl;
@@ -89,7 +90,8 @@ void	Server::_handleMessage(int i)
 	}
 	else
 	{
-		std::cout << buffer << std::endl;
+		std::deque<std::string>	commands;
+		std::string	to_split(buffer);
 	}
 
 }
@@ -102,7 +104,7 @@ void	stopServer(int signal)
 }
 
 void	Server::execute(void)
-{
+{ 
 	int	nfds = 0;
 	this->_createPoll();
 	is_running = true;
@@ -110,7 +112,7 @@ void	Server::execute(void)
 	while (is_running)
 	{
 		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
-			std::cerr << "QUID MESSAGE OU NON" << std::endl;
+			std::cerr << "QUID MESSAGE OU NON" << std::endl;//this->clearServer ??
 		for (int i = 0; i < nfds; i++)
 		{
 			if ((this->_ep_event[i].events & EPOLLIN) == EPOLLIN)
