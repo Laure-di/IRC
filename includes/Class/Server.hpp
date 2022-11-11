@@ -27,17 +27,17 @@
 #define	CMD_MAX_LGHT	510
 #define MAX_PARAM		15
 
-struct	commands
+struct	Commands
 {
 	std::string				command;
 	std::string				prefix;
 	std::deque<std::string>	params;
-	commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
+	/*Commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
 	{
 		command = cmd;
 		prefix = pref;
 		params = parameters;
-	}
+	}*/
 };
 
 class Server
