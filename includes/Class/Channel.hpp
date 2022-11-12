@@ -1,5 +1,5 @@
 #include <string>
-#include <deque>
+#include <map>
 #include "User.hpp"
 
 class Channel
@@ -8,13 +8,20 @@ class Channel
 		std::string _name;
 		std::string _topic;
 		char _mode;
-		std::deque<User*>	_usersOnChannel;
-		std::deque<User*>	_usersBanned;
+		std::map<std::string, User*>	_usersOnChannel;
+		std::map<std::string, User*>	_userOperator;
+		std::map<std::string, User*>	_usersBanned;
 
 	public:
-		std::string get_name();
+		Channel(std::string name, User* creator);
+		std::string get_name(void);
 		void set_name(std::string name);
-		std::string get_topic();
+		std::string get_topic(void);
 		void set_topic(std::string topic);
+		void clear_topic(void);
+		void set_mode(Commands command);
+		User *findUserByNickname(std::string nickname);
+		User *findOperatorByNickname(std::string nickname);
+		User *findBannedUserByNickname(std::string nickname);
 
 };

@@ -1,7 +1,9 @@
 #include "./Class/Server.hpp"
+#include "CommandResponses.hpp"
+#include "../srcs/Utils.cpp"
 
-typedef void cmd_func(Server *server, int socket, commands command);
-typedef void (*cmd_func_ptr)(Server *server, int socket, commands command);
+typedef void cmd_func(Server *server, int socket, Commands command);
+typedef void (*cmd_func_ptr)(Server *server, int socket, Commands command);
 typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 
 /*

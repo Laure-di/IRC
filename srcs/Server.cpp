@@ -5,10 +5,11 @@
 #include "../includes/Class/Server.hpp"
 #include "../includes/Class/User.hpp"
 #include <signal.h> //TODO mettre dans Server.hpp
+#include "utils.cpp"
 
 static bool	is_running=true;
 
-Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _password(password)
+Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _password_hash(hasher(password.c_str()))
 {
 	int			optval = 1;
 
@@ -74,7 +75,7 @@ void	Server::_handleMessage(int i)
 	ssize_t	numbytes;
 
 	memset(buffer, 0, BUFFER_SIZE);
-	//est ce que je dois utiliser le fd de la struct event ou user?? 
+	//est ce que je dois utiliser le fd de la struct event ou user??
 	numbytes = recv(this->_ep_event[i].data.fd, buffer, BUFFER_SIZE, 0);
 	if (numbytes == -1)
 		std::cerr << "recv error" << std::endl;
@@ -104,14 +105,14 @@ void	stopServer(int signal)
 }
 
 void	Server::execute(void)
-{ 
+{
 	int	nfds = 0;
 	this->_createPoll();
 	is_running = true;
 	signal(SIGINT, stopServer);
 	while (is_running)
 	{
-		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
+		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly
 			std::cerr << "QUID MESSAGE OU NON" << std::endl;//this->clearServer ??
 		for (int i = 0; i < nfds; i++)
 		{
@@ -231,4 +232,96 @@ void	Server::deleteUser(User* user)
 		else
 			it++;
 	}
+}
+
+void	Server::sendMsgToFd(const std::string msg, const int fd)
+{
+	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
+}
+
+void	Server::createCmdDict(void) {
+	_cmd_dict["PASS"] = &pass;
+	_cmd_dict["NICK"] = &nick;
+	_cmd_dict["USER"] = &user;
+	_cmd_dict["OPER"] = &oper;
+	_cmd_dict["MODE"] = &mode;
+	_cmd_dict["SERVICE"] = &service;
+	_cmd_dict["QUIT"] = &quit;
+	_cmd_dict["SQUIT"] = &squit;
+	_cmd_dict["JOIN"] = &join;
+	_cmd_dict["PART"] = &part;
+	_cmd_dict["TOPIC"] = &topic;
+	_cmd_dict["NAMES"] = &names;
+	_cmd_dict["LIST"] = &list;
+	_cmd_dict["INVITE"] = &invite;
+	_cmd_dict["KICK"] = &kick;
+	_cmd_dict["PRIVMSG"] = &privmsg;
+	_cmd_dict["NOTICE"] = &notice;
+	_cmd_dict["MOTD"] = &motd;
+	_cmd_dict["LUSERS"] = &lusers;
+	_cmd_dict["VERSION"] = &version;
+	_cmd_dict["STATS"] = &stats;
+	_cmd_dict["LINKS"] = &links;
+	_cmd_dict["TIME"] = &time;
+	_cmd_dict["CONNECT"] = &connect;
+	_cmd_dict["TRACE"] = &trace;
+	_cmd_dict["ADMIN"] = &admin;
+	_cmd_dict["INFO"] = &info;
+	_cmd_dict["SERVLIST"] = &servlist;
+	_cmd_dict["SQUERY"] = &squery;
+	_cmd_dict["WHO"] = &who;
+	_cmd_dict["WHOIS"] = &whois;
+	_cmd_dict["WHOWAS"] = &whowas;
+	_cmd_dict["KILL"] = &kill;
+	_cmd_dict["PING"] = &ping;
+	_cmd_dict["PONG"] = &pong;
+	_cmd_dict["ERROR"] = &error;
+	_cmd_dict["AWAY"] = &away;
+	_cmd_dict["REHASH"] = &rehash;
+	_cmd_dict["DIE"] = &die;
+	_cmd_dict["RESTART"] = &restart;
+	_cmd_dict["SUMMON"] = &summon;
+	_cmd_dict["USERS"] = &users;
+	_cmd_dict["WALLOPS"] = &wallops;
+	_cmd_dict["USERHOST"] = &userhost;
+	_cmd_dict["ISON"] = &ison;
+}
+
+User* Server::findUserByNickname(const std::string nickname)
+{
+	std::map<int, User*>::const_iterator currentUser;
+	for (currentUser = _usersOnServer.cbegin(); currentUser != _usersOnServer.cend(); currentUser++)
+	{
+		if (currentUser->second->getNickname() == nickname)
+			return currentUser->second;
+	}
+	return nullptr;
+}
+
+User* Server::findUserByFd(const int fd)
+{
+	return _usersOnServer[fd];
+}
+
+void	Server::sendNumericReplyToFd(NumericReplies reply, const int fd)
+{
+	std::string msg = ":" + getHostname() + " " + toString(reply.num) + " " + findUserByFd(fd)->getNickname() + " " + reply.msg;
+	sendMsgToFd(msg, fd);
+}
+
+bool	Server::checkPassword(const std::string password) const
+{
+	return hasher(password.c_str()) == _password_hash;
+}
+
+Channel* Server::findChannelByName(const std::string name)
+{
+	return _channels[name];
+}
+
+Channel* Server::addChannel(std::string name, User* user)
+{
+	Channel *newChannel = new Channel(name, user);
+	_channels[name] = newChannel;
+	return newChannel;
 }

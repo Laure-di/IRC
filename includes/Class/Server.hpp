@@ -16,6 +16,7 @@
 
 #include "../Exceptions.hpp"
 #include "../Commands.hpp"
+#include "../CommandResponses.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
 
@@ -29,12 +30,12 @@
 #define	CMD_MAX_LGHT	510
 #define MAX_PARAM		15
 
-struct	commands
+struct	Commands
 {
 	std::string				command;
 	std::string				prefix;
 	std::deque<std::string>	params;
-	commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
+	Commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
 	{
 		command = cmd;
 		prefix = pref;
@@ -45,19 +46,19 @@ struct	commands
 class Server
 {
 	private:
-		void						_createPoll(void);
-		int							_waitPool(void);
-		void						_acceptNewClient(int listenSocket, int poolSocket);
-		void						_handleMessage(int i);
-		int							_port;
-		std::string					_hostname;
-		std::string					_password;
-		sockaddr_in					_addr;
-		int							_listenSocket, _pollfd;
-		epoll_event					_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
-		std::map<const int, User*>	_usersOnServer;
-		std::deque<Channel *>		_channels;
-		cmd_dict					_cmd_dict;
+		void							_createPoll(void);
+		int								_waitPool(void);
+		void							_acceptNewClient(int listenSocket, int poolSocket);
+		void							_handleMessage(int i);
+		int								_port;
+		std::string						_hostname;
+		unsigned						_password_hash;
+		sockaddr_in						_addr;
+		int								_listenSocket, _pollfd;
+		epoll_event						_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
+		std::map<const int, User*>		_usersOnServer;
+		std::map<std::string, Channel*>	_channels;
+		cmd_dict						_cmd_dict;
 
 
 	public:
@@ -72,8 +73,14 @@ class Server
 		void						clearServer(void);
 		void						deleteUser(User* user);
 		void						printAllUsersFd(void);//TODO delete just debug
-		void						sendMsgToFd(std::string msg, int fd);
+		void						sendMsgToFd(const std::string msg, const int fd);
+		void						sendNumericReplyToFd(NumericReplies reply, const int fd);
 		void						createCmdDict(void);
+		User*						findUserByNickname(const std::string nickname);
+		User*						findUserByFd(const int fd);
+		bool						checkPassword(const std::string password) const;
+		Channel*					findChannelByName(const std::string name);
+		Channel*					addChannel(std::string name, User* user);
 
 };
 

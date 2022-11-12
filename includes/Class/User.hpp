@@ -4,6 +4,17 @@
 #include <iostream>
 #include <unistd.h>
 
+enum UserModes
+{
+    Away = 1,
+    Invisible = 2,
+    Wallops = 4,
+    Restricted = 8,
+    Operator = 16,
+    LocalOperator = 32,
+    ServerNotices = 64
+};
+
 class User
 {
 	private:
@@ -18,7 +29,7 @@ class User
 		//TODO last ping (time)
 		//TODO last activity (time)
 		//TODO add channels
-	
+
 	public:
 		User(const int fd, std::string hostname);
 		~User();
@@ -33,6 +44,7 @@ class User
 		void			setUsername(std::string username);
 		void			setFullName(std::string fullName);
 		void			setMode(int mode);
+		void			setMode(Commands command);
 		void			setStatus(int status);
 		void			setPwd(bool pwd);
 };
