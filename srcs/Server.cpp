@@ -90,10 +90,10 @@ void	Server::_handleMessage(int i)
 	{
 		std::string				toSplit(buffer);
 		std::deque<std::string>	listOfCommands = split(toSplit, "\r\n");
-		if (!checkCommandLength(listOfCommands))
-			return ;
 		std::deque<Commands>	commandsList = manageMultipleCommands(listOfCommands);
+#ifdef DEBUG
 		printAllCmds(commandsList);
+#endif
 	}
 
 }
@@ -239,7 +239,7 @@ void	Server::sendMsgToFd(const std::string msg, const int fd)
 }
 
 void	Server::createCmdDict(void) {
-	_cmd_dict["PASS"] = &pass;
+/*	_cmd_dict["PASS"] = &pass;
 	_cmd_dict["NICK"] = &nick;
 	_cmd_dict["USER"] = &user;
 	_cmd_dict["OPER"] = &oper;
@@ -283,7 +283,8 @@ void	Server::createCmdDict(void) {
 	_cmd_dict["USERS"] = &users;
 	_cmd_dict["WALLOPS"] = &wallops;
 	_cmd_dict["USERHOST"] = &userhost;
-	_cmd_dict["ISON"] = &ison;
+	_cmd_dict["ISON"] = &ison;*/
+	std::cout << "Uncomment" << std::endl;
 }
 
 Client* Server::findUserByNickname(const std::string nickname)

@@ -2,7 +2,7 @@
 //TODO change mode and status in consructor
 #include "../includes/include.hpp"
 
-Client::Client(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(0), _status(0), _pwd(false)
+Client::Client(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(None), _status(None), _pwd(false)
 {
 }
 
@@ -44,6 +44,21 @@ bool Client::getPwd(void)const
 	return (this->_pwd);
 }
 
+Client*	Client::getLastExpediteur(void)const
+{
+	return (this->_lastExpediteur);
+}
+
+Client*	Client::getLastRecipient(void)const
+{
+	return (this->_lastRecipient);
+}
+
+Channel*	Client::getActiveChannel(void)const
+{
+	return (this->_activeChannel);
+}
+
 void	Client::setNickname(std::string nickname)
 {
 	//TODO faire les check nickname
@@ -73,4 +88,19 @@ void	Client::setFullName(std::string fullName)
 void	Client::setPwd(bool pwd)
 {
 	this->_pwd = pwd;
+}
+
+void	Client::setLastExpediteur(Client* expediteur)
+{
+	this->_lastExpediteur = expediteur;
+}
+
+void	Client::setLastRecipient(Client* recipient)
+{
+	this->_lastRecipient = recipient;
+}
+
+void	Client::setActiveChannel(Channel* active)
+{
+	this->_activeChannel = active;
 }

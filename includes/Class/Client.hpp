@@ -5,6 +5,7 @@
 
 enum UserModes
 {
+	None = 0,
     Away = 1,
     Invisible = 2,
     Wallops = 4,
@@ -42,6 +43,9 @@ class Client
 		int				getStatus(void)const;
 		int				getMode(void)const;
 		bool			getPwd(void)const;
+		Client			*getLastExpediteur(void)const;
+		Client			*getLastRecipient(void)const;
+		Channel			*getActiveChannel(void)const;
 		void			setNickname(std::string nickname);
 		void			setUsername(std::string username);
 		void			setFullName(std::string fullName);
@@ -49,6 +53,9 @@ class Client
 		void			setMode(Commands command);
 		void			setStatus(int status);
 		void			setPwd(bool pwd);
+		void			setLastExpediteur(Client* expediteur);
+		void			setLastRecipient(Client* recipient);
+		void			setActiveChannel(Channel* active);
 };
 
 #endif

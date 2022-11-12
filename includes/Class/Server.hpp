@@ -51,7 +51,7 @@ class Server
 		bool						checkPassword(const std::string password) const;
 		Channel*					findChannelByName(const std::string name);
 		Channel*					addChannel(std::string name, Client* user);
-
+		void						executeCommands(std::deque<Commands> commands);
 };
 
 #endif
