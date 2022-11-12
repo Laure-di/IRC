@@ -17,6 +17,7 @@
 #include "../Exceptions.hpp"
 #include "../Commands.hpp"
 #include "../CommandResponses.hpp"
+#include "Server.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
 

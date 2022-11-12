@@ -6,6 +6,9 @@
 #include "../includes/Class/Server.hpp"
 #include "../includes/utils.hpp"
 
+#define MAX_CMD_LGTH 510
+#define	MAX_PARAMS	15
+
 void	print_debug(std::deque<std::string> print)
 {
 	std::cout << "params : " << std::endl;
@@ -28,6 +31,24 @@ void	printAllCmds(std::deque<Commands> print)
 	std::deque<Commands>::iterator	it;
 	for (it = print.begin() ;it != print.end(); it++)
 		print_struct(*it);
+}
+
+bool	checkCommandLenght(std::deque<std::string> listOfCommands)
+{
+	std::deque<std::string>::iterator	it;
+	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
+	{
+		if (MAX_CMD_LGTH < *it.size())
+			return (false);
+	}
+	return (true);
+}
+
+bool	checkMaxParam(std::deque<Commands> commands)
+{
+	if (MAX_PARAMS < params.size())
+		return (false);
+	return (true);
 }
 
 void	handlePrefix(std::string *cmd, Commands *command)
@@ -58,7 +79,7 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 		rslt = split(cmd, ":");
 		first = split(*(rslt.begin()), " ");
 		rslt.pop_front();
-		command.command =*(first.begin());
+		command.command =*(first.begin()).toupper();
 		first.pop_front();
 		command.params = first;
 		addElementsDeque(&command.params, rslt);
@@ -72,7 +93,7 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 	{
 		command.colon = false;
 		rslt = split(cmd, " ");
-		command.command = *(rslt.begin());
+		command.command = *(rslt.begin()).toupper();
 		rslt.pop_front();
 		command.params = rslt;
 #ifdef DEBUG

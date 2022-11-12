@@ -29,7 +29,7 @@ std::deque<std::string>		split(std::string toSplit, std::string delimiter)
  * @brief Check if a character is a letter
  */
 bool isLetter(const char c) {
-	return 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z';
+	return (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z'));
 }
 
 /**
@@ -43,7 +43,7 @@ bool isDigit(const char c) {
  * @brief Check if a character is a hexadecimal digit letters
  */
 bool isHexDigit(const char c) {
-	return isDigit(c) || 'A' <= c && c <= 'F';
+	return (isDigit(c) || ('A' <= c && c <= 'F'));
 }
 
 /**
@@ -84,7 +84,7 @@ int toInt(std::string string) {
  */
 bool checkUsername(std::string username) {
 	std::string forbiddenCharacters = "\0\n\r@";
-	for (int i = 0; i < forbiddenCharacters.length(); i++) {
+	for (size_t i = 0; i < forbiddenCharacters.size(); i++) {
 		if (username.find(forbiddenCharacters[i]) != std::string::npos)
 			return false;
 	}
@@ -102,7 +102,7 @@ bool checkNickname(std::string nickname) {
 	char firstChar = nickname[0];
 	if (!(isLetter(firstChar) || isSpecial(firstChar)))
 		return false;
-	for (size_t i = 1; i < nickname.length(); i++) {
+	for (size_t i = 1; i < nickname.size(); i++) {
 		char nChar = nickname[i];
 		if (!(isLetter(nChar) || isDigit(nChar) || isSpecial(nChar) || isHyphen(nChar)))
 			return false;
@@ -129,7 +129,7 @@ unsigned hasher(const char *s)
  */
 bool checkChanstring(std::string name) {
 	std::string forbiddenCharacters = "\0\a\n\r ,:";
-	for (int i = 0; i < forbiddenCharacters.length(); i++) {
+	for (size_t i = 0; i < forbiddenCharacters.size(); i++) {
 		if (name.find(forbiddenCharacters[i]) != std::string::npos)
 			return false;
 	}

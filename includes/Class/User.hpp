@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <unistd.h>
+#include "Server.hpp"
+#include "Channel.hpp"
 
 enum UserModes
 {
@@ -26,6 +28,9 @@ class User
 		int					_mode;
 		int					_status;
 		bool				_pwd;
+		User*				_lastExpediteur;
+		User*				_lastRecipient;
+		Channel*			_activeChannel;
 		//TODO last ping (time)
 		//TODO last activity (time)
 		//TODO add channels

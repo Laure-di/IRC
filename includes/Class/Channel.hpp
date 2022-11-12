@@ -1,6 +1,10 @@
+#ifndef CHANNEL_HPP
+# define CHANNEL_HPP
+
 #include <string>
 #include <map>
 #include "User.hpp"
+#include "Server.hpp"
 
 class Channel
 {
@@ -25,3 +29,5 @@ class Channel
 		User *findBannedUserByNickname(std::string nickname);
 
 };
+
+#endif
