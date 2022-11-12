@@ -225,7 +225,8 @@ void invite(Server *server, int socket, Commands command)
  */
 void kick(Server *server, int socket, Commands command)
 {
-
+	if(command.params.size() != 2)
+		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 }
 
 /*

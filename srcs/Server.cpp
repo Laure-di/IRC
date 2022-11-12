@@ -5,7 +5,12 @@
 #include "../includes/Class/Server.hpp"
 #include "../includes/Class/User.hpp"
 #include <signal.h> //TODO mettre dans Server.hpp
+<<<<<<< HEAD
 #include "utils.cpp"
+=======
+#include "../includes/utils.hpp"
+#include "../includes/parser.hpp"
+>>>>>>> b2237d17f6306b1433d2d374532e61df8deafd82
 
 static bool	is_running=true;
 
@@ -91,8 +96,10 @@ void	Server::_handleMessage(int i)
 	}
 	else
 	{
-		std::deque<std::string>	commands;
-		std::string	to_split(buffer);
+		std::string				toSplit(buffer);
+		std::deque<std::string>	listOfCommands = split(toSplit, "\r\n");
+		std::deque<Commands>	commandsList = manageMultipleCommands(listOfCommands);
+		printAllCmds(commandsList);
 	}
 
 }
@@ -112,8 +119,13 @@ void	Server::execute(void)
 	signal(SIGINT, stopServer);
 	while (is_running)
 	{
+<<<<<<< HEAD
 		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly
+=======
+		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1)//TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
+>>>>>>> b2237d17f6306b1433d2d374532e61df8deafd82
 			std::cerr << "QUID MESSAGE OU NON" << std::endl;//this->clearServer ??
+															//this->clearServer();
 		for (int i = 0; i < nfds; i++)
 		{
 			if ((this->_ep_event[i].events & EPOLLIN) == EPOLLIN)

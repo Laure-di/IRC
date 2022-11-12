@@ -1,18 +1,25 @@
 #include <deque>
 #include <string>
 #include <sstream>
+#include <algorithm>
+#include <iostream>
+#include "../includes/Class/Server.hpp"
 
-std::deque<std::string>		split(std::string to_split, std::string delimiter)
+
+std::deque<std::string>		split(std::string toSplit, std::string delimiter)
 {
 	std::deque<std::string>	result;
-	size_t	start, end = delimiter.size();
+	size_t	start, end = delimiter.size() * -1;
+	std::string				toAdd;
 
 	do
 	{
 		start = end + delimiter.size();
-		end = to_split.find(delimiter, start);
-		if (end != std::string::npos)
-			result.push_back(to_split.substr(start, end - start));
+		end = toSplit.find(delimiter, start);
+		toAdd = toSplit.substr(start, end - start);
+		if (!toAdd.empty())
+			result.push_back(toAdd);
+
 	} while (end != std::string::npos);
 
 	return (result);
@@ -145,4 +152,11 @@ bool checkChannelName(std::string name) {
 	return checkChanstring(name);
 };
 
+
+void	addElementsDeque(std::deque<std::string> *list, std::deque<std::string> toAdd)
+{
+	std::deque<std::string>::iterator	it;
+	for (it = toAdd.begin(); it != toAdd.end(); it++)
+		list->push_back(*it);
+}
 
