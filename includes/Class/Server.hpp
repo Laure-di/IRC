@@ -35,6 +35,7 @@ struct	Commands
 	std::string				command;
 	std::string				prefix;
 	std::deque<std::string>	params;
+	bool					colon;
 	/*Commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
 	{
 		command = cmd;

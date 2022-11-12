@@ -53,6 +53,7 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 	handlePrefix(&cmd, &command);
 	if (cmd.find(":") != std::string::npos)
 	{
+		command.colon = true;
 		std::deque<std::string>first;
 		rslt = split(cmd, ":");
 		first = split(*(rslt.begin()), " ");
@@ -69,6 +70,7 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 	}
 	else
 	{
+		command.colon = false;
 		rslt = split(cmd, " ");
 		command.command = *(rslt.begin());
 		rslt.pop_front();
