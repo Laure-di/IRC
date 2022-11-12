@@ -25,8 +25,8 @@ class Client
 		int					_mode;
 		int					_status;
 		bool				_pwd;
-		User*				_lastExpediteur;
-		User*				_lastRecipient;
+		Client*				_lastExpediteur;
+		Client*				_lastRecipient;
 		Channel*			_activeChannel;
 		//TODO last ping (time)
 		//TODO last activity (time)

@@ -23,7 +23,8 @@ std::deque<std::string>		split(std::string toSplit, std::string delimiter)
 /**
  * @brief Check if a character is a letter
  */
-bool isLetter(const char c) {
+bool isLetter(const char c)
+{
 	return (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z'));
 }
 

@@ -2,7 +2,7 @@
 
 //TODO add client message
 
-#include "../include/include.hpp"
+#include "../includes/include.hpp"
 
 static bool	is_running=true;
 
@@ -90,7 +90,7 @@ void	Server::_handleMessage(int i)
 	{
 		std::string				toSplit(buffer);
 		std::deque<std::string>	listOfCommands = split(toSplit, "\r\n");
-		if (!checkCommandLenght(listOfCommands))
+		if (!checkCommandLength(listOfCommands))
 			return ;
 		std::deque<Commands>	commandsList = manageMultipleCommands(listOfCommands);
 		printAllCmds(commandsList);
@@ -288,13 +288,13 @@ void	Server::createCmdDict(void) {
 
 Client* Server::findUserByNickname(const std::string nickname)
 {
-	std::map<int, Client*>::const_iterator currentUser;
-	for (currentUser = _usersOnServer.cbegin(); currentUser != _usersOnServer.cend(); currentUser++)
+	std::map<int, Client*>::iterator currentUser;
+	for (currentUser = _usersOnServer.begin(); currentUser != _usersOnServer.end(); currentUser++)
 	{
 		if (currentUser->second->getNickname() == nickname)
 			return currentUser->second;
 	}
-	return nullptr;
+	return NULL;
 }
 
 Client* Server::findUserByFd(const int fd)

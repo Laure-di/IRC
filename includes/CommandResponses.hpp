@@ -270,8 +270,6 @@ struct NumericReplies
 		   channel + " " + mode + " :Channel list is full\r\n")
 // OPER
 #define ERR_PASSWDMISMATCH NumericReplies(464, ":Password incorrect\r\n")
-#define ERR_CHANOPRIVSNEEDED(channel) \
-    NumericReplies(482, "channel :You're not channel operator\r\n")
 #define ERR_CANTKILLSERVER \
     NumericReplies(483, ":You can't kill a server!\r\n")
 #define ERR_NOOPERHOST NumericReplies(491, ":No O-lines for your host\r\n")
