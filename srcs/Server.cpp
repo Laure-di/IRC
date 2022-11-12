@@ -6,6 +6,7 @@
 #include "../includes/Class/User.hpp"
 #include <signal.h> //TODO mettre dans Server.hpp
 #include "../includes/utils.hpp"
+#include "../includes/parser.hpp"
 
 static bool	is_running=true;
 
@@ -91,32 +92,10 @@ void	Server::_handleMessage(int i)
 	}
 	else
 	{
-		std::cout << buffer << std::endl;
-		std::deque<std::string>	rslt;
-		std::deque<std::string>	second;
-		std::string	toSplit(buffer);
-		rslt = split(toSplit, "\r\n");
-		manageMultipleCommands(rslt, rslt.size());
-		/*print_debug(rslt);
-
-		if (rslt.front().find(":") != std::string::npos && rslt.front().find(":") != 1)
-		{
-			std::cout << "case of : " << std::endl;
-			second = split(rslt.front(), ":");
-			print_debug(second);
-		}
-		else
-		{
-			std::cout << "case of no : " << std::endl;
-			std::cout << *(rslt.begin()) << std::endl;
-			std::cout << rslt.front() << std::endl;
-			second = split(rslt.front(), " ");
-			std::cout << second.size() << std::endl;
-			std::cout << "fin de split" << std::endl;
-			print_debug(second);
-		}*/
-
-
+		std::string				toSplit(buffer);
+		std::deque<std::string>	listOfCommands = split(toSplit, "\r\n");
+		std::deque<Commands>	commandsList = manageMultipleCommands(listOfCommands);
+		printAllCmds(commandsList);
 	}
 
 }
@@ -136,8 +115,9 @@ void	Server::execute(void)
 	signal(SIGINT, stopServer);
 	while (is_running)
 	{
-		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
+		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1)//TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly 
 			std::cerr << "QUID MESSAGE OU NON" << std::endl;//this->clearServer ??
+															//this->clearServer();
 		for (int i = 0; i < nfds; i++)
 		{
 			if ((this->_ep_event[i].events & EPOLLIN) == EPOLLIN)
