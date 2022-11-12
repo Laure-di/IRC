@@ -2,46 +2,61 @@
 
 Channel::Channel(std::string name, Client* creator): _name(name)
 {
-	_userOperator[creator->getNickname()] = creator;
-	_usersOnChannel[creator->getNickname()] = creator;
+	_clientsOperator[creator->getNickname()] = creator;
+	_clientsOnChannel[creator->getNickname()] = creator;
 }
 
-std::string Channel::get_name(void) {
+std::string Channel::getName(void) {
 	return _name;
 }
 
-void Channel::set_name(std::string name) {
+void Channel::setName(std::string name) {
 	_name = name;
 }
 
-std::string Channel::get_topic(void) {
+std::string Channel::getTopic(void) {
 	return _topic;
 }
 
-void Channel::set_topic(std::string topic) {
+void Channel::setTopic(std::string topic) {
 	_topic = topic;
 }
 
-void Channel::clear_topic(void) {
+void Channel::clearTopic(void) {
 	_topic.clear();
 }
 
-Client *Channel::findUserByNickname(const std::string nickname)
+Client *Channel::findClientByNickname(const std::string nickname)
 {
-	return _usersOnChannel[nickname];
+	return _clientsOnChannel[nickname];
 }
 
 Client *Channel::findOperatorByNickname(const std::string nickname)
 {
-	return _userOperator[nickname];
+	return _clientsOperator[nickname];
 }
 
 Client *Channel::findBannedUserByNickname(const std::string nickname)
 {
-	return _usersBanned[nickname];
+	return _clientsBanned[nickname];
 }
 
-void Channel::kickUser(std::string nickname)
+void Channel::kickClient(std::string nickname)
 {
-	_usersOnChannel.erase(nickname);
+	_clientsOnChannel.erase(nickname);
+}
+
+void Channel::kickOperator(std::string nickname)
+{
+	_clientsOperator.erase(nickname);
+}
+
+void Channel::sendMsg(std::string message)
+{
+	std::map<std::string, Client*>::iterator clientIterator;
+	for (clientIterator = _clientsOnChannel.begin(); clientIterator != _clientsOnChannel.end(); clientIterator++)
+	{
+		Client *client = clientIterator->second;
+		send(client->getFd(), message.c_str(), message.length(), MSG_DONTWAIT);
+	}
 }

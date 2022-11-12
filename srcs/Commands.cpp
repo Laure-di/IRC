@@ -151,20 +151,20 @@ void topic(Server *server, int socket, Commands command)
 	if (!channel)
 		return;
 	Client *currentUser = server->findUserByFd(socket);
-	if (channel->findUserByNickname(currentUser->getNickname()))
-		return server->sendMsgToFd(ERR_NOTONCHANNEL(channel->get_name()), socket);
+	if (channel->findClientByNickname(currentUser->getNickname()))
+		return server->sendMsgToFd(ERR_NOTONCHANNEL(channel->getName()), socket);
 	if(command.params.size() == 1) {
-		if (channel->get_topic().empty())
-			return server->sendMsgToFd(RPL_NOTOPIC(channel->get_name()), socket);
-		return server->sendMsgToFd(RPL_TOPIC(channel->get_name(), channel->get_topic()), socket);
+		if (channel->getTopic().empty())
+			return server->sendMsgToFd(RPL_NOTOPIC(channel->getName()), socket);
+		return server->sendMsgToFd(RPL_TOPIC(channel->getName(), channel->getTopic()), socket);
 	}
 	if (channel->findOperatorByNickname(currentUser->getNickname()))
-		return server->sendMsgToFd(ERR_CHANOPRIVSNEEDED(channel->get_name()), socket);
+		return server->sendMsgToFd(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
 	// Add check for ERR_NOCHANMODES
 	std::string topic = command.params[1];
 	if (topic == ":")
-		return channel->clear_topic();
-	channel->set_topic(topic);
+		return channel->clearTopic();
+	channel->setTopic(topic);
 }
 
 /**
@@ -207,9 +207,9 @@ void invite(Server *server, int socket, Commands command)
 	if (!channel)
 		return server->sendMsgToFd(ERR_NOSUCHNICK(channelName), socket);
 	Client *currentUser = server->findUserByFd(socket);
-	if (!channel->findUserByNickname(currentUser->getNickname()))
+	if (!channel->findClientByNickname(currentUser->getNickname()))
 		return server->sendMsgToFd(ERR_NOTONCHANNEL(channelName), socket);
-	if (channel->findUserByNickname(nickname))
+	if (channel->findClientByNickname(nickname))
 		return server->sendMsgToFd(ERR_USERONCHANNEL(nickname, channelName), socket);
 	// Add check for ERR_CHANOPRIVSNEEDED (channel is invite only and currentUser is not an operator)
 	// Add check for RPL_AWAY (Check that invitedUser is away and notify currentUser ? Not defined)
@@ -226,14 +226,20 @@ void invite(Server *server, int socket, Commands command)
 void kick(Server *server, int socket, Commands command)
 {
 	// Add check for ERR_BADCHANMASK ???
-	// Should an operator be able to kick another operator ?
+	// Should an operator be able to kick another operator ? I supposed so
 	if(command.params.size() < 2)
 		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> channels = splitComma(command.params[0]);
 	std::vector<std::string> users = splitComma(command.params[1]);
-	std::string kickMessage;
-	bool sendMessage = channels.size() == 1 && users.size() == 1;
 	Client *currentUser = server->findUserByFd(socket);
+	std::string kickMessage;
+	if (channels.size() == 1 && users.size() == 1)
+	{
+		if (command.params.size() > 2)
+			kickMessage = command.params[0];
+		else
+			kickMessage = currentUser->getNickname();
+	}
 	std::vector<std::string>::iterator channelsIterator;
 	for (channelsIterator = channels.begin(); channelsIterator != channels.end(); channelsIterator++)
 	{
@@ -258,15 +264,10 @@ void kick(Server *server, int socket, Commands command)
 				server->sendMsgToFd(ERR_USERNOTINCHANNEL(userName, channelName), socket);
 				continue;
 			}
-			channel->kickUser(userName);
-			if (sendMessage)
-			{
-				if(command.params.size() > 2)
-				{
-					std::string kickMessage = command.params[2];
-					server->sendMsgToFd(kickMessage, socket);
-				}
-			}
+			if (!kickMessage.empty())
+				server->sendMsgToFd("KICK " + channelName + " " + userName + " :" + kickMessage, socket);
+			channel->kickClient(userName);
+			channel->kickOperator(userName);
 		}
 	}
 }
@@ -274,8 +275,27 @@ void kick(Server *server, int socket, Commands command)
 /*
 * 3.3 Sending messages
 */
-cmd_func privmsg;
-cmd_func notice;
+
+/**
+ * 3.3.1 Private messages
+ *
+ * @brief PRIVMSG is used to send private messages between users, as well as to
+ * send messages to channels.
+ */
+void privmsg(Server *server, int socket, Commands command)
+{
+
+}
+
+/**
+ * 3.3.2 Notice
+ *
+ * @brief The NOTICE command is used similarly to PRIVMSG.
+ */
+void notice(Server *server, int socket, Commands command)
+{
+
+}
 
 /*
 * 3.4 Server queries and commands
