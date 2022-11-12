@@ -25,7 +25,8 @@ SRCS	=	main.cpp		\
 			Server.cpp		\
 			User.cpp		\
 			utils.cpp		\
-			parser.cpp
+			parser.cpp		\
+			channel.cpp
 
 INC		= includes
 ######################################

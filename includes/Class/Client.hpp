@@ -1,9 +1,7 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-#include <iostream>
-#include <unistd.h>
-#include "Server.hpp"
+#include "../include.hpp"
 
 enum UserModes
 {
@@ -27,6 +25,9 @@ class Client
 		int					_mode;
 		int					_status;
 		bool				_pwd;
+		User*				_lastExpediteur;
+		User*				_lastRecipient;
+		Channel*			_activeChannel;
 		//TODO last ping (time)
 		//TODO last activity (time)
 		//TODO add channels

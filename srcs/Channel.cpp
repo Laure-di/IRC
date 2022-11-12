@@ -1,4 +1,4 @@
-#include "../includes/Class/Channel.hpp"
+#include "../includes/include.hpp"
 
 Channel::Channel(std::string name, Client* creator): _name(name)
 {

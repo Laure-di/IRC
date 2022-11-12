@@ -1,24 +1,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include <iostream>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <cstring>
-#include <cerrno>
-#include <sys/epoll.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <map>
-#include <deque>
-
-#include "../Exceptions.hpp"
-#include "../Commands.hpp"
-#include "../CommandResponses.hpp"
-#include "Client.hpp"
-#include "Channel.hpp"
+#include "../include.hpp"
 
 //Variables server use
 #define MAX_EVENTS	20
@@ -29,19 +12,6 @@
 //Variables commands use
 #define	CMD_MAX_LGHT	510
 #define MAX_PARAM		15
-
-struct	Commands
-{
-	std::string				command;
-	std::string				prefix;
-	std::deque<std::string>	params;
-	/*Commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
-	{
-		command = cmd;
-		prefix = pref;
-		params = parameters;
-	}*/
-};
 
 class Server
 {

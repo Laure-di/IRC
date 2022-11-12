@@ -1,6 +1,6 @@
 //TODO define mode and status and add to constructor
 //TODO change mode and status in consructor
-#include "../includes/Class/User.hpp"
+#include "../includes/include.hpp"
 
 Client::Client(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(0), _status(0), _pwd(false)
 {

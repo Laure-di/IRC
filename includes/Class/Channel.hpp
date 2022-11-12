@@ -1,6 +1,7 @@
-#include <string>
-#include <map>
-#include "Client.hpp"
+#ifndef CHANNEL_HPP
+# define CHANNEL_HPP
+
+#include "../include.hpp"
 
 class Channel
 {
@@ -28,3 +29,5 @@ class Channel
 		void sendMsg(std::string message);
 
 };
+
+#endif

@@ -1,10 +1,7 @@
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <deque>
+#include "../includes/include.hpp"
 
-#include "../includes/Class/Server.hpp"
-#include "../includes/utils.hpp"
+#define MAX_CMD_LGTH 510
+#define	MAX_PARAMS	15
 
 void	print_debug(std::deque<std::string> print)
 {
@@ -30,6 +27,24 @@ void	printAllCmds(std::deque<Commands> print)
 		print_struct(*it);
 }
 
+bool	checkCommandLenght(std::deque<std::string> listOfCommands)
+{
+	std::deque<std::string>::iterator	it;
+	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
+	{
+		if (MAX_CMD_LGTH < *it.size())
+			return (false);
+	}
+	return (true);
+}
+
+bool	checkMaxParam(std::deque<Commands> commands)
+{
+	if (MAX_PARAMS < params.size())
+		return (false);
+	return (true);
+}
+
 void	handlePrefix(std::string *cmd, Commands *command)
 {
 	if (cmd->find(":") == 0)
@@ -53,11 +68,12 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 	handlePrefix(&cmd, &command);
 	if (cmd.find(":") != std::string::npos)
 	{
+		command.colon = true;
 		std::deque<std::string>first;
 		rslt = split(cmd, ":");
 		first = split(*(rslt.begin()), " ");
 		rslt.pop_front();
-		command.command =*(first.begin());
+		command.command =*(first.begin()).toupper();
 		first.pop_front();
 		command.params = first;
 		addElementsDeque(&command.params, rslt);
@@ -69,8 +85,9 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 	}
 	else
 	{
+		command.colon = false;
 		rslt = split(cmd, " ");
-		command.command = *(rslt.begin());
+		command.command = *(rslt.begin()).toupper();
 		rslt.pop_front();
 		command.params = rslt;
 #ifdef DEBUG

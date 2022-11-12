@@ -1,8 +1,7 @@
 #ifndef COMMANDRESPONSES_HPP
 #define COMMANDRESPONSES_HPP
 
-#include <iostream>
-#include <string>
+#include "include.hpp"
 
 struct NumericReplies
 {

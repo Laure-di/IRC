@@ -1,7 +1,4 @@
-#include "../includes/Class/Server.hpp"
-#include "../includes/Exceptions.hpp"
-
-//TODO handle signal
+#include "../includes/include.hpp"
 
 int		main(int argc, char **argv)
 {
