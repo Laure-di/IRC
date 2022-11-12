@@ -1,6 +1,7 @@
-#include "./Class/Server.hpp"
-#include "CommandResponses.hpp"
-#include "../srcs/Utils.cpp"
+#ifndef COMMANDS_HPP
+# define COMMANDS_HPP
+
+#include "include.hpp"
 
 typedef void cmd_func(Server *server, int socket, Commands command);
 typedef void (*cmd_func_ptr)(Server *server, int socket, Commands command);
@@ -82,3 +83,5 @@ cmd_func users;
 cmd_func wallops;
 cmd_func userhost;
 cmd_func ison;
+
+#endif

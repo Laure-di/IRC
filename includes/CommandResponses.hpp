@@ -1,8 +1,7 @@
 #ifndef COMMANDRESPONSES_HPP
 #define COMMANDRESPONSES_HPP
 
-#include <iostream>
-#include <string>
+#include "include.hpp"
 
 struct NumericReplies
 {
@@ -252,8 +251,8 @@ struct NumericReplies
 #define ERR_NOADMININFO(server) \
     NumericReplies(423, server + " :No administrative info available\r\n")
 // MODE
-#define ERR_USERNOTINCHANNEL(nick, channel)    \
-    NumericReplies(441, nick + " " + channel + \
+#define ERR_USERNOTINCHANNEL(nickname, channel)    \
+    NumericReplies(441, nickname + " " + channel + \
 				" :They aren't on that channel\r\n")
 #define ERR_KEYSET(channel) \
     NumericReplies(467, channel + " :Channel key already set\r\n")

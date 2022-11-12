@@ -1,10 +1,4 @@
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <deque>
-
-#include "../includes/Class/Server.hpp"
-#include "../includes/utils.hpp"
+#include "../includes/include.hpp"
 
 #define MAX_CMD_LGTH 510
 #define	MAX_PARAMS	15

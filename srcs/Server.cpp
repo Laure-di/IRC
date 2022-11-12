@@ -2,15 +2,7 @@
 
 //TODO add client message
 
-#include "../includes/Class/Server.hpp"
-#include "../includes/Class/User.hpp"
-#include <signal.h> //TODO mettre dans Server.hpp
-<<<<<<< HEAD
-#include "utils.cpp"
-=======
-#include "../includes/utils.hpp"
-#include "../includes/parser.hpp"
->>>>>>> b2237d17f6306b1433d2d374532e61df8deafd82
+#include "../include/include.hpp"
 
 static bool	is_running=true;
 
@@ -65,7 +57,7 @@ void	Server::_acceptNewClient(int listenSocket, int pollfd)
 	memset(&client_addr, 0, sizeof(sockaddr_storage));
 	if ((client_fd = accept(listenSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
 		std::cerr << std::strerror(errno) << std::endl; //QUID throw an exception or just a error?!
-	this->_usersOnServer[client_fd] = new User(client_fd, this->getHostname()); //TODO check hostname
+	this->_usersOnServer[client_fd] = new Client(client_fd, this->getHostname()); //TODO check hostname
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = client_fd;
 	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
@@ -86,7 +78,7 @@ void	Server::_handleMessage(int i)
 		std::cerr << "recv error" << std::endl;
 	else if (numbytes == 0) //INFO client close connection
 	{
-		User* userToDel = this->getUserByFd(this->_ep_event[i].data.fd);
+		Client* userToDel = this->getUserByFd(this->_ep_event[i].data.fd);
 		std::cerr << "Socket closed by client" << std::endl; //TODO delete before set as finish
 		if (epoll_ctl(this->_pollfd, EPOLL_CTL_DEL, this->_ep_event[i].data.fd, &this->_ev) == -1)
 			throw serverError("epoll_ctl", strerror(errno));
@@ -122,6 +114,12 @@ void	Server::execute(void)
 	while (is_running)
 	{
 		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1) //TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly
+<<<<<<< HEAD
+=======
+=======
+		if ((nfds = epoll_wait(this->_pollfd, this->_ep_event, MAX_EVENTS, -1)) == -1)//TODO define last arg as TIME OUT //INFO with a value of -1 it's going to wait indefinitly
+>>>>>>> b2237d17f6306b1433d2d374532e61df8deafd82
+>>>>>>> ac0545f6e13782f41265d36be05a9c21a2b87839
 			std::cerr << "QUID MESSAGE OU NON" << std::endl;//this->clearServer ??
 		for (int i = 0; i < nfds; i++)
 		{
@@ -144,8 +142,8 @@ void	Server::clearServer(void) //TODO link with signal??!!
 	//Close connection and fd and delete users
 	if (!this->_usersOnServer.empty())
 	{
-		std::map<int, User*>::const_iterator it_end = this->_usersOnServer.end();
-		for (std::map<int, User*>::const_iterator it_begin = this->_usersOnServer.begin(); it_begin != it_end; it_begin++)
+		std::map<int, Client*>::const_iterator it_end = this->_usersOnServer.end();
+		for (std::map<int, Client*>::const_iterator it_begin = this->_usersOnServer.begin(); it_begin != it_end; it_begin++)
 		{
 			try
 			{
@@ -190,11 +188,11 @@ void				Server::setHostname(std::string hostname)
 	this->_hostname = hostname;
 }
 
-std::deque<User*>	Server::getAllUsers(void)const
+std::deque<Client*>	Server::getAllUsers(void)const
 {
-	std::deque<User*> allUsers;
+	std::deque<Client*> allUsers;
 
-	for (std::map<int, User*>::const_iterator it = this->_usersOnServer.begin(); it!= this->_usersOnServer.end(); it++)
+	for (std::map<int, Client*>::const_iterator it = this->_usersOnServer.begin(); it!= this->_usersOnServer.end(); it++)
 	{
 		allUsers.push_back(it->second);
 	}
@@ -202,9 +200,9 @@ std::deque<User*>	Server::getAllUsers(void)const
 	return (allUsers);
 }
 
-User*	Server::getUserByFd(const int fd)const
+Client*	Server::getUserByFd(const int fd)const
 {
-	std::map<int, User*>::const_iterator it = this->_usersOnServer.end();
+	std::map<int, Client*>::const_iterator it = this->_usersOnServer.end();
 	if (this->_usersOnServer.find(fd) != it)
 		return (this->_usersOnServer.find(fd)->second);
 	return (NULL);
@@ -214,8 +212,8 @@ void	Server::printAllUsersFd(void)
 {
 	if (!this->_usersOnServer.empty())
 	{
-		std::map<int, User*>::const_iterator it;
-		std::map<int, User*>::const_iterator ite = this->_usersOnServer.end();
+		std::map<int, Client*>::const_iterator it;
+		std::map<int, Client*>::const_iterator ite = this->_usersOnServer.end();
 		for (it = this->_usersOnServer.begin(); it != ite; it++)
 		{
 			std::cout << (it->second)->getHostname() << std::endl;
@@ -224,10 +222,10 @@ void	Server::printAllUsersFd(void)
 
 }
 
-void	Server::deleteUser(User* user)
+void	Server::deleteUser(Client* user)
 {
-	std::map<int, User*>::iterator it;
-	std::map<int, User*>::iterator ite = this->_usersOnServer.end();
+	std::map<int, Client*>::iterator it;
+	std::map<int, Client*>::iterator ite = this->_usersOnServer.end();
 	for (it = this->_usersOnServer.begin(); it != ite;)
 	{
 		if (user == it->second)
@@ -294,9 +292,9 @@ void	Server::createCmdDict(void) {
 	_cmd_dict["ISON"] = &ison;
 }
 
-User* Server::findUserByNickname(const std::string nickname)
+Client* Server::findUserByNickname(const std::string nickname)
 {
-	std::map<int, User*>::const_iterator currentUser;
+	std::map<int, Client*>::const_iterator currentUser;
 	for (currentUser = _usersOnServer.cbegin(); currentUser != _usersOnServer.cend(); currentUser++)
 	{
 		if (currentUser->second->getNickname() == nickname)
@@ -305,12 +303,12 @@ User* Server::findUserByNickname(const std::string nickname)
 	return nullptr;
 }
 
-User* Server::findUserByFd(const int fd)
+Client* Server::findUserByFd(const int fd)
 {
 	return _usersOnServer[fd];
 }
 
-void	Server::sendNumericReplyToFd(NumericReplies reply, const int fd)
+void	Server::sendMsgToFd(NumericReplies reply, const int fd)
 {
 	std::string msg = ":" + getHostname() + " " + toString(reply.num) + " " + findUserByFd(fd)->getNickname() + " " + reply.msg;
 	sendMsgToFd(msg, fd);
@@ -326,7 +324,7 @@ Channel* Server::findChannelByName(const std::string name)
 	return _channels[name];
 }
 
-Channel* Server::addChannel(std::string name, User* user)
+Channel* Server::addChannel(std::string name, Client* user)
 {
 	Channel *newChannel = new Channel(name, user);
 	_channels[name] = newChannel;

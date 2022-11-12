@@ -1,4 +1,4 @@
-#include "../includes/Commands.hpp"
+#include "../includes/include.hpp"
 
 /*
 * 3.1 Connection Registration
@@ -11,7 +11,7 @@
  */
 void pass(Server *server, int socket, Commands command) {
 	if(command.params.size() == 0)
-		server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+		server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	// Add check if already connected (send ERR_ALREADYREGISTRED) and check password
 };
 
@@ -22,16 +22,16 @@ void pass(Server *server, int socket, Commands command) {
  */
 void nick(Server *server, int socket, Commands command) {
 	if(command.params.size() == 0)
-		return server->sendNumericReplyToFd(ERR_NONICKNAMEGIVEN, socket);
+		return server->sendMsgToFd(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
 	if (!checkNickname(nickname))
-		return server->sendNumericReplyToFd(ERR_ERRONEUSNICKNAME(nickname), socket);
+		return server->sendMsgToFd(ERR_ERRONEUSNICKNAME(nickname), socket);
 	if (server->findUserByNickname(nickname))
-		return server->sendNumericReplyToFd(ERR_NICKNAMEINUSE(nickname), socket);
+		return server->sendMsgToFd(ERR_NICKNAMEINUSE(nickname), socket);
 	// Add check for ERR_NICKCOLLISION (nickname taken on another server)
 	// Add check for ERR_UNAVAILRESOURCE (nickname in server list of forbidden nickames)
 	// Add check for ERR_RESTRICTED (user mode "+r")
-	User *currentUser = server->findUserByFd(socket);
+	Client *currentUser = server->findUserByFd(socket);
 	currentUser->setNickname(nickname);
 };
 
@@ -43,10 +43,10 @@ void nick(Server *server, int socket, Commands command) {
 void user(Server *server, int socket, Commands command)
 {
 	if(command.params.size() < 4)
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
-	User *currentUser = server->findUserByFd(socket);
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+	Client *currentUser = server->findUserByFd(socket);
 	if (!currentUser->getUsername().empty())
-		return server->sendNumericReplyToFd(ERR_ALREADYREGISTRED, socket);
+		return server->sendMsgToFd(ERR_ALREADYREGISTRED, socket);
 	std::string userName = command.params[0];
 	int mode = toInt(command.params[1]);
 	std::string fullName = command.params[3];
@@ -65,11 +65,11 @@ void user(Server *server, int socket, Commands command)
 void oper(Server *server, int socket, Commands command)
 {
 	if(command.params.size() < 2)
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string name = command.params[0];
 	std::string password = command.params[1];
 	if (!server->checkPassword(password))
-		return server->sendNumericReplyToFd(ERR_PASSWDMISMATCH, socket);
+		return server->sendMsgToFd(ERR_PASSWDMISMATCH, socket);
 	// Add check for ERR_NOOPERHOST (client not allowed to be an operator)
 
 }
@@ -82,7 +82,7 @@ void oper(Server *server, int socket, Commands command)
 void service(Server *server, int socket, Commands command)
 {
 	if(command.params.size() < 2)
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 
 }
 
@@ -103,7 +103,7 @@ cmd_func squit;
 void join(Server *server, int socket, Commands command)
 {
 	if(command.params.empty())
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 }
 
 /**
@@ -130,11 +130,11 @@ void part(Server *server, int socket, Commands command)
 void mode(Server *server, int socket, Commands command)
 {
 	if(command.params.size() < 2)
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string nickname = command.params[0];
-	User* currentUser = server->getUserByFd(socket);
+	Client* currentUser = server->getUserByFd(socket);
 	if (currentUser->getNickname() != nickname)
-		return server->sendNumericReplyToFd(ERR_USERSDONTMATCH, socket);
+		return server->sendMsgToFd(ERR_USERSDONTMATCH, socket);
 }
 
 /**
@@ -145,21 +145,21 @@ void mode(Server *server, int socket, Commands command)
 void topic(Server *server, int socket, Commands command)
 {
 	if(command.params.size() < 1)
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string channelName = command.params[0];
 	Channel* channel = server->findChannelByName(channelName);
 	if (!channel)
 		return;
-	User *currentUser = server->findUserByFd(socket);
+	Client *currentUser = server->findUserByFd(socket);
 	if (channel->findUserByNickname(currentUser->getNickname()))
-		return server->sendNumericReplyToFd(ERR_NOTONCHANNEL(channel->get_name()), socket);
+		return server->sendMsgToFd(ERR_NOTONCHANNEL(channel->get_name()), socket);
 	if(command.params.size() == 1) {
 		if (channel->get_topic().empty())
-			return server->sendNumericReplyToFd(RPL_NOTOPIC(channel->get_name()), socket);
-		return server->sendNumericReplyToFd(RPL_TOPIC(channel->get_name(), channel->get_topic()), socket);
+			return server->sendMsgToFd(RPL_NOTOPIC(channel->get_name()), socket);
+		return server->sendMsgToFd(RPL_TOPIC(channel->get_name(), channel->get_topic()), socket);
 	}
 	if (channel->findOperatorByNickname(currentUser->getNickname()))
-		return server->sendNumericReplyToFd(ERR_CHANOPRIVSNEEDED(channel->get_name()), socket);
+		return server->sendMsgToFd(ERR_CHANOPRIVSNEEDED(channel->get_name()), socket);
 	// Add check for ERR_NOCHANMODES
 	std::string topic = command.params[1];
 	if (topic == ":")
@@ -195,25 +195,25 @@ void list(Server *server, int socket, Commands command)
  */
 void invite(Server *server, int socket, Commands command)
 {
-	if(command.params.size() != 2)
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+	if(command.params.size() < 2)
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string nickname = command.params[0];
 	std::string channelName = command.params[1];
 
-	User *invitedUser = server->findUserByNickname(nickname);
+	Client *invitedUser = server->findUserByNickname(nickname);
 	if (!invitedUser)
-		return server->sendNumericReplyToFd(ERR_NOSUCHNICK(nickname), socket);
+		return server->sendMsgToFd(ERR_NOSUCHNICK(nickname), socket);
 	Channel *channel = server->findChannelByName(channelName);
 	if (!channel)
-		return server->sendNumericReplyToFd(ERR_NOSUCHNICK(channelName), socket);
-	User *currentUser = server->findUserByFd(socket);
+		return server->sendMsgToFd(ERR_NOSUCHNICK(channelName), socket);
+	Client *currentUser = server->findUserByFd(socket);
 	if (!channel->findUserByNickname(currentUser->getNickname()))
-		return server->sendNumericReplyToFd(ERR_NOTONCHANNEL(channelName), socket);
+		return server->sendMsgToFd(ERR_NOTONCHANNEL(channelName), socket);
 	if (channel->findUserByNickname(nickname))
-		return server->sendNumericReplyToFd(ERR_USERONCHANNEL(nickname, channelName), socket);
+		return server->sendMsgToFd(ERR_USERONCHANNEL(nickname, channelName), socket);
 	// Add check for ERR_CHANOPRIVSNEEDED (channel is invite only and currentUser is not an operator)
 	// Add check for RPL_AWAY (Check that invitedUser is away and notify currentUser ? Not defined)
-	server->sendNumericReplyToFd(RPL_INVITING(nickname, channelName), invitedUser->getFd());
+	server->sendMsgToFd(RPL_INVITING(nickname, channelName), invitedUser->getFd());
 }
 
 /**
@@ -225,8 +225,50 @@ void invite(Server *server, int socket, Commands command)
  */
 void kick(Server *server, int socket, Commands command)
 {
-	if(command.params.size() != 2)
-		return server->sendNumericReplyToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+	// Add check for ERR_BADCHANMASK ???
+	// Should an operator be able to kick another operator ?
+	if(command.params.size() < 2)
+		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
+	std::vector<std::string> channels = splitComma(command.params[0]);
+	std::vector<std::string> users = splitComma(command.params[1]);
+	std::string kickMessage;
+	bool sendMessage = channels.size() == 1 && users.size() == 1;
+	Client *currentUser = server->findUserByFd(socket);
+	std::vector<std::string>::iterator channelsIterator;
+	for (channelsIterator = channels.begin(); channelsIterator != channels.end(); channelsIterator++)
+	{
+		std::string channelName = *channelsIterator;
+		Channel *channel = server->findChannelByName(channelName);
+		if (!channel)
+		{
+			server->sendMsgToFd(ERR_NOSUCHCHANNEL(channelName), socket);
+			continue;
+		}
+		if (!channel->findOperatorByNickname(currentUser->getUsername()))
+		{
+			server->sendMsgToFd(ERR_CHANOPRIVSNEEDED(channelName), socket);
+			continue;
+		}
+		std::vector<std::string>::iterator usersIterator;
+		for (usersIterator = users.begin(); usersIterator != users.end(); usersIterator++)
+		{
+			std::string userName = *usersIterator;
+			Client *user = server->findUserByNickname(userName);
+			if (!user) {
+				server->sendMsgToFd(ERR_USERNOTINCHANNEL(userName, channelName), socket);
+				continue;
+			}
+			channel->kickUser(userName);
+			if (sendMessage)
+			{
+				if(command.params.size() > 2)
+				{
+					std::string kickMessage = command.params[2];
+					server->sendMsgToFd(kickMessage, socket);
+				}
+			}
+		}
+	}
 }
 
 /*

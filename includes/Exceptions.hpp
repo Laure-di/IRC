@@ -1,4 +1,8 @@
-#pragma once //TODO change to ifndef
+#ifndef EXCEPTIONS_HPP
+# define EXCEPTIONS_HPP 
+
+#include "include.hpp"
+
 class serverError: public std::exception
 {
 	private:
@@ -11,3 +15,5 @@ class serverError: public std::exception
 			return (this->_msg.c_str());
 		}
 };
+
+#endif
