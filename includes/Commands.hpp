@@ -1,6 +1,6 @@
 #include "./Class/Server.hpp"
 #include "CommandResponses.hpp"
-#include "../srcs/Utils.cpp"
+#include "../srcs/utils.cpp"
 
 typedef void cmd_func(Server *server, int socket, Commands command);
 typedef void (*cmd_func_ptr)(Server *server, int socket, Commands command);

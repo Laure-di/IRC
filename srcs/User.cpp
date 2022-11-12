@@ -2,75 +2,75 @@
 //TODO change mode and status in consructor
 #include "../includes/Class/User.hpp"
 
-User::User(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(0), _status(0), _pwd(false)
+Client::Client(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(0), _status(0), _pwd(false)
 {
 }
 
-User::~User()
+Client::~Client()
 {}
 
-std::string	User::getNickname(void)const
+std::string	Client::getNickname(void)const
 {
 	return (this->_nickname);
 }
 
-std::string	User::getUsername(void)const
+std::string	Client::getUsername(void)const
 {
 	return (this->_username);
 }
 
-int	User::getFd(void)const
+int	Client::getFd(void)const
 {
 	return (this->_fd);
 }
 
-std::string	User::getHostname(void)const
+std::string	Client::getHostname(void)const
 {
 	return (this->_hostname);
 }
 
-int		User::getStatus(void)const
+int		Client::getStatus(void)const
 {
 	return (this->_status);
 }
 
-int		User::getMode(void)const
+int		Client::getMode(void)const
 {
 	return (this->_mode);
 }
 
-bool User::getPwd(void)const
+bool Client::getPwd(void)const
 {
 	return (this->_pwd);
 }
 
-void	User::setNickname(std::string nickname)
+void	Client::setNickname(std::string nickname)
 {
 	//TODO faire les check nickname
 	this->_nickname = nickname;
 }
 
-void	User::setUsername(std::string username)
+void	Client::setUsername(std::string username)
 {
 	this->_username = username;
 }
 
-void	User::setMode(int mode)
+void	Client::setMode(int mode)
 {
 	this->_mode = mode;
 }
 
-void	User::setStatus(int status)
+void	Client::setStatus(int status)
 {
 	this->_status = status;
 }
 
-void	User::setFullName(std::string fullName)
+void	Client::setFullName(std::string fullName)
 {
 	this->_fullName = fullName;
 }
 
-void	User::setPwd(bool pwd)
+void	Client::setPwd(bool pwd)
 {
 	this->_pwd = pwd;
 }

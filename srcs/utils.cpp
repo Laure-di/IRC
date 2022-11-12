@@ -1,4 +1,5 @@
 #include <deque>
+#include <vector>
 #include <string>
 #include <sstream>
 #include <algorithm>
@@ -160,3 +161,20 @@ void	addElementsDeque(std::deque<std::string> *list, std::deque<std::string> toA
 		list->push_back(*it);
 }
 
+std::vector<std::string>		splitComma(std::string string)
+{
+	std::vector<std::string>	result;
+	size_t	start = 0;
+	size_t	end;
+
+	while (true)
+	{
+		end = string.find(",", start);
+		if (end == std::string::npos)
+			break;
+		result.push_back(string.substr(start, end));
+		start = end + 1;
+	}
+	result.push_back(string.substr(start, string.length()));
+	return (result);
+}

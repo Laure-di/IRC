@@ -1,8 +1,9 @@
-#ifndef USER_HPP
-# define USER_HPP
+#ifndef CLIENT_HPP
+# define CLIENT_HPP
 
 #include <iostream>
 #include <unistd.h>
+#include "Server.hpp"
 
 enum UserModes
 {
@@ -15,7 +16,7 @@ enum UserModes
     ServerNotices = 64
 };
 
-class User
+class Client
 {
 	private:
 		std::string			_nickname;//unique nickname
@@ -31,8 +32,8 @@ class User
 		//TODO add channels
 
 	public:
-		User(const int fd, std::string hostname);
-		~User();
+		Client(const int fd, std::string hostname);
+		~Client();
 		std::string		getNickname(void)const;
 		std::string		getUsername(void)const;
 		int				getFd(void)const;

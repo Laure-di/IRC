@@ -17,7 +17,7 @@
 #include "../Exceptions.hpp"
 #include "../Commands.hpp"
 #include "../CommandResponses.hpp"
-#include "User.hpp"
+#include "Client.hpp"
 #include "Channel.hpp"
 
 //Variables server use
@@ -56,7 +56,7 @@ class Server
 		sockaddr_in						_addr;
 		int								_listenSocket, _pollfd;
 		epoll_event						_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
-		std::map<const int, User*>		_usersOnServer;
+		std::map<const int, Client*>		_usersOnServer;
 		std::map<std::string, Channel*>	_channels;
 		cmd_dict						_cmd_dict;
 
@@ -66,21 +66,21 @@ class Server
 		void						execute(void);
 		const std::string&			getHostname(void) const;
 		const int&					getListenSocket(void) const;
-		std::deque<User*>			getAllUsers(void)const;
-		User*						getUserByNickname(std::string nickname)const;
-		User*						getUserByFd(const int fd)const;
+		std::deque<Client*>			getAllUsers(void)const;
+		Client*						getUserByNickname(std::string nickname)const;
+		Client*						getUserByFd(const int fd)const;
 		void						setHostname(std::string);
 		void						clearServer(void);
-		void						deleteUser(User* user);
+		void						deleteUser(Client* user);
 		void						printAllUsersFd(void);//TODO delete just debug
 		void						sendMsgToFd(const std::string msg, const int fd);
-		void						sendNumericReplyToFd(NumericReplies reply, const int fd);
+		void						sendMsgToFd(NumericReplies reply, const int fd);
 		void						createCmdDict(void);
-		User*						findUserByNickname(const std::string nickname);
-		User*						findUserByFd(const int fd);
+		Client*						findUserByNickname(const std::string nickname);
+		Client*						findUserByFd(const int fd);
 		bool						checkPassword(const std::string password) const;
 		Channel*					findChannelByName(const std::string name);
-		Channel*					addChannel(std::string name, User* user);
+		Channel*					addChannel(std::string name, Client* user);
 
 };
 

@@ -1,6 +1,6 @@
 #include "../includes/Class/Channel.hpp"
 
-Channel::Channel(std::string name, User* creator): _name(name)
+Channel::Channel(std::string name, Client* creator): _name(name)
 {
 	_userOperator[creator->getNickname()] = creator;
 	_usersOnChannel[creator->getNickname()] = creator;
@@ -26,17 +26,22 @@ void Channel::clear_topic(void) {
 	_topic.clear();
 }
 
-User *Channel::findUserByNickname(const std::string nickname)
+Client *Channel::findUserByNickname(const std::string nickname)
 {
 	return _usersOnChannel[nickname];
 }
 
-User *Channel::findOperatorByNickname(const std::string nickname)
+Client *Channel::findOperatorByNickname(const std::string nickname)
 {
 	return _userOperator[nickname];
 }
 
-User *Channel::findBannedUserByNickname(const std::string nickname)
+Client *Channel::findBannedUserByNickname(const std::string nickname)
 {
 	return _usersBanned[nickname];
+}
+
+void Channel::kickUser(std::string nickname)
+{
+	_usersOnChannel.erase(nickname);
 }
