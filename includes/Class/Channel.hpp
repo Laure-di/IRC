@@ -12,6 +12,9 @@ class Channel
 		std::map<std::string, Client*>	_clientsOnChannel;
 		std::map<std::string, Client*>	_clientsOperator;
 		std::map<std::string, Client*>	_clientsBanned;
+		std::vector<std::string> _banMasks;
+		std::vector<std::string> _banExceptionMasks;
+		std::vector<std::string> _inviteMasks;
 
 	public:
 		Channel(std::string name, Client* creator);
@@ -20,6 +23,7 @@ class Channel
 		std::string getTopic(void);
 		void setTopic(std::string topic);
 		void clearTopic(void);
+		size_t getNumberOfUsers(void);
 		void setMode(Commands command);
 		// std::string getModeStr(void);
 		Client *findClientByNickname(std::string nickname);
@@ -28,7 +32,8 @@ class Channel
 		void kickClient(std::string nickname);
 		void kickOperator(std::string nickname);
 		void sendMsg(std::string message);
-
+		std::deque<Client*>			getAllClients(void)const;
+		void changeNickname(std::string oldNickname, std::string newNickname);
 };
 
 #endif

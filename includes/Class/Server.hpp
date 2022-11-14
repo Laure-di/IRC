@@ -37,7 +37,8 @@ class Server
 		void						execute(void);
 		const std::string&			getHostname(void) const;
 		const int&					getListenSocket(void) const;
-		std::deque<Client*>			getAllUsers(void)const;
+		std::deque<Client*>			getAllClients(void)const;
+		std::deque<Client*>			getAllClientsMatching(std::string pattern)const;
 		Client*						getUserByNickname(std::string nickname)const;
 		Client*						getUserByFd(const int fd)const;
 		void						setHostname(std::string);
@@ -48,12 +49,14 @@ class Server
 		void						sendMsgToFd(NumericReplies reply, const int fd);
 		void						createCmdDict(void);
 		Client*						findUserByNickname(const std::string nickname);
-		Client*						findUserByFd(const int fd);
+		Client*						findClientByFd(const int fd);
 		bool						checkPassword(const std::string password) const;
 		Channel*					findChannelByName(const std::string name);
 		Channel*					addChannel(std::string name, Client* user);
 		std::string					getMessageOfTheDay(void);
 		void						executeCommands(char *buffer, Client* currentClient);
+		std::map<std::string, Channel*> getChannels(void);
+		void 							changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
 };
 
 #endif

@@ -60,3 +60,41 @@ void Channel::sendMsg(std::string message)
 		send(client->getFd(), message.c_str(), message.length(), MSG_DONTWAIT);
 	}
 }
+
+size_t Channel::getNumberOfUsers(void)
+{
+	return _clientsOnChannel.size();
+}
+
+std::deque<Client*>			Channel::getAllClients(void)const
+{
+	std::deque<Client*> allClients;
+	for (std::map<std::string, Client*>::const_iterator it = _clientsOnChannel.begin(); it!= _clientsOnChannel.end(); it++)
+	{
+		allClients.push_back(it->second);
+	}
+
+	return (allClients);
+}
+
+void Channel::changeNickname(std::string oldNickname, std::string newNickname)
+{
+	std::map<std::string, Client*>::iterator it = _clientsOnChannel.find(oldNickname);
+	if (it != _clientsOnChannel.end())
+	{
+		std::swap(_clientsOnChannel[newNickname], it->second);
+		_clientsOnChannel.erase(it);
+	}
+	it = _clientsOperator.find(oldNickname);
+	if (it != _clientsOperator.end())
+	{
+		std::swap(_clientsOperator[newNickname], it->second);
+		_clientsOperator.erase(it);
+	}
+	it = _clientsBanned.find(oldNickname);
+	if (it != _clientsBanned.end())
+	{
+		std::swap(_clientsBanned[newNickname], it->second);
+		_clientsBanned.erase(it);
+	}
+}

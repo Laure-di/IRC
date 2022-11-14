@@ -209,6 +209,7 @@ bool strmatch(std::string string, std::string pattern)
  */
 void applyModeChanges(Server *server, int socket, std::string flags, std::string params, Client *client, Channel *channel)
 {
+	// Add custom error message, from Mordern IRC: The text used in the last param of this message may vary.
 	(void) channel;
 	(void) params;
 	char firstChar = flags[0];
@@ -249,4 +250,22 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 				server->sendMsgToFd(ERR_UMODEUNKNOWNFLAG, socket);
 		}
 	}
+}
+
+/**
+ * @brief Print info on list of clients
+ */
+void printWho(Server *server, int socket, std::deque<Client *>listOfClients)
+{
+	if (listOfClients.empty())
+		return;
+	std::deque<Client *>::iterator listOfClientsIterator;
+	for (listOfClientsIterator = listOfClients.begin(); listOfClientsIterator < listOfClients.end(); listOfClientsIterator++)
+	{
+		// Get all params values
+		// chan == activeChannel ?
+		// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
+	}
+	NumericReplies msg = RPL_ENDOFWHO(server->findClientByFd(socket)->getNickname());
+	server->sendMsgToFd(msg, socket);
 }

@@ -209,16 +209,31 @@ void				Server::setHostname(std::string hostname)
 	this->_hostname = hostname;
 }
 
-std::deque<Client*>	Server::getAllUsers(void)const
+std::deque<Client*>	Server::getAllClients(void)const
 {
-	std::deque<Client*> allUsers;
+	std::deque<Client*> allClients;
 
 	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
 	{
-		allUsers.push_back(it->second);
+		allClients.push_back(it->second);
 	}
 
-	return (allUsers);
+	return (allClients);
+}
+
+std::deque<Client*>	Server::getAllClientsMatching(std::string pattern) const
+{
+	std::deque<Client*> allClients;
+
+	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
+	{
+		if (strmatch(it->second->getNickname(), pattern)
+			|| strmatch(it->second->getHostname(), pattern)
+			|| strmatch(it->second->getUsername(), pattern))
+			allClients.push_back(it->second);
+	}
+
+	return (allClients);
 }
 
 Client*	Server::getUserByFd(const int fd)const
@@ -326,14 +341,14 @@ Client* Server::findUserByNickname(const std::string nickname)
 	return NULL;
 }
 
-Client* Server::findUserByFd(const int fd)
+Client* Server::findClientByFd(const int fd)
 {
 	return _clientsOnServer[fd];
 }
 
 void	Server::sendMsgToFd(NumericReplies reply, const int fd)
 {
-	std::string msg = ":" + getHostname() + " " + toString(reply.num) + " " + findUserByFd(fd)->getNickname() + " " + reply.msg;
+	std::string msg = ":" + getHostname() + " " + toString(reply.num) + " " + findClientByFd(fd)->getNickname() + " " + reply.msg;
 	sendMsgToFd(msg, fd);
 }
 
@@ -357,4 +372,19 @@ Channel* Server::addChannel(std::string name, Client* user)
 std::string		Server::getMessageOfTheDay(void)
 {
 	return _messageOfTheDay;
+}
+
+std::map<std::string, Channel*> Server::getChannels(void)
+{
+	return _channels;
+}
+
+void Server::changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname)
+{
+	std::map<std::string, Channel*>::iterator it;
+	for (it = _channels.end(); it != _channels.begin(); it++)
+	{
+		Channel* channel = it->second;
+		channel->changeNickname(oldNickname, newNickname);
+	}
 }

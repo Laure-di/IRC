@@ -31,7 +31,7 @@ void nick(Server *server, int socket, Commands command) {
 	// Add check for ERR_NICKCOLLISION (nickname taken on another server)
 	// Add check for ERR_UNAVAILRESOURCE (nickname in server list of forbidden nickames)
 	// Add check for ERR_RESTRICTED (user mode "+r")
-	Client *currentUser = server->findUserByFd(socket);
+	Client *currentUser = server->findClientByFd(socket);
 	currentUser->setNickname(nickname);
 };
 
@@ -44,7 +44,7 @@ void user(Server *server, int socket, Commands command)
 {
 	if(command.params.size() < 4)
 		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
-	Client *currentUser = server->findUserByFd(socket);
+	Client *currentUser = server->findClientByFd(socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsgToFd(ERR_ALREADYREGISTRED, socket);
 	std::string userName = command.params[0];
@@ -152,7 +152,7 @@ void mode(Server *server, int socket, Commands command)
 	std::string name = command.params[0];
 	if(command.params[0][0] == '+' || command.params[0][0] == '-')
 	{
-		client = server->findUserByFd(socket);
+		client = server->findClientByFd(socket);
 		channel = client->getActiveChannel();
 		flags = command.params[0];
 		if(command.params.size() > 1)
@@ -196,7 +196,7 @@ void topic(Server *server, int socket, Commands command)
 	Channel* channel = server->findChannelByName(channelName);
 	if (!channel)
 		return;
-	Client *currentUser = server->findUserByFd(socket);
+	Client *currentUser = server->findClientByFd(socket);
 	if (channel->findClientByNickname(currentUser->getNickname()))
 		return server->sendMsgToFd(ERR_NOTONCHANNEL(channel->getName()), socket);
 	if(command.params.size() == 1) {
@@ -231,7 +231,17 @@ void names(Server *server, int socket, Commands command)
  */
 void list(Server *server, int socket, Commands command)
 {
-
+	std::map<std::string, Channel*> channels = server->getChannels();
+	std::map<std::string, Channel*>::iterator channelsIterator;
+	for (channelsIterator = channels.begin(); channelsIterator != channels.end(); channelsIterator++)
+	{
+		Channel *channel = channelsIterator->second;
+		std::string name = channel->getName();
+		std::string topic = channel->getTopic();
+		if (topic.empty())
+			topic = toString(channel->getNumberOfUsers());
+		server->sendMsgToFd(name + " " + topic + "\n", socket);
+	}
 }
 
 /**
@@ -252,7 +262,7 @@ void invite(Server *server, int socket, Commands command)
 	Channel *channel = server->findChannelByName(channelName);
 	if (!channel)
 		return server->sendMsgToFd(ERR_NOSUCHNICK(channelName), socket);
-	Client *currentUser = server->findUserByFd(socket);
+	Client *currentUser = server->findClientByFd(socket);
 	if (!channel->findClientByNickname(currentUser->getNickname()))
 		return server->sendMsgToFd(ERR_NOTONCHANNEL(channelName), socket);
 	if (channel->findClientByNickname(nickname))
@@ -277,7 +287,7 @@ void kick(Server *server, int socket, Commands command)
 		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> channels = splitComma(command.params[0]);
 	std::vector<std::string> users = splitComma(command.params[1]);
-	Client *currentUser = server->findUserByFd(socket);
+	Client *currentUser = server->findClientByFd(socket);
 	std::string kickMessage;
 	if (channels.size() == 1 && users.size() == 1)
 	{
@@ -394,7 +404,27 @@ cmd_func squery;
 /*
 * 3.6 User based queries
 */
-cmd_func who;
+
+/**
+ * 3.6.1 Who query
+ *
+ * @brief This command is used to query a list of users who match the provided mask.
+ */
+void who(Server *server, int socket, Commands command)
+{
+	if(command.params.size() == 0)
+		return printWho(server, socket, server->getAllClients());
+	std::string params = command.params[0];
+	if(checkChannelName(params))
+	{
+		Channel *channel = server->findChannelByName(params);
+		if (channel)
+			return printWho(server, socket, channel->getAllClients());
+		return;
+	}
+	return printWho(server, socket, server->getAllClientsMatching(params));
+}
+
 cmd_func whois;
 cmd_func whowas;
 
