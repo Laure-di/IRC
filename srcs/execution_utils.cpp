@@ -28,15 +28,17 @@ bool	canRegisterPass(Client* user)
 
 bool	isFullyClientRegister(Client* user)
 {
-	if ((user->getNickname()).empty() || (user->getUsername()).empty())
-		return (false);
-	return (true);
+	if (!(user->getNickname()).empty() && !(user->getUsername()).empty())
+		return (true);
+	return (false);
 }
 
 bool	isRegistrationCmd(std::string command)
 {
 	if (command == "NICK" || command == "CAP" || command == "USER" || command == "PASS")
+	{
 		return (true);
+	}
 	return (false);
 }
 

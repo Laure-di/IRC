@@ -1,24 +1,33 @@
 #include "../includes/include.hpp"
+#define DEBUG
 
 
-std::deque<std::string>		split(std::string toSplit, std::string delimiter)
+std::deque<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 {
 	std::deque<std::string>	result;
 	size_t	start, end = delimiter.size() * -1;
 	std::string				toAdd;
 
-	do
+	while (end != std::string::npos)
 	{
 		start = end + delimiter.size();
 		end = toSplit.find(delimiter, start);
-		toAdd = toSplit.substr(start, end - start);
+#ifdef DEBUG
+		std::cout << "Size of string to split" << toSplit.size() << std::endl;
+		std::cout << "value of end split " << end <<  std::endl;
+#endif
+		if (end != std::string::npos)
+			toAdd = toSplit.substr(start, end - start);
+		else
+			toAdd = toSplit.substr(start, toSplit.size() - 1 - start);
 		if (!toAdd.empty())
 			result.push_back(toAdd);
-
-	} while (end != std::string::npos);
+		std::cout << toAdd << std::endl;
+	};
 
 	return (result);
 }
+
 
 /**
  * @brief Check if a character is a letter
@@ -268,4 +277,22 @@ void printWho(Server *server, int socket, std::deque<Client *>listOfClients)
 	}
 	NumericReplies msg = RPL_ENDOFWHO(server->findClientByFd(socket)->getNickname());
 	server->sendMsgToFd(msg, socket);
+}
+
+std::deque<std::string>		split(std::string string, std::string delimiter)
+{
+	std::deque<std::string>	result;
+	size_t	start = 0;
+	size_t	end;
+
+	while (true)
+	{
+		end = string.find(delimiter, start);
+		if (end == std::string::npos)
+			break;
+		result.push_back(string.substr(start, end));
+		start = end + 1;
+	}
+	result.push_back(string.substr(start, string.length()));
+	return (result);
 }

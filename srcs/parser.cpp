@@ -14,10 +14,10 @@ void	print_debug(std::deque<std::string> print)
 
 void	printCmd(Commands commands)
 {
-		std::cout << "Prefix : " << commands.prefix << std::endl;
-		std::cout << "Command : " << commands.command << std::endl;
-		std::cout << "Paramaters : " << std::endl;
-		print_debug(commands.params);
+	std::cout << "Prefix : " << commands.prefix << std::endl;
+	std::cout << "Command : " << commands.command << std::endl;
+	std::cout << "Paramaters : " << std::endl;
+	print_debug(commands.params);
 }
 
 void	printAllCmds(std::deque<Commands> print)
@@ -28,15 +28,15 @@ void	printAllCmds(std::deque<Commands> print)
 }
 
 /*bool	checkCommandLenght(std::deque<std::string> listOfCommands)
-{
-	std::deque<std::string>::iterator	it;
-	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
-	{
-		if (MAX_CMD_LGTH < it->size())
-			return (false);
-	}
-	return (true);
-}*/
+  {
+  std::deque<std::string>::iterator	it;
+  for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
+  {
+  if (MAX_CMD_LGTH < it->size())
+  return (false);
+  }
+  return (true);
+  }*/
 
 bool	checkMaxParam(Commands commands)
 {
@@ -74,9 +74,12 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 		first = split(*(rslt.begin()), " ");
 		rslt.pop_front();
 		command.command =*(first.begin());
-		first.pop_front();
-		command.params = first;
-		addElementsDeque(&command.params, rslt);
+		if (1 < first.size())
+		{
+			first.pop_front();
+			command.params = first;
+			addElementsDeque(&command.params, rslt);
+		}
 #ifdef DEBUG
 		std::cout << "Case of command with colon : " << std::endl;
 		std::cout << "command : " << command.command << std::endl;
@@ -88,8 +91,12 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 		command.colon = false;
 		rslt = split(cmd, " ");
 		command.command = *(rslt.begin());
-		rslt.pop_front();
-		command.params = rslt;
+		std::cout << rslt.size() << std::endl;
+		if (rslt.size() > 1)
+		{
+			rslt.pop_front();
+			command.params = rslt;
+		}
 #ifdef DEBUG
 		std::cout << "command : " << command.command << std::endl;
 		print_debug(command.params);
