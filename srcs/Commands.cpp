@@ -143,7 +143,7 @@ void mode(Server *server, int socket, Commands command)
 	if(command.params[0][0] == '+' || command.params[0][0] == '-')
 	{
 		client = server->findUserByFd(socket);
-		channel = client->getCurrentChannel();
+		channel = client->getActiveChannel();
 		flags = command.params[0];
 		if(command.params.size() > 1)
 			params = command.params[0];
