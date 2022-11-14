@@ -3,8 +3,10 @@
 //TODO add client message
 
 #include "../includes/include.hpp"
+#define DEBUG
 
 static bool	is_running=true;
+
 
 Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _password_hash(hasher(password.c_str()))
 {
@@ -13,6 +15,7 @@ Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME),
 	memset(&this->_ev, 0, sizeof(epoll_event));
 	memset(&this->_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
 	memset(&this->_addr, 0, sizeof(sockaddr_in));
+	this->createCmdDict();
 	//INFO Creation of the master socket
 	if ((this->_listenSocket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 		std::cerr << std::strerror(errno) << std::endl;
@@ -88,12 +91,8 @@ void	Server::_handleMessage(int i)
 	}
 	else
 	{
-		std::string				toSplit(buffer);
-		std::deque<std::string>	listOfCommands = split(toSplit, "\r\n");
-		std::deque<Commands>	commandsList = manageMultipleCommands(listOfCommands);
-#ifdef DEBUG
-		printAllCmds(commandsList);
-#endif
+		Client* currentClient = this->getUserByFd(this->_ep_event[i].data.fd);
+		this->executeCommands(buffer, currentClient);
 	}
 
 }
@@ -103,6 +102,34 @@ void	stopServer(int signal)
 	(void)signal;
 	std::cout << "\r";
 	is_running = false;
+}
+
+void	Server::executeCommands(char *buffer, Client *client)
+{
+	std::string							toSplit(buffer);
+	std::deque<std::string>				listOfCommands = split(toSplit, "\r\n");
+	std::deque<Commands>				commandsList = manageMultipleCommands(listOfCommands);
+	std::deque<Commands>::iterator		it;
+	std::string							cmdFail;
+
+	transformCmdsToUpper(&commandsList);
+	if (!checkCmdLength(listOfCommands))
+		return ;
+	for (it = commandsList.begin(); it != commandsList.end(); it++)
+	{
+		if (!isFullyClientRegister(client) && isRegistrationCmd(it->command))
+			return this->sendMsgToFd(ERR_NOTREGISTERED, client->getFd()); //451
+		this->_cmd_dict[it->command](this, client->getFd(), *it);
+	}
+
+	//TODO
+	//Check length of command
+	//Check nb of arg ??!!
+	//Check registration cmd
+	//check is fully register
+#ifdef DEBUG
+	printAllCmds(commandsList);
+#endif
 }
 
 void	Server::execute(void)
@@ -239,10 +266,11 @@ void	Server::sendMsgToFd(const std::string msg, const int fd)
 }
 
 void	Server::createCmdDict(void) {
-/*	_cmd_dict["PASS"] = &pass;
+//	_cmd_dict["PASS"] = &pass;
 	_cmd_dict["NICK"] = &nick;
 	_cmd_dict["USER"] = &user;
-	_cmd_dict["OPER"] = &oper;
+	_cmd_dict["CAP"] = &cap;
+/*	_cmd_dict["OPER"] = &oper;
 	_cmd_dict["MODE"] = &mode;
 	_cmd_dict["SERVICE"] = &service;
 	_cmd_dict["QUIT"] = &quit;

@@ -87,6 +87,16 @@ void service(Server *server, int socket, Commands command)
 }
 
 
+/**
+ * 3.1.7 Negociation message
+ *
+ * @brief The SERVICE command is used for capability negotiation between a server and a client.
+ */
+void cap(Server *server, int socket, Commands command)
+{
+	return ;
+}
+
 cmd_func quit;
 cmd_func squit;
 

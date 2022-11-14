@@ -16,6 +16,7 @@ cmd_func user;
 cmd_func oper;
 cmd_func mode;
 cmd_func service;
+cmd_func cap;
 cmd_func quit;
 cmd_func squit;
 

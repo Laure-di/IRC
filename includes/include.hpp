@@ -42,7 +42,6 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #ifndef CHANNEL_HPP
 #include "./Class/Channel.hpp"
 #endif
-
 #ifndef SERVER_HPP
 #include "./Class/Server.hpp"
 #endif
