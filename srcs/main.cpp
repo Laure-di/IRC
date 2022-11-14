@@ -9,7 +9,6 @@ int		main(int argc, char **argv)
 	}
 	int			port;
 	std::string	pwd(argv[2]);
-	stringToUpper(&pwd);
 	std::cout << pwd << std::endl;
 
 	port = std::atoi(argv[1]);

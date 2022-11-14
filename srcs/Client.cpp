@@ -121,3 +121,23 @@ void	Client::setActiveChannel(Channel* active)
 {
 	this->_activeChannel = active;
 }
+
+std::string		Client::getModeStr(void) const
+{
+	std::string res = "+";
+	if (_mode & Away)
+		res += "a";
+	if (_mode & Invisible)
+		res += "i";
+	if (_mode & Wallops)
+		res += "w";
+	if (_mode & Restricted)
+		res += "r";
+	if (_mode & Operator)
+		res += "o";
+	if (_mode & LocalOperator)
+		res += "O";
+	if (_mode & ServerNotices)
+		res += "a";
+	return res;
+}

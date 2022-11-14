@@ -87,6 +87,16 @@ void service(Server *server, int socket, Commands command)
 }
 
 
+/**
+ * 3.1.7 Negociation message
+ *
+ * @brief The SERVICE command is used for capability negotiation between a server and a client.
+ */
+void cap(Server *server, int socket, Commands command)
+{
+	return ;
+}
+
 cmd_func quit;
 cmd_func squit;
 
@@ -133,8 +143,8 @@ void part(Server *server, int socket, Commands command)
  */
 void mode(Server *server, int socket, Commands command)
 {
-	Client *client;
-	Channel *channel;
+	Client *client = NULL;
+	Channel *channel = NULL;
 	std::string flags;
 	std::string params;
 	if(command.params.size() == 0)
@@ -155,8 +165,8 @@ void mode(Server *server, int socket, Commands command)
 			channel = server->findChannelByName(name);
 			if (!channel)
 				return server->sendMsgToFd(ERR_NOSUCHCHANNEL(name), socket);
-			if (command.params.size() == 0)
-				return server->sendMsgToFd(channel->getModeStr(), socket);
+			// if (command.params.size() == 0)
+			// 	return server->sendMsgToFd(channel->getModeStr(), socket);
 		}
 		else
 		{

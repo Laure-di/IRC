@@ -27,7 +27,7 @@ void	printAllCmds(std::deque<Commands> print)
 		printCmd(*it);
 }
 
-bool	checkCommandLenght(std::deque<std::string> listOfCommands)
+/*bool	checkCommandLenght(std::deque<std::string> listOfCommands)
 {
 	std::deque<std::string>::iterator	it;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
@@ -36,7 +36,7 @@ bool	checkCommandLenght(std::deque<std::string> listOfCommands)
 			return (false);
 	}
 	return (true);
-}
+}*/
 
 bool	checkMaxParam(Commands commands)
 {
