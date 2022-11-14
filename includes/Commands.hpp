@@ -3,10 +3,6 @@
 
 #include "include.hpp"
 
-typedef void cmd_func(Server *server, int socket, Commands command);
-typedef void (*cmd_func_ptr)(Server *server, int socket, Commands command);
-typedef std::map<std::string, cmd_func_ptr> cmd_dict;
-
 /*
 * 3.1 Connection Registration
 */

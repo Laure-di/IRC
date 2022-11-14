@@ -125,16 +125,52 @@ void part(Server *server, int socket, Commands command)
  * @brief The user MODE's are typically changes which affect either how the
  * client is seen by others or what 'extra' messages the client is sent.
  * The channel MODE command is provided so that users may query and change the
-   characteristics of a channel.
+ * characteristics of a channel.
+ *
+ * MODE follows IRSSI documentation, particularly the fact that if the target
+ * nickname or channel is omitted, the active nickname or channel will be used.
+ * https://irssi.org/documentation/help/mode/
  */
 void mode(Server *server, int socket, Commands command)
 {
-	if(command.params.size() < 2)
+	Client *client;
+	Channel *channel;
+	std::string flags;
+	std::string params;
+	if(command.params.size() == 0)
 		return server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::string nickname = command.params[0];
-	Client* currentUser = server->getUserByFd(socket);
-	if (currentUser->getNickname() != nickname)
-		return server->sendMsgToFd(ERR_USERSDONTMATCH, socket);
+	std::string name = command.params[0];
+	if(command.params[0][0] == '+' || command.params[0][0] == '-')
+	{
+		client = server->findUserByFd(socket);
+		channel = client->getCurrentChannel();
+		flags = command.params[0];
+		if(command.params.size() > 1)
+			params = command.params[0];
+	}
+	else
+	{
+		if (checkChannelName(name))
+		{
+			channel = server->findChannelByName(name);
+			if (!channel)
+				return server->sendMsgToFd(ERR_NOSUCHCHANNEL(name), socket);
+			if (command.params.size() == 0)
+				return server->sendMsgToFd(channel->getModeStr(), socket);
+		}
+		else
+		{
+			client = server->getUserByFd(socket);
+			if (client->getNickname() != name)
+				return server->sendMsgToFd(ERR_USERSDONTMATCH, socket);
+			if (command.params.size() == 1)
+				return server->sendMsgToFd("Your user mode is " + client->getModeStr(), socket);
+		}
+		flags = command.params[1];
+		if(command.params.size() > 2)
+			params = command.params[2];
+	}
+	applyModeChanges(server, socket, flags, params, client, channel);
 }
 
 /**
@@ -284,7 +320,7 @@ void kick(Server *server, int socket, Commands command)
  */
 void privmsg(Server *server, int socket, Commands command)
 {
-
+	return;
 }
 
 /**
@@ -294,13 +330,41 @@ void privmsg(Server *server, int socket, Commands command)
  */
 void notice(Server *server, int socket, Commands command)
 {
-
+	return;
 }
 
 /*
 * 3.4 Server queries and commands
 */
-cmd_func motd;
+
+/**
+ * 3.4.1 Motd message
+ *
+ * @brief The MOTD command is used to get the "Message Of The Day" of the given
+ *  server, or current server if <target> is omitted.
+ */
+void motd(Server *server, int socket, Commands command)
+{
+	// Reminder to create a message of the day when constructing the Server
+	std::string messageOfTheDay = server->getMessageOfTheDay();
+	if (messageOfTheDay.empty())
+		return server->sendMsgToFd(ERR_NOMOTD, socket);
+	server->sendMsgToFd(RPL_MOTDSTART(server->getHostname()), socket);
+	server->sendMsgToFd(RPL_MOTD(messageOfTheDay), socket);
+	server->sendMsgToFd(RPL_ENDOFMOTD, socket);
+}
+
+/**
+ * 3.4.2 Lusers message
+ *
+ * @brief The LUSERS command is used to get statistics about the size of the
+ * IRC network.
+ */
+void lusers(Server *server, int socket, Commands command)
+{
+	return;
+}
+
 cmd_func lusers;
 cmd_func version;
 cmd_func stats;

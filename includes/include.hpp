@@ -22,45 +22,26 @@
 #include <signal.h>
 #include <bits/signum.h>
 #include <bits/types/sig_atomic_t.h>
-# include <bits/types/siginfo_t.h>
+#include <bits/types/siginfo_t.h>
+#include <bits/stdc++.h>
 
 class Channel;
+class Client;
 class Server;
-struct NumericReplies;
 struct Commands;
+struct NumericReplies;
 typedef void cmd_func(Server *server, int socket, Commands command);
 typedef void (*cmd_func_ptr)(Server *server, int socket, Commands command);
 typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 
-#ifndef UTILS_HPP
 #include "utils.hpp"
-#endif
-#ifndef CLIENT_HPP
 #include "./Class/Client.hpp"
-#endif
-#ifndef CHANNEL_HPP
 #include "./Class/Channel.hpp"
-#endif
-
-#ifndef SERVER_HPP
 #include "./Class/Server.hpp"
-#endif
-
-//Include other header files
-#ifndef COMMANDRESPONSES_HPP
 #include "CommandResponses.hpp"
-#endif
-#ifndef COMMANDS_HPP
 #include "Commands.hpp"
-#endif
-#ifndef EXCEPTIONS_HPP
 #include "Exceptions.hpp"
-#endif
-#ifndef PARSER_HPP
 #include "parser.hpp"
-#endif
-
-
 
 struct	Commands
 {

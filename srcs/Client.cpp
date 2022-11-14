@@ -44,6 +44,11 @@ bool Client::getPwd(void)const
 	return (this->_pwd);
 }
 
+Channel *Client::getCurrentChannel(void)
+{
+	return _activeChannel;
+}
+
 void	Client::setNickname(std::string nickname)
 {
 	//TODO faire les check nickname
@@ -74,3 +79,21 @@ void	Client::setPwd(bool pwd)
 {
 	this->_pwd = pwd;
 }
+
+void	Client::addMode(int mask)
+{
+	_mode |= mask;
+}
+
+void	Client::remMode(int mask)
+{
+	_mode &= ~mask;
+}
+
+void	Client::modMode(int mask, bool add)
+{
+	if (add)
+		return addMode(mask);
+	remMode(mask);
+}
+

@@ -21,6 +21,7 @@ class Channel
 		void setTopic(std::string topic);
 		void clearTopic(void);
 		void setMode(Commands command);
+		std::string getModeStr(void);
 		Client *findClientByNickname(std::string nickname);
 		Client *findOperatorByNickname(std::string nickname);
 		Client *findBannedUserByNickname(std::string nickname);

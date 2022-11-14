@@ -6,7 +6,7 @@
 
 static bool	is_running=true;
 
-Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _password_hash(hasher(password.c_str()))
+Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _passwordHash(hasher(password.c_str()))
 {
 	int			optval = 1;
 
@@ -57,7 +57,7 @@ void	Server::_acceptNewClient(int listenSocket, int pollfd)
 	memset(&client_addr, 0, sizeof(sockaddr_storage));
 	if ((client_fd = accept(listenSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
 		std::cerr << std::strerror(errno) << std::endl; //QUID throw an exception or just a error?!
-	this->_usersOnServer[client_fd] = new Client(client_fd, this->getHostname()); //TODO check hostname
+	this->_clientsOnServer[client_fd] = new Client(client_fd, this->getHostname()); //TODO check hostname
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = client_fd;
 	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
@@ -134,10 +134,10 @@ void	Server::clearServer(void) //TODO link with signal??!!
 {
 	//TODO delete channels before user bc channels are links to users
 	//Close connection and fd and delete users
-	if (!this->_usersOnServer.empty())
+	if (!this->_clientsOnServer.empty())
 	{
-		std::map<int, Client*>::const_iterator it_end = this->_usersOnServer.end();
-		for (std::map<int, Client*>::const_iterator it_begin = this->_usersOnServer.begin(); it_begin != it_end; it_begin++)
+		std::map<int, Client*>::const_iterator it_end = this->_clientsOnServer.end();
+		for (std::map<int, Client*>::const_iterator it_begin = this->_clientsOnServer.begin(); it_begin != it_end; it_begin++)
 		{
 			try
 			{
@@ -186,7 +186,7 @@ std::deque<Client*>	Server::getAllUsers(void)const
 {
 	std::deque<Client*> allUsers;
 
-	for (std::map<int, Client*>::const_iterator it = this->_usersOnServer.begin(); it!= this->_usersOnServer.end(); it++)
+	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
 	{
 		allUsers.push_back(it->second);
 	}
@@ -196,19 +196,19 @@ std::deque<Client*>	Server::getAllUsers(void)const
 
 Client*	Server::getUserByFd(const int fd)const
 {
-	std::map<int, Client*>::const_iterator it = this->_usersOnServer.end();
-	if (this->_usersOnServer.find(fd) != it)
-		return (this->_usersOnServer.find(fd)->second);
+	std::map<int, Client*>::const_iterator it = this->_clientsOnServer.end();
+	if (this->_clientsOnServer.find(fd) != it)
+		return (this->_clientsOnServer.find(fd)->second);
 	return (NULL);
 }
 
 void	Server::printAllUsersFd(void)
 {
-	if (!this->_usersOnServer.empty())
+	if (!this->_clientsOnServer.empty())
 	{
 		std::map<int, Client*>::const_iterator it;
-		std::map<int, Client*>::const_iterator ite = this->_usersOnServer.end();
-		for (it = this->_usersOnServer.begin(); it != ite; it++)
+		std::map<int, Client*>::const_iterator ite = this->_clientsOnServer.end();
+		for (it = this->_clientsOnServer.begin(); it != ite; it++)
 		{
 			std::cout << (it->second)->getHostname() << std::endl;
 		}
@@ -219,14 +219,14 @@ void	Server::printAllUsersFd(void)
 void	Server::deleteUser(Client* user)
 {
 	std::map<int, Client*>::iterator it;
-	std::map<int, Client*>::iterator ite = this->_usersOnServer.end();
-	for (it = this->_usersOnServer.begin(); it != ite;)
+	std::map<int, Client*>::iterator ite = this->_clientsOnServer.end();
+	for (it = this->_clientsOnServer.begin(); it != ite;)
 	{
 		if (user == it->second)
 		{
 			delete it->second;
 			//close (it->second->getFd());
-			this->_usersOnServer.erase(it++);
+			this->_clientsOnServer.erase(it++);
 		}
 		else
 			it++;
@@ -239,57 +239,57 @@ void	Server::sendMsgToFd(const std::string msg, const int fd)
 }
 
 void	Server::createCmdDict(void) {
-	_cmd_dict["PASS"] = &pass;
-	_cmd_dict["NICK"] = &nick;
-	_cmd_dict["USER"] = &user;
-	_cmd_dict["OPER"] = &oper;
-	_cmd_dict["MODE"] = &mode;
-	_cmd_dict["SERVICE"] = &service;
-	_cmd_dict["QUIT"] = &quit;
-	_cmd_dict["SQUIT"] = &squit;
-	_cmd_dict["JOIN"] = &join;
-	_cmd_dict["PART"] = &part;
-	_cmd_dict["TOPIC"] = &topic;
-	_cmd_dict["NAMES"] = &names;
-	_cmd_dict["LIST"] = &list;
-	_cmd_dict["INVITE"] = &invite;
-	_cmd_dict["KICK"] = &kick;
-	_cmd_dict["PRIVMSG"] = &privmsg;
-	_cmd_dict["NOTICE"] = &notice;
-	_cmd_dict["MOTD"] = &motd;
-	_cmd_dict["LUSERS"] = &lusers;
-	_cmd_dict["VERSION"] = &version;
-	_cmd_dict["STATS"] = &stats;
-	_cmd_dict["LINKS"] = &links;
-	_cmd_dict["TIME"] = &time;
-	_cmd_dict["CONNECT"] = &connect;
-	_cmd_dict["TRACE"] = &trace;
-	_cmd_dict["ADMIN"] = &admin;
-	_cmd_dict["INFO"] = &info;
-	_cmd_dict["SERVLIST"] = &servlist;
-	_cmd_dict["SQUERY"] = &squery;
-	_cmd_dict["WHO"] = &who;
-	_cmd_dict["WHOIS"] = &whois;
-	_cmd_dict["WHOWAS"] = &whowas;
-	_cmd_dict["KILL"] = &kill;
-	_cmd_dict["PING"] = &ping;
-	_cmd_dict["PONG"] = &pong;
-	_cmd_dict["ERROR"] = &error;
-	_cmd_dict["AWAY"] = &away;
-	_cmd_dict["REHASH"] = &rehash;
-	_cmd_dict["DIE"] = &die;
-	_cmd_dict["RESTART"] = &restart;
-	_cmd_dict["SUMMON"] = &summon;
-	_cmd_dict["USERS"] = &users;
-	_cmd_dict["WALLOPS"] = &wallops;
-	_cmd_dict["USERHOST"] = &userhost;
-	_cmd_dict["ISON"] = &ison;
+	_cmdDict["PASS"] = &pass;
+	_cmdDict["NICK"] = &nick;
+	_cmdDict["USER"] = &user;
+	_cmdDict["OPER"] = &oper;
+	_cmdDict["MODE"] = &mode;
+	_cmdDict["SERVICE"] = &service;
+	_cmdDict["QUIT"] = &quit;
+	_cmdDict["SQUIT"] = &squit;
+	_cmdDict["JOIN"] = &join;
+	_cmdDict["PART"] = &part;
+	_cmdDict["TOPIC"] = &topic;
+	_cmdDict["NAMES"] = &names;
+	_cmdDict["LIST"] = &list;
+	_cmdDict["INVITE"] = &invite;
+	_cmdDict["KICK"] = &kick;
+	_cmdDict["PRIVMSG"] = &privmsg;
+	_cmdDict["NOTICE"] = &notice;
+	_cmdDict["MOTD"] = &motd;
+	_cmdDict["LUSERS"] = &lusers;
+	_cmdDict["VERSION"] = &version;
+	_cmdDict["STATS"] = &stats;
+	_cmdDict["LINKS"] = &links;
+	_cmdDict["TIME"] = &time;
+	_cmdDict["CONNECT"] = &connect;
+	_cmdDict["TRACE"] = &trace;
+	_cmdDict["ADMIN"] = &admin;
+	_cmdDict["INFO"] = &info;
+	_cmdDict["SERVLIST"] = &servlist;
+	_cmdDict["SQUERY"] = &squery;
+	_cmdDict["WHO"] = &who;
+	_cmdDict["WHOIS"] = &whois;
+	_cmdDict["WHOWAS"] = &whowas;
+	_cmdDict["KILL"] = &kill;
+	_cmdDict["PING"] = &ping;
+	_cmdDict["PONG"] = &pong;
+	_cmdDict["ERROR"] = &error;
+	_cmdDict["AWAY"] = &away;
+	_cmdDict["REHASH"] = &rehash;
+	_cmdDict["DIE"] = &die;
+	_cmdDict["RESTART"] = &restart;
+	_cmdDict["SUMMON"] = &summon;
+	_cmdDict["USERS"] = &users;
+	_cmdDict["WALLOPS"] = &wallops;
+	_cmdDict["USERHOST"] = &userhost;
+	_cmdDict["ISON"] = &ison;
 }
 
 Client* Server::findUserByNickname(const std::string nickname)
 {
 	std::map<int, Client*>::iterator currentUser;
-	for (currentUser = _usersOnServer.begin(); currentUser != _usersOnServer.end(); currentUser++)
+	for (currentUser = _clientsOnServer.begin(); currentUser != _clientsOnServer.end(); currentUser++)
 	{
 		if (currentUser->second->getNickname() == nickname)
 			return currentUser->second;
@@ -299,7 +299,7 @@ Client* Server::findUserByNickname(const std::string nickname)
 
 Client* Server::findUserByFd(const int fd)
 {
-	return _usersOnServer[fd];
+	return _clientsOnServer[fd];
 }
 
 void	Server::sendMsgToFd(NumericReplies reply, const int fd)
@@ -310,7 +310,7 @@ void	Server::sendMsgToFd(NumericReplies reply, const int fd)
 
 bool	Server::checkPassword(const std::string password) const
 {
-	return hasher(password.c_str()) == _password_hash;
+	return hasher(password.c_str()) == _passwordHash;
 }
 
 Channel* Server::findChannelByName(const std::string name)
@@ -323,4 +323,9 @@ Channel* Server::addChannel(std::string name, Client* user)
 	Channel *newChannel = new Channel(name, user);
 	_channels[name] = newChannel;
 	return newChannel;
+}
+
+std::string		Server::getMessageOfTheDay(void)
+{
+	return _messageOfTheDay;
 }

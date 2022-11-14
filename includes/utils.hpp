@@ -16,5 +16,6 @@ unsigned hasher(const char *s);
 bool checkChanstring(std::string name);
 bool checkChannelName(std::string name);
 std::vector<std::string>		splitComma(std::string string);
+void applyModeChanges(Server *server, int socket, std::string flags, std::string params, Client *client, Channel *channel);
 
 #endif

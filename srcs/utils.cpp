@@ -136,7 +136,7 @@ bool checkChanstring(std::string name) {
  * @brief Check channel name
  *
  * channel =  ( "#" / "+" / ( "!" channelid ) / "&" ) chanstring [ ":" chanstring ]
- * At the moment, only check channel = ("#" / "&") chanstring
+ * For now, only check channel = ("#" / "&") chanstring
  */
 bool checkChannelName(std::string name) {
 	if (name.length() < 2)
@@ -156,7 +156,7 @@ void	addElementsDeque(std::deque<std::string> *list, std::deque<std::string> toA
 		list->push_back(*it);
 }
 
-std::vector<std::string>		splitComma(std::string string)
+std::vector<std::string> splitComma(std::string string)
 {
 	std::vector<std::string>	result;
 	size_t	start = 0;
@@ -172,4 +172,79 @@ std::vector<std::string>		splitComma(std::string string)
 	}
 	result.push_back(string.substr(start, string.length()));
 	return (result);
+}
+
+/**
+ * @brief  Wildcard pattern matching algorithm
+ *
+ * Help from https://www.geeksforgeeks.org/wildcard-pattern-matching/
+ */
+bool strmatch(std::string string, std::string pattern)
+{
+	size_t stringLen = string.size();
+	size_t patternLen = pattern.size();
+	if (patternLen == 0)
+		return (stringLen == 0);
+	bool lookup[stringLen + 1][patternLen + 1];
+	memset(lookup, false, sizeof(lookup));
+	lookup[0][0] = true;
+	for (int j = 1; j <= patternLen; j++)
+		if (pattern[j - 1] == '*')
+			lookup[0][j] = lookup[0][j - 1];
+	for (int i = 1; i <= stringLen; i++) {
+		for (int j = 1; j <= patternLen; j++) {
+			if (pattern[j - 1] == '*')
+				lookup[i][j] = lookup[i][j - 1] || lookup[i - 1][j];
+			else if (pattern[j - 1] == '?' || string[i - 1] == pattern[j - 1])
+				lookup[i][j] = lookup[i - 1][j - 1];
+			else
+				lookup[i][j] = false;
+		}
+	}
+	return lookup[stringLen][patternLen];
+}
+
+/**
+ * @brief Apply flags to client or channels
+ */
+void applyModeChanges(Server *server, int socket, std::string flags, std::string params, Client *client, Channel *channel)
+{
+	char firstChar = flags[0];
+	if (firstChar != '-' && firstChar != '+')
+		return server->sendMsgToFd(ERR_UMODEUNKNOWNFLAG, socket);
+	bool add = (firstChar == '+');
+	for (int i = 1; i < flags.length(); i++)
+	{
+		char nChar = flags[i];
+		switch (nChar)
+		{
+			case 'i':
+				client->modMode(Invisible, add);
+				break;
+			case 'w':
+				client->modMode(Wallops, add);
+				break;
+			case 'r':
+				client->modMode(Restricted, add);
+				break;
+			case 'o':
+				// Only for removing
+				client->modMode(Operator, add);
+				break;
+			case 'O':
+				client->modMode(LocalOperator, add);
+				break;
+			case 's':
+				client->modMode(ServerNotices, add);
+				break;
+			case '+':
+				add = true;
+				break;
+			case '-':
+				add = false;
+				break;
+			default:
+				server->sendMsgToFd(ERR_UMODEUNKNOWNFLAG, socket);
+		}
+	}
 }

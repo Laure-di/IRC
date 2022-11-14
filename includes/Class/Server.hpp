@@ -22,13 +22,14 @@ class Server
 		void							_handleMessage(int i);
 		int								_port;
 		std::string						_hostname;
-		unsigned						_password_hash;
+		unsigned						_passwordHash;
 		sockaddr_in						_addr;
 		int								_listenSocket, _pollfd;
 		epoll_event						_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
-		std::map<const int, Client*>		_usersOnServer;
+		std::map<const int, Client*>	_clientsOnServer;
 		std::map<std::string, Channel*>	_channels;
-		cmd_dict						_cmd_dict;
+		cmd_dict						_cmdDict;
+		std::string						_messageOfTheDay;
 
 
 	public:
@@ -51,6 +52,7 @@ class Server
 		bool						checkPassword(const std::string password) const;
 		Channel*					findChannelByName(const std::string name);
 		Channel*					addChannel(std::string name, Client* user);
+		std::string					getMessageOfTheDay(void);
 
 };
 
