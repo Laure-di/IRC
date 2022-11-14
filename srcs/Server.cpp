@@ -3,7 +3,6 @@
 //TODO add client message
 
 #include "../includes/include.hpp"
-#define DEBUG
 
 static bool	is_running=true;
 
@@ -107,7 +106,7 @@ void	stopServer(int signal)
 void	Server::executeCommands(char *buffer, Client *client)
 {
 	std::string							toSplit(buffer);
-	std::deque<std::string>				listOfCommands = split(toSplit, "\r\n");
+	std::deque<std::string>				listOfCommands = splitCmd(toSplit, "\r\n");
 	std::deque<Commands>				commandsList = manageMultipleCommands(listOfCommands);
 	std::deque<Commands>::iterator		it;
 	std::string							cmdFail;
@@ -117,7 +116,7 @@ void	Server::executeCommands(char *buffer, Client *client)
 		return ;
 	for (it = commandsList.begin(); it != commandsList.end(); it++)
 	{
-		if (!isFullyClientRegister(client) && isRegistrationCmd(it->command))
+		if (!isFullyClientRegister(client) && !isRegistrationCmd(it->command))
 			return this->sendMsgToFd(ERR_NOTREGISTERED, client->getFd()); //451
 		this->_cmd_dict[it->command](this, client->getFd(), *it);
 	}

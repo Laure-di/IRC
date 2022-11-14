@@ -27,7 +27,8 @@ SRCS	=	main.cpp		\
 			utils.cpp		\
 			parser.cpp		\
 			Channel.cpp		\
-			execution_utils.cpp
+			execution_utils.cpp	\
+			Commands.cpp
 
 INC		= includes
 ######################################
@@ -42,7 +43,7 @@ DEP	=	${OBJS:.o=.d}
 #                FLAGS                #
 #######################################
 
-FLAGS = -Wall -Werror -Wextra -MMD -MP -std=c++98 -I $(INC) -g3
+FLAGS = -Wall -Wextra -MMD -MP -std=c++98 -I $(INC) -g3
 
 #######################################
 #                RULES                #

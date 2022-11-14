@@ -10,7 +10,7 @@
  * @brief The PASS command is used to set a 'connection password'.
  */
 void pass(Server *server, int socket, Commands command) {
-	if(command.params.size() == 0)
+	if(command.params.empty())
 		server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket);
 	// Add check if already connected (send ERR_ALREADYREGISTRED) and check password
 };
@@ -21,7 +21,8 @@ void pass(Server *server, int socket, Commands command) {
  * @brief The NICK command is used to give user a nickname or change the existing one.
  */
 void nick(Server *server, int socket, Commands command) {
-	if(command.params.size() == 0)
+	std::cout << "entre dans NICK COMMAND" << std::endl;
+	if(command.params.empty())
 		return server->sendMsgToFd(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
 	if (!checkNickname(nickname))
@@ -94,6 +95,7 @@ void service(Server *server, int socket, Commands command)
  */
 void cap(Server *server, int socket, Commands command)
 {
+	std::cout << "entre ici" << std::endl;
 	return ;
 }
 
