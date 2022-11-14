@@ -44,7 +44,9 @@ class Client
 		int				getMode(void)const;
 		std::string		getModeStr(void) const;
 		bool			getPwd(void)const;
-		Channel *		getCurrentChannel(void);
+		Client			*getLastExpediteur(void)const;
+		Client			*getLastRecipient(void)const;
+		Channel			*getActiveChannel(void)const;
 		void			setNickname(std::string nickname);
 		void			setUsername(std::string username);
 		void			setFullName(std::string fullName);
@@ -55,6 +57,9 @@ class Client
 		void			setMode(Commands command);
 		void			setStatus(int status);
 		void			setPwd(bool pwd);
+		void			setLastExpediteur(Client* expediteur);
+		void			setLastRecipient(Client* recipient);
+		void			setActiveChannel(Channel* active);
 };
 
 #endif

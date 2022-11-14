@@ -90,10 +90,10 @@ void	Server::_handleMessage(int i)
 	{
 		std::string				toSplit(buffer);
 		std::deque<std::string>	listOfCommands = split(toSplit, "\r\n");
-		if (!checkCommandLength(listOfCommands))
-			return ;
 		std::deque<Commands>	commandsList = manageMultipleCommands(listOfCommands);
+#ifdef DEBUG
 		printAllCmds(commandsList);
+#endif
 	}
 
 }
@@ -239,51 +239,52 @@ void	Server::sendMsgToFd(const std::string msg, const int fd)
 }
 
 void	Server::createCmdDict(void) {
-	_cmdDict["PASS"] = &pass;
-	_cmdDict["NICK"] = &nick;
-	_cmdDict["USER"] = &user;
-	_cmdDict["OPER"] = &oper;
-	_cmdDict["MODE"] = &mode;
-	_cmdDict["SERVICE"] = &service;
-	_cmdDict["QUIT"] = &quit;
-	_cmdDict["SQUIT"] = &squit;
-	_cmdDict["JOIN"] = &join;
-	_cmdDict["PART"] = &part;
-	_cmdDict["TOPIC"] = &topic;
-	_cmdDict["NAMES"] = &names;
-	_cmdDict["LIST"] = &list;
-	_cmdDict["INVITE"] = &invite;
-	_cmdDict["KICK"] = &kick;
-	_cmdDict["PRIVMSG"] = &privmsg;
-	_cmdDict["NOTICE"] = &notice;
-	_cmdDict["MOTD"] = &motd;
-	_cmdDict["LUSERS"] = &lusers;
-	_cmdDict["VERSION"] = &version;
-	_cmdDict["STATS"] = &stats;
-	_cmdDict["LINKS"] = &links;
-	_cmdDict["TIME"] = &time;
-	_cmdDict["CONNECT"] = &connect;
-	_cmdDict["TRACE"] = &trace;
-	_cmdDict["ADMIN"] = &admin;
-	_cmdDict["INFO"] = &info;
-	_cmdDict["SERVLIST"] = &servlist;
-	_cmdDict["SQUERY"] = &squery;
-	_cmdDict["WHO"] = &who;
-	_cmdDict["WHOIS"] = &whois;
-	_cmdDict["WHOWAS"] = &whowas;
-	_cmdDict["KILL"] = &kill;
-	_cmdDict["PING"] = &ping;
-	_cmdDict["PONG"] = &pong;
-	_cmdDict["ERROR"] = &error;
-	_cmdDict["AWAY"] = &away;
-	_cmdDict["REHASH"] = &rehash;
-	_cmdDict["DIE"] = &die;
-	_cmdDict["RESTART"] = &restart;
-	_cmdDict["SUMMON"] = &summon;
-	_cmdDict["USERS"] = &users;
-	_cmdDict["WALLOPS"] = &wallops;
-	_cmdDict["USERHOST"] = &userhost;
-	_cmdDict["ISON"] = &ison;
+/*	_cmd_dict["PASS"] = &pass;
+	_cmd_dict["NICK"] = &nick;
+	_cmd_dict["USER"] = &user;
+	_cmd_dict["OPER"] = &oper;
+	_cmd_dict["MODE"] = &mode;
+	_cmd_dict["SERVICE"] = &service;
+	_cmd_dict["QUIT"] = &quit;
+	_cmd_dict["SQUIT"] = &squit;
+	_cmd_dict["JOIN"] = &join;
+	_cmd_dict["PART"] = &part;
+	_cmd_dict["TOPIC"] = &topic;
+	_cmd_dict["NAMES"] = &names;
+	_cmd_dict["LIST"] = &list;
+	_cmd_dict["INVITE"] = &invite;
+	_cmd_dict["KICK"] = &kick;
+	_cmd_dict["PRIVMSG"] = &privmsg;
+	_cmd_dict["NOTICE"] = &notice;
+	_cmd_dict["MOTD"] = &motd;
+	_cmd_dict["LUSERS"] = &lusers;
+	_cmd_dict["VERSION"] = &version;
+	_cmd_dict["STATS"] = &stats;
+	_cmd_dict["LINKS"] = &links;
+	_cmd_dict["TIME"] = &time;
+	_cmd_dict["CONNECT"] = &connect;
+	_cmd_dict["TRACE"] = &trace;
+	_cmd_dict["ADMIN"] = &admin;
+	_cmd_dict["INFO"] = &info;
+	_cmd_dict["SERVLIST"] = &servlist;
+	_cmd_dict["SQUERY"] = &squery;
+	_cmd_dict["WHO"] = &who;
+	_cmd_dict["WHOIS"] = &whois;
+	_cmd_dict["WHOWAS"] = &whowas;
+	_cmd_dict["KILL"] = &kill;
+	_cmd_dict["PING"] = &ping;
+	_cmd_dict["PONG"] = &pong;
+	_cmd_dict["ERROR"] = &error;
+	_cmd_dict["AWAY"] = &away;
+	_cmd_dict["REHASH"] = &rehash;
+	_cmd_dict["DIE"] = &die;
+	_cmd_dict["RESTART"] = &restart;
+	_cmd_dict["SUMMON"] = &summon;
+	_cmd_dict["USERS"] = &users;
+	_cmd_dict["WALLOPS"] = &wallops;
+	_cmd_dict["USERHOST"] = &userhost;
+	_cmd_dict["ISON"] = &ison;*/
+	std::cout << "Uncomment" << std::endl;
 }
 
 Client* Server::findUserByNickname(const std::string nickname)

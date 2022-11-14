@@ -12,7 +12,7 @@ void	print_debug(std::deque<std::string> print)
 		std::cout << i++ << " parameter " <<*it << std::endl;
 }
 
-void	print_struct(Commands commands)
+void	printCmd(Commands commands)
 {
 		std::cout << "Prefix : " << commands.prefix << std::endl;
 		std::cout << "Command : " << commands.command << std::endl;
@@ -24,7 +24,7 @@ void	printAllCmds(std::deque<Commands> print)
 {
 	std::deque<Commands>::iterator	it;
 	for (it = print.begin() ;it != print.end(); it++)
-		print_struct(*it);
+		printCmd(*it);
 }
 
 bool	checkCommandLenght(std::deque<std::string> listOfCommands)
@@ -32,15 +32,15 @@ bool	checkCommandLenght(std::deque<std::string> listOfCommands)
 	std::deque<std::string>::iterator	it;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
 	{
-		if (MAX_CMD_LGTH < *it.size())
+		if (MAX_CMD_LGTH < it->size())
 			return (false);
 	}
 	return (true);
 }
 
-bool	checkMaxParam(std::deque<Commands> commands)
+bool	checkMaxParam(Commands commands)
 {
-	if (MAX_PARAMS < params.size())
+	if (MAX_PARAMS < commands.params.size())
 		return (false);
 	return (true);
 }
@@ -73,7 +73,7 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 		rslt = split(cmd, ":");
 		first = split(*(rslt.begin()), " ");
 		rslt.pop_front();
-		command.command =*(first.begin()).toupper();
+		command.command =*(first.begin());
 		first.pop_front();
 		command.params = first;
 		addElementsDeque(&command.params, rslt);
@@ -87,7 +87,7 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 	{
 		command.colon = false;
 		rslt = split(cmd, " ");
-		command.command = *(rslt.begin()).toupper();
+		command.command = *(rslt.begin());
 		rslt.pop_front();
 		command.params = rslt;
 #ifdef DEBUG

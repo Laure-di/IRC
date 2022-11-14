@@ -5,6 +5,7 @@
 //Include librairies
 #include <iostream>
 #include <string>
+#include <cctype>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -42,7 +43,7 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #include "Commands.hpp"
 #include "Exceptions.hpp"
 #include "parser.hpp"
-
+#include "execution_utils.hpp"
 struct	Commands
 {
 	std::string				command;

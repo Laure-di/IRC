@@ -53,7 +53,7 @@ class Server
 		Channel*					findChannelByName(const std::string name);
 		Channel*					addChannel(std::string name, Client* user);
 		std::string					getMessageOfTheDay(void);
-
+		void						executeCommands(std::deque<Commands> commands);
 };
 
 #endif

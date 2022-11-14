@@ -23,10 +23,11 @@ SRCS_DIR	=	srcs/
 
 SRCS	=	main.cpp		\
 			Server.cpp		\
-			User.cpp		\
+			Client.cpp		\
 			utils.cpp		\
 			parser.cpp		\
-			channel.cpp
+			Channel.cpp		\
+			execution_utils.cpp
 
 INC		= includes
 ######################################
