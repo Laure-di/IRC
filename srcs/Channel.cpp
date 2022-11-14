@@ -60,13 +60,3 @@ void Channel::sendMsg(std::string message)
 		send(client->getFd(), message.c_str(), message.length(), MSG_DONTWAIT);
 	}
 }
-
-void Channel::setMode(Commands command)
-{
-
-}
-
-std::string Channel::getModeStr(void)
-{
-
-}

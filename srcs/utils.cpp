@@ -188,11 +188,11 @@ bool strmatch(std::string string, std::string pattern)
 	bool lookup[stringLen + 1][patternLen + 1];
 	memset(lookup, false, sizeof(lookup));
 	lookup[0][0] = true;
-	for (int j = 1; j <= patternLen; j++)
+	for (size_t j = 1; j <= patternLen; j++)
 		if (pattern[j - 1] == '*')
 			lookup[0][j] = lookup[0][j - 1];
-	for (int i = 1; i <= stringLen; i++) {
-		for (int j = 1; j <= patternLen; j++) {
+	for (size_t i = 1; i <= stringLen; i++) {
+		for (size_t j = 1; j <= patternLen; j++) {
 			if (pattern[j - 1] == '*')
 				lookup[i][j] = lookup[i][j - 1] || lookup[i - 1][j];
 			else if (pattern[j - 1] == '?' || string[i - 1] == pattern[j - 1])
@@ -209,11 +209,13 @@ bool strmatch(std::string string, std::string pattern)
  */
 void applyModeChanges(Server *server, int socket, std::string flags, std::string params, Client *client, Channel *channel)
 {
+	(void) channel;
+	(void) params;
 	char firstChar = flags[0];
 	if (firstChar != '-' && firstChar != '+')
 		return server->sendMsgToFd(ERR_UMODEUNKNOWNFLAG, socket);
 	bool add = (firstChar == '+');
-	for (int i = 1; i < flags.length(); i++)
+	for (size_t i = 1; i < flags.length(); i++)
 	{
 		char nChar = flags[i];
 		switch (nChar)
