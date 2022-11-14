@@ -223,7 +223,7 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 	(void) params;
 	char firstChar = flags[0];
 	if (firstChar != '-' && firstChar != '+')
-		return server->sendMsgToFd(ERR_UMODEUNKNOWNFLAG, socket);
+		return server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 	bool add = (firstChar == '+');
 	for (size_t i = 1; i < flags.length(); i++)
 	{
@@ -256,7 +256,7 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 				add = false;
 				break;
 			default:
-				server->sendMsgToFd(ERR_UMODEUNKNOWNFLAG, socket);
+				server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 		}
 	}
 }
@@ -275,8 +275,8 @@ void printWho(Server *server, int socket, std::deque<Client *>listOfClients)
 		// chan == activeChannel ?
 		// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
 	}
-	NumericReplies msg = RPL_ENDOFWHO(server->findClientByFd(socket)->getNickname());
-	server->sendMsgToFd(msg, socket);
+	NumericReplies msg = RPL_ENDOFWHO(server->getClientByFd(socket)->getNickname());
+	server->sendMsg(msg, socket);
 }
 
 std::deque<std::string>		split(std::string string, std::string delimiter)

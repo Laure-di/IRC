@@ -39,20 +39,19 @@ class Server
 		const int&					getListenSocket(void) const;
 		std::deque<Client*>			getAllClients(void)const;
 		std::deque<Client*>			getAllClientsMatching(std::string pattern)const;
-		Client*						getUserByNickname(std::string nickname)const;
-		Client*						getUserByFd(const int fd)const;
 		void						setHostname(std::string);
 		void						clearServer(void);
-		void						deleteUser(Client* user);
+		void						deleteClient(Client* client);
 		void						printAllUsersFd(void);//TODO delete just debug
-		void						sendMsgToFd(const std::string msg, const int fd);
-		void						sendMsgToFd(NumericReplies reply, const int fd);
+		void						sendMsg(const std::string msg, const int fd);
+		void						sendMsg(NumericReplies reply, const int fd);
+		void						sendMsg(const std::string msg, Client* client);
 		void						createCmdDict(void);
-		Client*						findUserByNickname(const std::string nickname);
-		Client*						findClientByFd(const int fd);
+		Client*						getClientByNickname(const std::string nickname) const;
+		Client*						getClientByFd(size_t fd);
 		bool						checkPassword(const std::string password) const;
-		Channel*					findChannelByName(const std::string name);
-		Channel*					addChannel(std::string name, Client* user);
+		Channel*					getChannelByName(const std::string name);
+		Channel*					addChannel(std::string name, Client* client);
 		std::string					getMessageOfTheDay(void);
 		void						executeCommands(char *buffer, Client* currentClient);
 		std::map<std::string, Channel*> getChannels(void);

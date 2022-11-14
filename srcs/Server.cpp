@@ -80,17 +80,17 @@ void	Server::_handleMessage(int i)
 		std::cerr << "recv error" << std::endl;
 	else if (numbytes == 0) //INFO client close connection
 	{
-		Client* userToDel = this->getUserByFd(this->_ep_event[i].data.fd);
+		Client* userToDel = this->getClientByFd(this->_ep_event[i].data.fd);
 		std::cerr << "Socket closed by client" << std::endl; //TODO delete before set as finish
 		if (epoll_ctl(this->_pollfd, EPOLL_CTL_DEL, this->_ep_event[i].data.fd, &this->_ev) == -1)
 			throw serverError("epoll_ctl", strerror(errno));
 		if (close(this->_ep_event[i].data.fd) == -1)
 			throw serverError("close", strerror(errno));
-		this->deleteUser(userToDel);
+		this->deleteClient(userToDel);
 	}
 	else
 	{
-		Client* currentClient = this->getUserByFd(this->_ep_event[i].data.fd);
+		Client* currentClient = this->getClientByFd(this->_ep_event[i].data.fd);
 		this->executeCommands(buffer, currentClient);
 	}
 
@@ -117,7 +117,7 @@ void	Server::executeCommands(char *buffer, Client *client)
 	for (it = commandsList.begin(); it != commandsList.end(); it++)
 	{
 		if (!isFullyClientRegister(client) && !isRegistrationCmd(it->command))
-			return this->sendMsgToFd(ERR_NOTREGISTERED, client->getFd()); //451
+			return this->sendMsg(ERR_NOTREGISTERED, client->getFd()); //451
 		this->_cmdDict[it->command](this, client->getFd(), *it);
 	}
 
@@ -235,14 +235,6 @@ std::deque<Client*>	Server::getAllClientsMatching(std::string pattern) const
 	return (allClients);
 }
 
-Client*	Server::getUserByFd(const int fd)const
-{
-	std::map<int, Client*>::const_iterator it = this->_clientsOnServer.end();
-	if (this->_clientsOnServer.find(fd) != it)
-		return (this->_clientsOnServer.find(fd)->second);
-	return (NULL);
-}
-
 void	Server::printAllUsersFd(void)
 {
 	if (!this->_clientsOnServer.empty())
@@ -257,7 +249,7 @@ void	Server::printAllUsersFd(void)
 
 }
 
-void	Server::deleteUser(Client* user)
+void	Server::deleteClient(Client* user)
 {
 	std::map<int, Client*>::iterator it;
 	std::map<int, Client*>::iterator ite = this->_clientsOnServer.end();
@@ -274,64 +266,70 @@ void	Server::deleteUser(Client* user)
 	}
 }
 
-void	Server::sendMsgToFd(const std::string msg, const int fd)
+void	Server::sendMsg(const std::string msg, const int fd)
 {
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
+void	Server::sendMsg(const std::string msg, Client *client)
+{
+	if (client)
+		sendMsg(msg, client->getFd());
+}
+
 void	Server::createCmdDict(void) {
-//	_cmd_dict["PASS"] = &pass;
+	//	_cmdDict["PASS"] = &pass;
 	_cmdDict["NICK"] = &nick;
 	_cmdDict["USER"] = &user;
 	_cmdDict["CAP"] = &cap;
-/*	_cmd_dict["OPER"] = &oper;
-	_cmd_dict["MODE"] = &mode;
-	_cmd_dict["SERVICE"] = &service;
-	_cmd_dict["QUIT"] = &quit;
-	_cmd_dict["SQUIT"] = &squit;
-	_cmd_dict["JOIN"] = &join;
-	_cmd_dict["PART"] = &part;
-	_cmd_dict["TOPIC"] = &topic;
-	_cmd_dict["NAMES"] = &names;
-	_cmd_dict["LIST"] = &list;
-	_cmd_dict["INVITE"] = &invite;
-	_cmd_dict["KICK"] = &kick;
-	_cmd_dict["PRIVMSG"] = &privmsg;
-	_cmd_dict["NOTICE"] = &notice;
-	_cmd_dict["MOTD"] = &motd;
-	_cmd_dict["LUSERS"] = &lusers;
-	_cmd_dict["VERSION"] = &version;
-	_cmd_dict["STATS"] = &stats;
-	_cmd_dict["LINKS"] = &links;
-	_cmd_dict["TIME"] = &time;
-	_cmd_dict["CONNECT"] = &connect;
-	_cmd_dict["TRACE"] = &trace;
-	_cmd_dict["ADMIN"] = &admin;
-	_cmd_dict["INFO"] = &info;
-	_cmd_dict["SERVLIST"] = &servlist;
-	_cmd_dict["SQUERY"] = &squery;
-	_cmd_dict["WHO"] = &who;
-	_cmd_dict["WHOIS"] = &whois;
-	_cmd_dict["WHOWAS"] = &whowas;
-	_cmd_dict["KILL"] = &kill;
-	_cmd_dict["PING"] = &ping;
-	_cmd_dict["PONG"] = &pong;
-	_cmd_dict["ERROR"] = &error;
-	_cmd_dict["AWAY"] = &away;
-	_cmd_dict["REHASH"] = &rehash;
-	_cmd_dict["DIE"] = &die;
-	_cmd_dict["RESTART"] = &restart;
-	_cmd_dict["SUMMON"] = &summon;
-	_cmd_dict["USERS"] = &users;
-	_cmd_dict["WALLOPS"] = &wallops;
-	_cmd_dict["USERHOST"] = &userhost;
-	_cmd_dict["ISON"] = &ison;*/
+	// _cmdDict["OPER"] = &oper;
+	// _cmdDict["MODE"] = &mode;
+	// _cmdDict["SERVICE"] = &service;
+	// _cmdDict["QUIT"] = &quit;
+	// _cmdDict["SQUIT"] = &squit;
+	// _cmdDict["JOIN"] = &join;
+	// _cmdDict["PART"] = &part;
+	// _cmdDict["TOPIC"] = &topic;
+	// _cmdDict["NAMES"] = &names;
+	// _cmdDict["LIST"] = &list;
+	// _cmdDict["INVITE"] = &invite;
+	// _cmdDict["KICK"] = &kick;
+	// _cmdDict["PRIVMSG"] = &privmsg;
+	_cmdDict["NOTICE"] = &notice;
+	// _cmdDict["MOTD"] = &motd;
+	// _cmdDict["LUSERS"] = &lusers;
+	// _cmdDict["VERSION"] = &version;
+	// _cmdDict["STATS"] = &stats;
+	// _cmdDict["LINKS"] = &links;
+	// _cmdDict["TIME"] = &time;
+	// _cmdDict["CONNECT"] = &connect;
+	// _cmdDict["TRACE"] = &trace;
+	// _cmdDict["ADMIN"] = &admin;
+	// _cmdDict["INFO"] = &info;
+	// _cmdDict["SERVLIST"] = &servlist;
+	// _cmdDict["SQUERY"] = &squery;
+	// _cmdDict["WHO"] = &who;
+	// _cmdDict["WHOIS"] = &whois;
+	// _cmdDict["WHOWAS"] = &whowas;
+	// _cmdDict["KILL"] = &kill;
+	// _cmdDict["PING"] = &ping;
+	// _cmdDict["PONG"] = &pong;
+	// _cmdDict["ERROR"] = &error;
+	// _cmdDict["AWAY"] = &away;
+	// _cmdDict["REHASH"] = &rehash;
+	// _cmdDict["DIE"] = &die;
+	// _cmdDict["RESTART"] = &restart;
+	// _cmdDict["SUMMON"] = &summon;
+	// _cmdDict["USERS"] = &users;
+	// _cmdDict["WALLOPS"] = &wallops;
+	// _cmdDict["USERHOST"] = &userhost;
+	// _cmdDict["ISON"] = &ison;
 	std::cout << "Uncomment" << std::endl;
 }
 
-Client* Server::findUserByNickname(const std::string nickname)
+Client* Server::getClientByNickname(const std::string nickname) const
 {
-	std::map<int, Client*>::iterator currentUser;
+	std::map<const int, Client*>::const_iterator currentUser;
 	for (currentUser = _clientsOnServer.begin(); currentUser != _clientsOnServer.end(); currentUser++)
 	{
 		if (currentUser->second->getNickname() == nickname)
@@ -340,15 +338,15 @@ Client* Server::findUserByNickname(const std::string nickname)
 	return NULL;
 }
 
-Client* Server::findClientByFd(const int fd)
+Client* Server::getClientByFd(size_t fd)
 {
 	return _clientsOnServer[fd];
 }
 
-void	Server::sendMsgToFd(NumericReplies reply, const int fd)
+void	Server::sendMsg(NumericReplies reply, const int fd)
 {
-	std::string msg = ":" + getHostname() + " " + toString(reply.num) + " " + findClientByFd(fd)->getNickname() + " " + reply.msg;
-	sendMsgToFd(msg, fd);
+	std::string msg = ":" + getHostname() + " " + toString(reply.num) + " " + getClientByFd(fd)->getNickname() + " " + reply.msg;
+	sendMsg(msg, fd);
 }
 
 bool	Server::checkPassword(const std::string password) const
@@ -356,7 +354,7 @@ bool	Server::checkPassword(const std::string password) const
 	return hasher(password.c_str()) == _passwordHash;
 }
 
-Channel* Server::findChannelByName(const std::string name)
+Channel* Server::getChannelByName(const std::string name)
 {
 	return _channels[name];
 }
