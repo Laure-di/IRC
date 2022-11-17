@@ -3,10 +3,10 @@
 #define MAX_CMD_LGTH 510
 #define	MAX_PARAMS	15
 
-void	print_debug(std::deque<std::string> print)
+void	print_debug(std::vector<std::string> print)
 {
 	std::cout << "params : " << std::endl;
-	std::deque<std::string>::iterator	it;
+	std::vector<std::string>::iterator	it;
 	int	i = 1;
 	for (it = print.begin() ;it != print.end(); it++)
 		std::cout << i++ << " parameter " <<*it << std::endl;
@@ -20,16 +20,16 @@ void	printCmd(Commands commands)
 	print_debug(commands.params);
 }
 
-void	printAllCmds(std::deque<Commands> print)
+void	printAllCmds(std::vector<Commands> print)
 {
-	std::deque<Commands>::iterator	it;
+	std::vector<Commands>::iterator	it;
 	for (it = print.begin() ;it != print.end(); it++)
 		printCmd(*it);
 }
 
-/*bool	checkCommandLenght(std::deque<std::string> listOfCommands)
+/*bool	checkCommandLenght(std::vector<std::string> listOfCommands)
   {
-  std::deque<std::string>::iterator	it;
+  std::vector<std::string>::iterator	it;
   for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
   {
   if (MAX_CMD_LGTH < it->size())
@@ -62,23 +62,23 @@ void	handlePrefix(std::string *cmd, Commands *command)
 
 Commands	parseCmd(std::string cmd) //change return type to Commands
 {
-	std::deque<std::string>	rslt;
+	std::vector<std::string>	rslt;
 	Commands				command;
 
 	handlePrefix(&cmd, &command);
 	if (cmd.find(":") != std::string::npos)
 	{
 		command.colon = true;
-		std::deque<std::string>first;
+		std::vector<std::string>first;
 		rslt = split(cmd, ":");
 		first = split(*(rslt.begin()), " ");
-		rslt.pop_front();
+		pop_front<std::string>(rslt);
 		command.command =*(first.begin());
 		if (1 < first.size())
 		{
-			first.pop_front();
+			pop_front<std::string>(first);
 			command.params = first;
-			addElementsDeque(&command.params, rslt);
+			addElementsVector(&command.params, rslt);
 		}
 #ifdef DEBUG
 		std::cout << "Case of command with colon : " << std::endl;
@@ -94,7 +94,7 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 		std::cout << rslt.size() << std::endl;
 		if (rslt.size() > 1)
 		{
-			rslt.pop_front();
+			pop_front<std::string>(rslt);
 			command.params = rslt;
 		}
 #ifdef DEBUG
@@ -106,10 +106,10 @@ Commands	parseCmd(std::string cmd) //change return type to Commands
 
 }
 
-std::deque<Commands>	manageMultipleCommands(std::deque<std::string> listOfCommands)
+std::vector<Commands>	manageMultipleCommands(std::vector<std::string> listOfCommands)
 {
-	std::deque<Commands>							commandsToExecute;
-	std::deque<std::string>::iterator				it;
+	std::vector<Commands>							commandsToExecute;
+	std::vector<std::string>::iterator				it;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
 	{
 		commandsToExecute.push_back(parseCmd(*it));

@@ -106,9 +106,9 @@ void	stopServer(int signal)
 void	Server::executeCommands(char *buffer, Client *client)
 {
 	std::string							toSplit(buffer);
-	std::deque<std::string>				listOfCommands = splitCmd(toSplit, "\r\n");
-	std::deque<Commands>				commandsList = manageMultipleCommands(listOfCommands);
-	std::deque<Commands>::iterator		it;
+	std::vector<std::string>				listOfCommands = splitCmd(toSplit, "\r\n");
+	std::vector<Commands>				commandsList = manageMultipleCommands(listOfCommands);
+	std::vector<Commands>::iterator		it;
 	std::string							cmdFail;
 
 	transformCmdsToUpper(&commandsList);
@@ -208,9 +208,9 @@ void				Server::setHostname(std::string hostname)
 	this->_hostname = hostname;
 }
 
-std::deque<Client*>	Server::getAllUsers(void)const
+std::vector<Client*>	Server::getAllUsers(void)const
 {
-	std::deque<Client*> allUsers;
+	std::vector<Client*> allUsers;
 
 	for (std::map<int, Client*>::const_iterator it = this->_usersOnServer.begin(); it!= this->_usersOnServer.end(); it++)
 	{
@@ -265,7 +265,7 @@ void	Server::sendMsgToFd(const std::string msg, const int fd)
 }
 
 void	Server::createCmdDict(void) {
-//	_cmd_dict["PASS"] = &pass;
+	_cmd_dict["PASS"] = &pass;
 	_cmd_dict["NICK"] = &nick;
 	_cmd_dict["USER"] = &user;
 	_cmd_dict["CAP"] = &cap;

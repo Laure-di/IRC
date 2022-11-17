@@ -36,7 +36,7 @@ class Server
 		void						execute(void);
 		const std::string&			getHostname(void) const;
 		const int&					getListenSocket(void) const;
-		std::deque<Client*>			getAllUsers(void)const;
+		std::vector<Client*>			getAllUsers(void)const;
 		Client*						getUserByNickname(std::string nickname)const;
 		Client*						getUserByFd(const int fd)const;
 		void						setHostname(std::string);

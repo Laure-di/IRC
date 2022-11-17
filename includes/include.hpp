@@ -21,7 +21,7 @@
 #include <sstream>
 #include <algorithm>
 #include <signal.h>
-#include <bits/signum.h>
+//#include <bits/signum.h>
 #include <bits/types/sig_atomic_t.h>
 # include <bits/types/siginfo_t.h>
 
@@ -69,9 +69,9 @@ struct	Commands
 {
 	std::string				command;
 	std::string				prefix;
-	std::deque<std::string>	params;
+	std::vector<std::string>	params;
 	bool					colon;
-	/*Commands(std::string cmd, std::string pref, std::deque<std::string> parameters)
+	/*Commands(std::string cmd, std::string pref, std::vector<std::string> parameters)
 	{
 		command = cmd;
 		prefix = pref;
