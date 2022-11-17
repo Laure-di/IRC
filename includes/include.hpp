@@ -62,6 +62,9 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #ifndef EXECUTION_UTILS_HPP
 #include "execution_utils.hpp"
 #endif
+#ifndef COMMANDSUTILS_HPP
+#include "commandsUtils.hpp"
+#endif
 
 
 

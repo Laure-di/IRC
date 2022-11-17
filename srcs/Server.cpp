@@ -80,7 +80,7 @@ void	Server::_handleMessage(int i)
 		std::cerr << "recv error" << std::endl;
 	else if (numbytes == 0) //INFO client close connection
 	{
-		Client* userToDel = this->getUserByFd(this->_ep_event[i].data.fd);
+		Client* userToDel = this->getClientByFd(this->_ep_event[i].data.fd);
 		std::cerr << "Socket closed by client" << std::endl; //TODO delete before set as finish
 		if (epoll_ctl(this->_pollfd, EPOLL_CTL_DEL, this->_ep_event[i].data.fd, &this->_ev) == -1)
 			throw serverError("epoll_ctl", strerror(errno));
@@ -90,7 +90,7 @@ void	Server::_handleMessage(int i)
 	}
 	else
 	{
-		Client* currentClient = this->getUserByFd(this->_ep_event[i].data.fd);
+		Client* currentClient = this->getClientByFd(this->_ep_event[i].data.fd);
 		this->executeCommands(buffer, currentClient);
 	}
 
@@ -189,9 +189,6 @@ void	Server::clearServer(void) //TODO link with signal??!!
 		std::cerr << "close issue" << std::endl;
 }
 
-//TO DO 2 Functions
-// STOP SERVER
-// CLEAR SERVER
 
 const std::string&		Server::getHostname(void)const
 {
@@ -203,9 +200,20 @@ const int&				Server::getListenSocket(void)const
 	return (this->_listenSocket);
 }
 
+
+const std::map<std::string, time_t>&	Server::getNicknameUnavailable(void)const
+{
+	return (this->_nicknameUnavailable);
+}
+
 void				Server::setHostname(std::string hostname)
 {
 	this->_hostname = hostname;
+}
+
+void				Server::addNicknameUnavailable(std::string nick, time_t time)
+{
+	this->_nicknameUnavailable[nick] = time;
 }
 
 std::vector<Client*>	Server::getAllUsers(void)const
@@ -220,7 +228,7 @@ std::vector<Client*>	Server::getAllUsers(void)const
 	return (allUsers);
 }
 
-Client*	Server::getUserByFd(const int fd)const
+Client*	Server::getClientByFd(const int fd)const
 {
 	std::map<int, Client*>::const_iterator it = this->_usersOnServer.end();
 	if (this->_usersOnServer.find(fd) != it)
@@ -325,9 +333,9 @@ Client* Server::findUserByNickname(const std::string nickname)
 	return NULL;
 }
 
-Client* Server::findUserByFd(const int fd)
+Client* Server::findUserByFd(int fd)
 {
-	return _usersOnServer[fd];
+	return this->_usersOnServer[fd];
 }
 
 void	Server::sendMsgToFd(NumericReplies reply, const int fd)
