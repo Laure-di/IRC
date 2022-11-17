@@ -2,9 +2,9 @@
 #define DEBUG
 
 
-std::deque<std::string>		splitCmd(std::string toSplit, std::string delimiter)
+std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 {
-	std::deque<std::string>	result;
+	std::vector<std::string>	result;
 	size_t	start, end = delimiter.size() * -1;
 	std::string				toAdd;
 
@@ -27,7 +27,6 @@ std::deque<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 
 	return (result);
 }
-
 
 /**
  * @brief Check if a character is a letter
@@ -158,9 +157,9 @@ bool checkChannelName(std::string name) {
 };
 
 
-void	addElementsDeque(std::deque<std::string> *list, std::deque<std::string> toAdd)
+void	addElementsVector(std::vector<std::string> *list, std::vector<std::string> toAdd)
 {
-	std::deque<std::string>::iterator	it;
+	std::vector<std::string>::iterator	it;
 	for (it = toAdd.begin(); it != toAdd.end(); it++)
 		list->push_back(*it);
 }
@@ -279,9 +278,9 @@ void printWho(Server *server, int socket, std::deque<Client *>listOfClients)
 	server->sendMsg(msg, socket);
 }
 
-std::deque<std::string>		split(std::string string, std::string delimiter)
+std::vector<std::string>		split(std::string string, std::string delimiter)
 {
-	std::deque<std::string>	result;
+	std::vector<std::string>	result;
 	size_t	start = 0;
 	size_t	end;
 
@@ -304,6 +303,4 @@ void checkAndJoinChannel(Server *server, int socket, std::string channelName, st
 	Channel *channel = server->getChannelByName(channelName);
 	if (!channel)
 		return server->createNewChannel(socket, channelName);
-	
-
 }

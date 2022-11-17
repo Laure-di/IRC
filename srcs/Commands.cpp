@@ -1,8 +1,8 @@
 #include "../includes/include.hpp"
 
 /*
-* 3.1 Connection Registration
-*/
+ * 3.1 Connection Registration
+ */
 
 /**
  * 3.1.1 Password message
@@ -10,9 +10,18 @@
  * @brief The PASS command is used to set a 'connection password'.
  */
 void pass(Server *server, int socket, Commands command) {
-	if(command.params.empty())
-		server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	// Add check if already connected (send ERR_ALREADYREGISTRED) and check password
+
+	if(command.params.empty() || command.params[0].empty())
+		return (server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket));
+	Client *client = server->getClientByFd(socket);
+	if (client != NULL)
+		if (!canRegisterPass(client) || client->getPwd())
+			return (server->sendMsgToFd(ERR_ALREADYREGISTRED, socket));
+	if (server->checkPassword(command.params[0]))
+	{
+		client->setPwd(true);
+		return ;
+	}
 };
 
 /**
@@ -21,19 +30,31 @@ void pass(Server *server, int socket, Commands command) {
  * @brief The NICK command is used to give user a nickname or change the existing one.
  */
 void nick(Server *server, int socket, Commands command) {
-	std::cout << "entre dans NICK COMMAND" << std::endl;
-	if(command.params.empty())
-		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
-	std::string nickname = command.params[0];
-	if (!checkNickname(nickname))
-		return server->sendMsg(ERR_ERRONEUSNICKNAME(nickname), socket);
-	if (server->getClientByNickname(nickname))
-		return server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
-	// Add check for ERR_NICKCOLLISION (nickname taken on another server)
-	// Add check for ERR_UNAVAILRESOURCE (nickname in server list of forbidden nickames)
-	// Add check for ERR_RESTRICTED (user mode "+r")
-	Client *currentUser = server->getClientByFd(socket);
-	currentUser->setNickname(nickname);
+
+	std::cout << "entre dans nick function" << std::endl;
+	Client *client = server->getClientByFd(socket);
+	std::cout << client->getNickname() << std::endl;
+		if(command.params.empty() || command.params[0].empty())
+			return server->sendMsgToFd(ERR_NONICKNAMEGIVEN, socket);
+		std::string nickname = command.params[0];
+		if (client->getNickname() == nickname)
+			return ;
+		if (!checkNickname(nickname))
+			return server->sendMsgToFd(ERR_ERRONEUSNICKNAME(nickname), socket);
+		if (server->findClientByNickname(nickname))
+			return server->sendMsgToFd(ERR_NICKNAMEINUSE(nickname), socket);
+		if (isUnavailableNickname(server, nickname))
+			return server->sendMsgToFd(ERR_UNAVAILRESOURCE(nickname), socket);
+		if (client->getMode() == Restricted)
+			return server->sendMsgToFd(ERR_RESTRICTED, socket);
+		if (client->getNickname().empty())
+			client->setNickname(nickname);
+		//is fully register? 
+		else
+		{
+			client->setNickname(nickname);
+			return server->sendMsgToFd("NICK " + nickname, socket);
+		}
 };
 
 /**
@@ -103,8 +124,8 @@ cmd_func quit;
 cmd_func squit;
 
 /*
-* 3.2 Channel operations
-*/
+ * 3.2 Channel operations
+ */
 
 /**
  * 3.2.1 Join message
@@ -147,6 +168,7 @@ void part(Server *server, int socket, Commands command)
  * @brief The user MODE's are typically changes which affect either how the
  * client is seen by others or what 'extra' messages the client is sent.
  * The channel MODE command is provided so that users may query and change the
+<<<<<<< HEAD
  * characteristics of a channel.
  *
  * MODE follows IRSSI documentation, particularly the fact that if the target
@@ -341,8 +363,8 @@ void kick(Server *server, int socket, Commands command)
 }
 
 /*
-* 3.3 Sending messages
-*/
+ * 3.3 Sending messages
+ */
 
 /**
  * 3.3.1 Private messages
@@ -421,6 +443,7 @@ void lusers(Server *server, int socket, Commands command)
 	return;
 }
 
+
 cmd_func lusers;
 cmd_func version;
 cmd_func stats;
@@ -432,8 +455,8 @@ cmd_func admin;
 cmd_func info;
 
 /*
-* 3.5 Service Query and Commands
-*/
+ * 3.5 Service Query and Commands
+ */
 cmd_func servlist;
 cmd_func squery;
 
@@ -465,16 +488,16 @@ cmd_func whois;
 cmd_func whowas;
 
 /*
-* 3.7 Miscellaneous messages
-*/
+ * 3.7 Miscellaneous messages
+ */
 cmd_func kill;
 cmd_func ping;
 cmd_func pong;
 cmd_func error;
 
 /*
-* 4.1 Optional features
-*/
+ * 4.1 Optional features
+ */
 cmd_func away;
 cmd_func rehash;
 cmd_func die;

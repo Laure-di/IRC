@@ -106,9 +106,9 @@ void	stopServer(int signal)
 void	Server::executeCommands(char *buffer, Client *client)
 {
 	std::string							toSplit(buffer);
-	std::deque<std::string>				listOfCommands = splitCmd(toSplit, "\r\n");
-	std::deque<Commands>				commandsList = manageMultipleCommands(listOfCommands);
-	std::deque<Commands>::iterator		it;
+	std::vector<std::string>				listOfCommands = splitCmd(toSplit, "\r\n");
+	std::vector<Commands>				commandsList = manageMultipleCommands(listOfCommands);
+	std::vector<Commands>::iterator		it;
 	std::string							cmdFail;
 
 	transformCmdsToUpper(&commandsList);
@@ -189,9 +189,6 @@ void	Server::clearServer(void) //TODO link with signal??!!
 		std::cerr << "close issue" << std::endl;
 }
 
-//TO DO 2 Functions
-// STOP SERVER
-// CLEAR SERVER
 
 const std::string&		Server::getHostname(void)const
 {
@@ -203,14 +200,25 @@ const int&				Server::getListenSocket(void)const
 	return (this->_listenSocket);
 }
 
+
+const std::map<std::string, time_t>&	Server::getNicknameUnavailable(void)const
+{
+	return (this->_nicknameUnavailable);
+}
+
 void				Server::setHostname(std::string hostname)
 {
 	this->_hostname = hostname;
 }
 
-std::deque<Client*>	Server::getAllClients(void)const
+void				Server::addNicknameUnavailable(std::string nick, time_t time)
 {
-	std::deque<Client*> allClients;
+	this->_nicknameUnavailable[nick] = time;
+}
+
+std::vector<Client*>	Server::getAllClients(void)const
+{
+	std::vector<Client*> allUsers;
 
 	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
 	{
@@ -324,7 +332,6 @@ void	Server::createCmdDict(void) {
 	// _cmdDict["WALLOPS"] = &wallops;
 	// _cmdDict["USERHOST"] = &userhost;
 	// _cmdDict["ISON"] = &ison;
-	std::cout << "Uncomment" << std::endl;
 }
 
 Client* Server::getClientByNickname(const std::string nickname) const

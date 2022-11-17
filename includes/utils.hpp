@@ -1,7 +1,18 @@
 #ifndef UTILS_HPP
 # define UTILS_HPP
 
-void						addElementsDeque(std::deque<std::string> *list, std::deque<std::string> toAdd);
+/**
+  * @brief delete the first element of the vector
+  **/
+template <typename T>
+void pop_front(std::vector<T>& vec){
+    std::reverse(vec.begin(),vec.end());
+    vec.pop_back();
+    std::reverse(vec.begin(),vec.end());
+}
+
+void						addElementsVector(std::vector<std::string> *list, std::vector<std::string> toAdd);
+//void						pop_front(std::vector<T>& vec);
 bool isLetter(const char c);
 bool isDigit(const char c);
 bool isHexDigit(const char c);

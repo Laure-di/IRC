@@ -5,9 +5,9 @@
  *
  * @brief check if the length if max 512 (include the \r\n) if one of the commands if > 512 none will be executed and an error message will be display */
 
-bool	checkCmdLength(std::deque<std::string> listOfCommands)
+bool	checkCmdLength(std::vector<std::string> listOfCommands)
 {
-	std::deque<std::string>::iterator	it;
+	std::vector<std::string>::iterator	it;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
 	{
 		if (510 < it->size())
@@ -42,9 +42,9 @@ bool	isRegistrationCmd(std::string command)
 	return (false);
 }
 
-void	transformCmdsToUpper(std::deque<Commands> *commandsList)
+void	transformCmdsToUpper(std::vector<Commands> *commandsList)
 {
-	std::deque<Commands>::iterator it;
+	std::vector<Commands>::iterator it;
 	for (it = commandsList->begin(); it != commandsList->end(); it++)
 		stringToUpper(&it->command);
 }
