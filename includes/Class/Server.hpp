@@ -51,12 +51,13 @@ class Server
 		Client*						getClientByFd(size_t fd);
 		bool						checkPassword(const std::string password) const;
 		Channel*					getChannelByName(const std::string name);
-		Channel*					addChannel(std::string name, Client* client);
+		void					addChannel(std::string name, Client* client);
 		std::string					getMessageOfTheDay(void);
 		void						executeCommands(char *buffer, Client* currentClient);
 		std::map<std::string, Channel*> getChannels(void);
 		void 							changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
-		void createNewChannel(int creator, std::string name);
+		void	checkAndJoinChannel(int socket, std::string channelName, std::string key);
+		void	checkAndLeaveChannel(int socket, std::string channelName);
 };
 
 #endif

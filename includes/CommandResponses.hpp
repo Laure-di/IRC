@@ -19,17 +19,17 @@ struct NumericReplies
 				"!" + user + "@" + host + "\r\n")
 #define RPL_CREATED(date) \
     NumericReplies(003, ":This server was created " + date + "\r\n")
-#define RPL_BOUNCE(server_name, port) \
-    NumericReplies(005, "Try server " + server_name + ", port " + port + "\r\n")
+#define RPL_BOUNCE(serverName, port) \
+    NumericReplies(005, "Try server " + serverName + ", port " + port + "\r\n")
 #define RPL_YOURESERVICE(servicename) \
     NumericReplies(383, "You are service " + servicename + "\r\n")
 // Service
 #define RPL_YOURHOST(servername, version)                                      \
     NumericReplies(002, ":Your host is " + servername + ", running version " + \
 				version + "\r\n")
-#define RPL_MYINFO(servername, version, user_modes, chann_modes)              \
-    NumericReplies(004, ":" + servername + " " + version + " " + user_modes + \
-				" " + chann_modes + "\r\n")
+#define RPL_MYINFO(servername, version, userModes, channModes)              \
+    NumericReplies(004, ":" + servername + " " + version + " " + userModes + \
+				" " + channModes + "\r\n")
 // Userhost
 #define RPL_USERHOST(userhost_list) NumericReplies(302, userhost_list + "\r\n")
 ///////////////////////////////////////CMD
@@ -55,7 +55,7 @@ struct NumericReplies
 #define RPL_WHOISUSER(nickname, user, host, realname)                            \
     NumericReplies(311, nickname + " " + user + " " + host + " * :" + realname + \
 				"\r\n")
-#define RPL_WHOISSERVER(nickname, server, info_server) \
+#define RPL_WHOISSERVER(nickname, server, infoServer) \
     NumericReplies(312, nickname + " " + server + " :" + info + "\r\n")
 #define RPL_WHOISOPERATOR(nickname) \
     NumericReplies(313, nickname + " :is an IRC operator\r\n")
@@ -63,8 +63,8 @@ struct NumericReplies
     NumericReplies(317, nickname + " " + integer + " :seconds idle\r\n")
 #define RPL_ENDOFWHOIS(nickname) \
     NumericReplies(318, nickname + " :End of WHOIS list\r\n")
-#define RPL_WHOISCHANNELS(nickname, channel_info) \
-    NumericReplies(319, nickname + " :" + channel_info + "\r\n")
+#define RPL_WHOISCHANNELS(nickname, channelInfo) \
+    NumericReplies(319, nickname + " :" + channelInfo + "\r\n")
 // WHOWAS
 #define RPL_WHOWASUSER(nickname, user, host, real_name)                           \
     NumericReplies(314, nickname + " " + user + " " + host + " * :" + real_name + \
@@ -192,16 +192,16 @@ struct NumericReplies
     NumericReplies(424, ":File error doing " + file_op + " on " + file + \
 				"\r\n")
 // USERS
-#define ERR_NOSUCHSERVER(server_name) \
-    NumericReplies(402, server_name + " :No such server\r\n")
+#define ERR_NOSUCHSERVER(serverName) \
+    NumericReplies(402, serverName + " :No such server\r\n")
 #define ERR_USERSDISABLED \
     NumericReplies(446, ":USERS has been disabled\r\n")
 // JOIN
-#define ERR_NOSUCHCHANNEL(channel_name) \
-    NumericReplies(403, channel_name + " :No such channel\r\n")
-#define ERR_TOOMANYCHANNELS(channel_name) \
+#define ERR_NOSUCHCHANNEL(channelName) \
+    NumericReplies(403, channelName + " :No such channel\r\n")
+#define ERR_TOOMANYCHANNELS(channelName) \
     NumericReplies(405,                   \
-		   channel_name +         \
+		   channelName +         \
 			   " :You have joined too many channels\r\n")
 #define ERR_TOOMANYTARGETS(target, error_code, message)                \
     NumericReplies(407, target + " :" + error_code + " recipients. " + \
@@ -220,8 +220,8 @@ struct NumericReplies
 #define ERR_BADCHANMASK(channel) \
     NumericReplies(476, channel + " :Bad Channel Mask\r\n")
 // PRIVMSG
-#define ERR_CANNOTSENDTOCHAN(channel_name) \
-    NumericReplies(404, channel_name + " :Cannot send to channel")
+#define ERR_CANNOTSENDTOCHAN(channelName) \
+    NumericReplies(404, channelName + " :Cannot send to channel")
 #define ERR_NORECIPIENT(command) \
     NumericReplies(411, ":No recipient given " + command + "\r\n")
 #define ERR_NOTEXTTOSEND NumericReplies(412, ":No text to send\r\n")

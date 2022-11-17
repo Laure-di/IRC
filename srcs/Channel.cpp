@@ -50,10 +50,6 @@ void Channel::addClient(int socket)
 void Channel::deleteClient(std::string nickname)
 {
 	_clientsOnChannel.erase(nickname);
-}
-
-void Channel::deleteOperator(std::string nickname)
-{
 	_clientsOperator.erase(nickname);
 }
 
@@ -63,13 +59,23 @@ void Channel::sendMsg(std::string message)
 	for (clientIterator = _clientsOnChannel.begin(); clientIterator != _clientsOnChannel.end(); clientIterator++)
 	{
 		Client *client = clientIterator->second;
-		send(client->getFd(), message.c_str(), message.length(), MSG_DONTWAIT);
+		_server->sendMsg(message, client->getFd());
 	}
 }
 
 void Channel::sendJoin(std::string fullClientName)
 {
 	sendMsg(fullClientName + " JOIN " + _name);
+}
+
+void Channel::sendPart(std::string fullClientName, std::string nickname, std::string leaveMessage)
+{
+	std::string msg;
+	if (!leaveMessage.empty())
+		msg = fullClientName + " PART " + _name + " :" + leaveMessage;
+	else
+		msg = fullClientName + " PART " + _name + " :" + nickname;
+	sendMsg(msg);
 }
 
 void Channel::sendTopic(int socket)
@@ -90,6 +96,7 @@ void Channel::sendListOfNames(int socket)
 	std::copy(clients.begin(), clients.end(), std::ostream_iterator<std::string>(joined, delim.c_str()));
 	std::string channelStatus = "=";
 	_server->sendMsg(RPL_NAMREPLY(channelStatus, _name, joined.str()), socket);
+	_server->sendMsg(RPL_ENDOFNAMES(_name), socket);
 }
 
 size_t Channel::getNumberOfUsers(void)

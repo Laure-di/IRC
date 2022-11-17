@@ -268,6 +268,9 @@ void	Server::deleteClient(Client* user)
 
 void	Server::sendMsg(const std::string msg, const int fd)
 {
+#ifdef DEBUG
+	std::cout << msg << std::endl;
+#endif
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
@@ -287,7 +290,7 @@ void	Server::createCmdDict(void) {
 	// _cmdDict["SERVICE"] = &service;
 	// _cmdDict["QUIT"] = &quit;
 	// _cmdDict["SQUIT"] = &squit;
-	// _cmdDict["JOIN"] = &join;
+	_cmdDict["JOIN"] = &join;
 	// _cmdDict["PART"] = &part;
 	// _cmdDict["TOPIC"] = &topic;
 	// _cmdDict["NAMES"] = &names;
@@ -346,6 +349,9 @@ Client* Server::getClientByFd(size_t fd)
 void	Server::sendMsg(NumericReplies reply, const int fd)
 {
 	std::string msg = ":" + getHostname() + " " + toString(reply.num) + " " + getClientByFd(fd)->getNickname() + " " + reply.msg;
+#ifdef DEBUG
+	std::cout << "value of end split " << std::endl;
+#endif
 	sendMsg(msg, fd);
 }
 
@@ -359,11 +365,10 @@ Channel* Server::getChannelByName(const std::string name)
 	return _channels[name];
 }
 
-Channel* Server::addChannel(std::string name, Client* user)
+void Server::addChannel(std::string name, Client* creator)
 {
-	Channel *newChannel = new Channel(this, name, user);
+	Channel *newChannel = new Channel(this, name, creator);
 	_channels[name] = newChannel;
-	return newChannel;
 }
 
 std::string		Server::getMessageOfTheDay(void)
@@ -386,7 +391,37 @@ void Server::changeNicknameAsKeysInChannels(std::string oldNickname, std::string
 	}
 }
 
-void Server::createNewChannel(int creator, std::string name)
+/**
+ * @brief Helper function to check wether the channel name is correct and the
+ * client can create/join it
+ */
+void Server::checkAndJoinChannel(int socket, std::string channelName, std::string key)
 {
-	//Add creation of channel
+	if (!checkChannelName(channelName))
+		return sendMsg(ERR_BADCHANMASK(channelName), socket);
+	Channel *channel = getChannelByName(channelName);
+	Client *client = getClientByFd(socket);
+	if (!channel)
+		return addChannel(channelName, client);
+	channel->addClient(socket);
+	channel->sendJoin(client->getHostname());
+	if (!channel->getTopic().empty())
+		channel->sendTopic(socket);
+	channel->sendListOfNames(socket);
+}
+
+/**
+ * @brief Helper function to check wether the channel name is correct and the
+ * client can leave it
+ */
+void	Server::checkAndLeaveChannel(int socket, std::string channelName)
+{
+	Channel *channel = getChannelByName(channelName);
+	if (!channel)
+		return sendMsg(ERR_NOSUCHCHANNEL(channelName), socket);
+	Client *client = getClientByFd(socket);
+	if (!channel->findClientByNickname(client->getNickname()))
+		return sendMsg(ERR_NOTONCHANNEL(channelName), socket);
+	channel->deleteClient(client->getNickname());
+	
 }

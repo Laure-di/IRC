@@ -297,13 +297,4 @@ std::deque<std::string>		split(std::string string, std::string delimiter)
 	return (result);
 }
 
-void checkAndJoinChannel(Server *server, int socket, std::string channelName, std::string key)
-{
-	if (!checkChannelName(channelName))
-		return server->sendMsg(ERR_BADCHANMASK(channelName), socket);
-	Channel *channel = server->getChannelByName(channelName);
-	if (!channel)
-		return server->createNewChannel(socket, channelName);
-	
 
-}

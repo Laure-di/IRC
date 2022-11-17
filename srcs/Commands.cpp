@@ -117,15 +117,15 @@ void join(Server *server, int socket, Commands command)
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> names = splitComma(command.params[0]);
-	std::vector<std::string> keys = splitComma(command.params[1]);
-
+	std::vector<std::string> keys;
+	if (command.params.size() > 1)
+		keys = splitComma(command.params[1]);
 	for (size_t i = 0; i < names.size(); i++) {
 		std::string key;
 		if (i < keys.size())
 			key = keys[i];
-		checkAndJoinChannel(server, socket, names[i], keys[i]);
+		server->checkAndJoinChannel(socket, names[i], keys[i]);
 	}
-
 }
 
 /**
@@ -137,7 +137,12 @@ void join(Server *server, int socket, Commands command)
  */
 void part(Server *server, int socket, Commands command)
 {
-
+	if(command.params.empty())
+		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
+	std::vector<std::string> names = splitComma(command.params[0]);
+	std::vector<std::string>::iterator name;
+	for (name = names.begin(); name != names.end(); name++)
+		server->checkAndLeaveChannel(socket, *name);
 }
 
 /**
@@ -233,7 +238,7 @@ void topic(Server *server, int socket, Commands command)
  */
 void names(Server *server, int socket, Commands command)
 {
-
+	
 }
 
 /**
@@ -335,7 +340,6 @@ void kick(Server *server, int socket, Commands command)
 			if (!kickMessage.empty())
 				server->sendMsg("KICK " + channelName + " " + userName + " :" + kickMessage, socket);
 			channel->deleteClient(userName);
-			channel->deleteOperator(userName);
 		}
 	}
 }

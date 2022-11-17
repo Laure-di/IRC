@@ -32,9 +32,9 @@ class Channel
 		Client *findBannedUserByNickname(std::string nickname);
 		void addClient(int socket);
 		void deleteClient(std::string nickname);
-		void deleteOperator(std::string nickname);
 		void sendMsg(std::string message);
-		void sendJoin(std::string nickname);
+		void sendJoin(std::string fullClientName);
+		void sendPart(std::string fullClientName, std::string nickname, std::string leaveMessage);
 		void sendTopic(int socket);
 		void sendListOfNames(int socket);
 		std::deque<Client*>			getAllClients(void)const;
