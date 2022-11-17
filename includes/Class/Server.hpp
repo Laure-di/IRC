@@ -56,6 +56,7 @@ class Server
 		void						executeCommands(char *buffer, Client* currentClient);
 		std::map<std::string, Channel*> getChannels(void);
 		void 							changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
+		void createNewChannel(int creator, std::string name);
 };
 
 #endif

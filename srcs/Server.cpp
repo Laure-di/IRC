@@ -361,7 +361,7 @@ Channel* Server::getChannelByName(const std::string name)
 
 Channel* Server::addChannel(std::string name, Client* user)
 {
-	Channel *newChannel = new Channel(name, user);
+	Channel *newChannel = new Channel(this, name, user);
 	_channels[name] = newChannel;
 	return newChannel;
 }
@@ -384,4 +384,9 @@ void Server::changeNicknameAsKeysInChannels(std::string oldNickname, std::string
 		Channel* channel = it->second;
 		channel->changeNickname(oldNickname, newNickname);
 	}
+}
+
+void Server::createNewChannel(int creator, std::string name)
+{
+	//Add creation of channel
 }

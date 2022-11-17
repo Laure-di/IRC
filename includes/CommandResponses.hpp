@@ -91,16 +91,16 @@ struct NumericReplies
 // TOPIC
 #define RPL_NOTOPIC(channel) \
     NumericReplies(331, channel + " :No topic is set\r\n")
-#define RPL_TOPIC(channel, topic) \
-    NumericReplies(332, channel + " :" + topic)
+#define RPL_TOPIC(channel, channelTopic) \
+    NumericReplies(332, channel + " :" + channelTopic)
 // VERSION
-#define RPL_VERSION(version, debuglevel, server, comment)                  \
-    NumericReplies(351, version + "." + debuglevel + " " + server + " :" + \
+#define RPL_VERSION(serverVersion, debuglevel, server, comment)                  \
+    NumericReplies(351, serverVersion + "." + debuglevel + " " + server + " :" + \
 				comment + "\r\n")
 // JOIN
-#define RPL_NAMREPLY(channelStatus, channel, nick) \
+#define RPL_NAMREPLY(channelStatus, channel, nickName) \
     NumericReplies(353,                            \
-		   channelStatus + " " + channel + " :" + nick + "\r\n")
+		   channelStatus + " " + channel + " :" + nickName + "\r\n")
 // NAMES
 #define RPL_ENDOFNAMES(channel) \
     NumericReplies(366, channel + " :End of NAMES list\r\n")

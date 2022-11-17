@@ -20,5 +20,6 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 void printWho(Server *server, int socket, std::deque<Client *>listOfClients);
 std::deque<std::string>			splitCmd(std::string toSplit, std::string delimiter);
 std::deque<std::string>		split(std::string string, std::string delimiter);
+void						checkAndJoinChannel(Server *server, int socket, std::string channelName, std::string key);
 
 #endif

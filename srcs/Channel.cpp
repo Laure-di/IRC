@@ -1,6 +1,6 @@
 #include "../includes/include.hpp"
 
-Channel::Channel(std::string name, Client* creator): _name(name)
+Channel::Channel(Server *server, std::string name, Client* creator): _server(server), _name(name)
 {
 	_clientsOperator[creator->getNickname()] = creator;
 	_clientsOnChannel[creator->getNickname()] = creator;
@@ -41,12 +41,18 @@ Client *Channel::findBannedUserByNickname(const std::string nickname)
 	return _clientsBanned[nickname];
 }
 
-void Channel::kickClient(std::string nickname)
+void Channel::addClient(int socket)
+{
+	Client *client = _server->getClientByFd(socket);
+	_clientsOnChannel[client->getNickname()] = client;
+}
+
+void Channel::deleteClient(std::string nickname)
 {
 	_clientsOnChannel.erase(nickname);
 }
 
-void Channel::kickOperator(std::string nickname)
+void Channel::deleteOperator(std::string nickname)
 {
 	_clientsOperator.erase(nickname);
 }
@@ -59,6 +65,31 @@ void Channel::sendMsg(std::string message)
 		Client *client = clientIterator->second;
 		send(client->getFd(), message.c_str(), message.length(), MSG_DONTWAIT);
 	}
+}
+
+void Channel::sendJoin(std::string fullClientName)
+{
+	sendMsg(fullClientName + " JOIN " + _name);
+}
+
+void Channel::sendTopic(int socket)
+{
+	_server->sendMsg(RPL_TOPIC(_name, _topic), socket);
+}
+
+void Channel::sendListOfNames(int socket)
+{
+	// Add Channel Status
+	// Add Nickname prefix for client mode
+	std::vector<std::string> clients;
+	std::map<std::string, Client*>::iterator clientIterator;
+	for (clientIterator = _clientsOnChannel.begin(); clientIterator != _clientsOnChannel.end(); clientIterator++)
+		clients.push_back(clientIterator->second->getNickname());
+	std::string delim = " ";
+	std::ostringstream joined;
+	std::copy(clients.begin(), clients.end(), std::ostream_iterator<std::string>(joined, delim.c_str()));
+	std::string channelStatus = "=";
+	_server->sendMsg(RPL_NAMREPLY(channelStatus, _name, joined.str()), socket);
 }
 
 size_t Channel::getNumberOfUsers(void)
