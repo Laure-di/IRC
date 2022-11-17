@@ -106,21 +106,23 @@ void	stopServer(int signal)
 void	Server::executeCommands(char *buffer, Client *client)
 {
 	std::string							toSplit(buffer);
-	std::deque<std::string>				listOfCommands = splitCmd(toSplit, "\r\n");
-	std::deque<Commands>				commandsList = manageMultipleCommands(listOfCommands);
-	std::deque<Commands>::iterator		it;
+	std::vector<std::string>			listOfCommands = splitCmd(toSplit, "\r\n");
+	std::vector<Commands>				commandsList = manageMultipleCommands(listOfCommands);
+	std::vector<Commands>::iterator		it = commandsList.begin();
 	std::string							cmdFail;
 
 	transformCmdsToUpper(&commandsList);
 	if (!checkCmdLength(listOfCommands))
 		return ;
-	for (it = commandsList.begin(); it != commandsList.end(); it++)
+	for (size_t i = 0; i < commandsList.size(); i++)
 	{
-		if (!isFullyClientRegister(client) && !isRegistrationCmd(it->command))
+		if (!isClientFullyRegister(client) && !isRegistrationCmd(it->command))
 			return this->sendMsg(ERR_NOTREGISTERED, client->getFd()); //451
 		this->_cmdDict[it->command](this, client->getFd(), *it);
-	}
-
+		if (i == commandsList.size())
+			break;
+		it++;
+	};
 	//TODO
 	//Check length of command
 	//Check nb of arg ??!!
@@ -189,9 +191,6 @@ void	Server::clearServer(void) //TODO link with signal??!!
 		std::cerr << "close issue" << std::endl;
 }
 
-//TO DO 2 Functions
-// STOP SERVER
-// CLEAR SERVER
 
 const std::string&		Server::getHostname(void)const
 {
@@ -203,14 +202,25 @@ const int&				Server::getListenSocket(void)const
 	return (this->_listenSocket);
 }
 
+
+const std::map<std::string, time_t>&	Server::getNicknameUnavailable(void)const
+{
+	return (this->_nicknameUnavailable);
+}
+
 void				Server::setHostname(std::string hostname)
 {
 	this->_hostname = hostname;
 }
 
-std::deque<Client*>	Server::getAllClients(void)const
+void				Server::addNicknameUnavailable(std::string nick, time_t time)
 {
-	std::deque<Client*> allClients;
+	this->_nicknameUnavailable[nick] = time;
+}
+
+std::vector<Client*>	Server::getAllClients(void)const
+{
+	std::vector<Client*> allClients;
 
 	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
 	{
@@ -220,9 +230,9 @@ std::deque<Client*>	Server::getAllClients(void)const
 	return (allClients);
 }
 
-std::deque<Client*>	Server::getAllClientsMatching(std::string pattern) const
+std::vector<Client*>	Server::getAllClientsMatching(std::string pattern) const
 {
-	std::deque<Client*> allClients;
+	std::vector<Client*> allClients;
 
 	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
 	{
@@ -281,7 +291,7 @@ void	Server::sendMsg(const std::string msg, Client *client)
 }
 
 void	Server::createCmdDict(void) {
-	//	_cmdDict["PASS"] = &pass;
+	_cmdDict["PASS"] = &pass;
 	_cmdDict["NICK"] = &nick;
 	_cmdDict["USER"] = &user;
 	_cmdDict["CAP"] = &cap;
@@ -304,7 +314,7 @@ void	Server::createCmdDict(void) {
 	// _cmdDict["VERSION"] = &version;
 	// _cmdDict["STATS"] = &stats;
 	// _cmdDict["LINKS"] = &links;
-	// _cmdDict["TIME"] = &time;
+	 _cmdDict["TIME"] = &time;
 	// _cmdDict["CONNECT"] = &connect;
 	// _cmdDict["TRACE"] = &trace;
 	// _cmdDict["ADMIN"] = &admin;
@@ -327,7 +337,6 @@ void	Server::createCmdDict(void) {
 	// _cmdDict["WALLOPS"] = &wallops;
 	// _cmdDict["USERHOST"] = &userhost;
 	// _cmdDict["ISON"] = &ison;
-	std::cout << "Uncomment" << std::endl;
 }
 
 Client* Server::getClientByNickname(const std::string nickname) const
@@ -423,5 +432,20 @@ void	Server::checkAndLeaveChannel(int socket, std::string channelName)
 	if (!channel->findClientByNickname(client->getNickname()))
 		return sendMsg(ERR_NOTONCHANNEL(channelName), socket);
 	channel->deleteClient(client->getNickname());
-	
+}
+
+/*
+** @Brief display the localtime of the server
+**		  https://cplusplus.com/reference/ctime/localtime/
+*/
+
+void	Server::printCurrentLocaltime(int socket)
+{
+	time_t		rawtime;
+	struct tm*	timeinfo;
+
+	time (&rawtime);
+	timeinfo = localtime(&rawtime);
+	std::string localtime = (std::string)"Current localtime of the current server " + (std::string)asctime(timeinfo);
+	this->sendMsg(localtime , socket);
 }

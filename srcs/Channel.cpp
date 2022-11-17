@@ -104,9 +104,9 @@ size_t Channel::getNumberOfUsers(void)
 	return _clientsOnChannel.size();
 }
 
-std::deque<Client*>			Channel::getAllClients(void)const
+std::vector<Client*>			Channel::getAllClients(void)const
 {
-	std::deque<Client*> allClients;
+	std::vector<Client*> allClients;
 	for (std::map<std::string, Client*>::const_iterator it = _clientsOnChannel.begin(); it!= _clientsOnChannel.end(); it++)
 	{
 		allClients.push_back(it->second);

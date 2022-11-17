@@ -16,10 +16,7 @@
 class Server
 {
 	private:
-		void							_createPoll(void);
-		int								_waitPool(void);
-		void							_acceptNewClient(int listenSocket, int poolSocket);
-		void							_handleMessage(int i);
+		/* Attributs */
 		int								_port;
 		std::string						_hostname;
 		unsigned						_passwordHash;
@@ -30,34 +27,47 @@ class Server
 		std::map<std::string, Channel*>	_channels;
 		cmd_dict						_cmdDict;
 		std::string						_messageOfTheDay;
-
+		std::map<std::string, time_t>	_nicknameUnavailable;
+		/* Private method */
+		void							_createPoll(void);
+		int								_waitPool(void);
+		void							_acceptNewClient(int listenSocket, int poolSocket);
+		void							_handleMessage(int i);
 
 	public:
+		/* Constructeur */
 		Server(int port, std::string password);
-		void						execute(void);
-		const std::string&			getHostname(void) const;
-		const int&					getListenSocket(void) const;
-		std::deque<Client*>			getAllClients(void)const;
-		std::deque<Client*>			getAllClientsMatching(std::string pattern)const;
-		void						setHostname(std::string);
-		void						clearServer(void);
-		void						deleteClient(Client* client);
-		void						printAllUsersFd(void);//TODO delete just debug
-		void						sendMsg(const std::string msg, const int fd);
-		void						sendMsg(NumericReplies reply, const int fd);
-		void						sendMsg(const std::string msg, Client* client);
-		void						createCmdDict(void);
-		Client*						getClientByNickname(const std::string nickname) const;
-		Client*						getClientByFd(size_t fd);
-		bool						checkPassword(const std::string password) const;
-		Channel*					getChannelByName(const std::string name);
-		void					addChannel(std::string name, Client* client);
-		std::string					getMessageOfTheDay(void);
-		void						executeCommands(char *buffer, Client* currentClient);
-		std::map<std::string, Channel*> getChannels(void);
-		void 							changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
-		void	checkAndJoinChannel(int socket, std::string channelName, std::string key);
-		void	checkAndLeaveChannel(int socket, std::string channelName);
+
+		/* Getter && Setter */
+		const std::string&						getHostname(void) const;
+		const int&								getListenSocket(void) const;
+		std::map<std::string, Channel*>			getChannels(void);
+		const std::map<std::string, time_t>&    getNicknameUnavailable(void)const;
+		void									setHostname(std::string);
+		void									addNicknameUnavailable(std::string nick, time_t time);
+		/* Methods */
+		void									execute(void);
+		std::vector<Client*>					getAllClients(void)const;
+		std::vector<Client*>					getAllClientsMatching(std::string pattern)const;
+		void									clearServer(void);
+		void									deleteClient(Client* client);
+		void									printAllUsersFd(void);//TODO delete just debug
+		void									sendMsg(const std::string msg, const int fd);
+		void									sendMsg(NumericReplies reply, const int fd);
+		void									sendMsg(const std::string msg, Client* client);
+		void									createCmdDict(void);
+		Client*									getClientByNickname(const std::string nickname) const;
+		Client*									getClientByFd(size_t fd);
+		bool									checkPassword(const std::string password) const;
+		Channel*								getChannelByName(const std::string name);
+		void									addChannel(std::string name, Client* client);
+		std::string								getMessageOfTheDay(void);
+		void									executeCommands(char *buffer, Client* currentClient);
+		void									changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
+		void									checkAndJoinChannel(int socket, std::string channelName, std::string key);
+		void									checkAndLeaveChannel(int socket, std::string channelName);
+		void									printCurrentLocaltime(int socket);
+
 };
 
 #endif
