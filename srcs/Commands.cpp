@@ -461,7 +461,7 @@ cmd_func links;
 
 void	time(Server *server, int socket, Commands command)
 {
-	server->printCurrentLocaltime();
+	server->printCurrentLocaltime(socket);
 }
 
 cmd_func connect;

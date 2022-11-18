@@ -112,7 +112,6 @@ void	Server::executeCommands(char *buffer, Client *client)
 	std::string							cmdFail;
 
 	transformCmdsToUpper(&commandsList);
-		std::cout << "command size " << commandsList.size() << std::endl; 
 	if (!checkCmdLength(listOfCommands))
 		return ;
 	for (size_t i = 0; i < commandsList.size(); i++)
@@ -408,12 +407,13 @@ void Server::createNewChannel(int creator, std::string name)
 **		  https://cplusplus.com/reference/ctime/localtime/
 */
 
-void	Server::printCurrentLocaltime(void)
+void	Server::printCurrentLocaltime(int socket)
 {
 	time_t		rawtime;
 	struct tm*	timeinfo;
 
 	time (&rawtime);
 	timeinfo = localtime(&rawtime);
-	std::cout << "Current localtime of the current server : " << asctime(this->getLocaltime()) << std::endl;
+	std::string localtime = (std::string)"Current localtime of the current server " + (std::string)asctime(timeinfo); 
+	this->sendMsg(localtime , socket);
 }
