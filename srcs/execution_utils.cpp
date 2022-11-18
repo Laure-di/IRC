@@ -26,7 +26,7 @@ bool	canRegisterPass(Client* user)
 	return (false);
 }
 
-bool	isFullyClientRegister(Client* user)
+bool	isClientFullyRegister(Client* user)
 {
 	if (!(user->getNickname()).empty() && !(user->getUsername()).empty())
 		return (true);
@@ -35,7 +35,7 @@ bool	isFullyClientRegister(Client* user)
 
 bool	isRegistrationCmd(std::string command)
 {
-	if (command == "NICK" || command == "CAP" || command == "USER" || command == "PASS")
+	if (command == "NICK" || command == "CAP" || command == "USER" || command == "PASS" || command == "QUIT" || command == "SERVICE")
 		return (true);
 	return (false);
 }

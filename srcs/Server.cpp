@@ -3,7 +3,6 @@
 //TODO add client message
 
 #include "../includes/include.hpp"
-#define DEBUG
 
 static bool	is_running=true;
 
@@ -118,7 +117,7 @@ void	Server::executeCommands(char *buffer, Client *client)
 		return ;
 	for (size_t i = 0; i < commandsList.size(); i++)
 	{
-		if (!isFullyClientRegister(client) && !isRegistrationCmd(it->command))
+		if (!isClientFullyRegister(client) && !isRegistrationCmd(it->command))
 			return this->sendMsg(ERR_NOTREGISTERED, client->getFd()); //451
 		this->_cmdDict[it->command](this, client->getFd(), *it);
 		if (i == commandsList.size())

@@ -26,6 +26,7 @@ class Client
 		int					_mode;
 		int					_status;
 		bool				_pwd;
+		bool				_isAuthenticated;
 		Client*				_lastExpediteur;
 		Client*				_lastRecipient;
 		Channel*			_activeChannel;
@@ -44,6 +45,7 @@ class Client
 		int				getMode(void)const;
 		std::string		getModeStr(void) const;
 		bool			getPwd(void)const;
+		bool			getIsAuthenticated(void)const;
 		Client			*getLastExpediteur(void)const;
 		Client			*getLastRecipient(void)const;
 		Channel			*getActiveChannel(void)const;
@@ -57,6 +59,7 @@ class Client
 		void			setMode(Commands command);
 		void			setStatus(int status);
 		void			setPwd(bool pwd);
+		void			setIsAuthenticated(bool authenticate);
 		void			setLastExpediteur(Client* expediteur);
 		void			setLastRecipient(Client* recipient);
 		void			setActiveChannel(Channel* active);

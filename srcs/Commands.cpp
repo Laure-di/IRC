@@ -1,5 +1,7 @@
 #include "../includes/include.hpp"
 
+#define DEBUG
+
 /*
  * 3.1 Connection Registration
  */
@@ -23,6 +25,9 @@ void pass(Server *server, int socket, Commands command) {
 			client->setPwd(true);
 			return ;
 		}
+#ifdef DEBUG
+		server->sendMsg("The password doesn't match the server password\r\n", socket);
+#endif
 	}
 };
 
@@ -33,14 +38,12 @@ void pass(Server *server, int socket, Commands command) {
  */
 void nick(Server *server, int socket, Commands command) {
 
-	std::cout << "entre dans nick function" << std::endl;
 	Client *client = server->getClientByFd(socket);
-	std::cout << client->getNickname() << std::endl;
 	if(command.params.empty() || command.params[0].empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
 	if (client->getNickname() == nickname)
-		return ;
+		return server->sendMsg("NICK " + nickname + "\r\n", socket);
 	if (!checkNickname(nickname))
 		return server->sendMsg(ERR_ERRONEUSNICKNAME(nickname), socket);
 	if (server->getClientByNickname(nickname))
@@ -50,12 +53,15 @@ void nick(Server *server, int socket, Commands command) {
 	if (client->getMode() == Restricted)
 		return server->sendMsg(ERR_RESTRICTED, socket);
 	if (client->getNickname().empty())
+	{
 		client->setNickname(nickname);
-	//is fully register? 
+		if (isClientFullyRegister(client))
+			return server->sendMsg(RPL_WELCOME(nickname, client->getUsername(), client->getHostname()), socket);
+	}
 	else
 	{
 		client->setNickname(nickname);
-		return server->sendMsg("NICK " + nickname, socket);
+		return server->sendMsg("NICK " + nickname + "\r\n", socket);
 	}
 };
 
@@ -79,6 +85,8 @@ void user(Server *server, int socket, Commands command)
 	currentUser->setUsername(userName);
 	currentUser->setFullName(fullName);
 	currentUser->setMode(mode);
+	if (isClientFullyRegister(currentUser))
+		return server->sendMsg(RPL_WELCOME(currentUser->getNickname(), currentUser->getUsername(), currentUser->getHostname()), socket);
 };
 
 /**

@@ -44,6 +44,7 @@ bool Client::getPwd(void)const
 	return (this->_pwd);
 }
 
+
 Client*	Client::getLastExpediteur(void)const
 {
 	return (this->_lastExpediteur);
