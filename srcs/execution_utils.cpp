@@ -21,7 +21,7 @@ bool	checkCmdLength(std::vector<std::string> listOfCommands)
 
 bool	canRegisterPass(Client* user)
 {
-	if ((user->getNickname()).empty() && (user->getUsername().empty()))
+	if ((user->getNickname()).empty() && (user->getUsername()).empty())
 		return (true);
 	return (false);
 }
@@ -36,9 +36,7 @@ bool	isFullyClientRegister(Client* user)
 bool	isRegistrationCmd(std::string command)
 {
 	if (command == "NICK" || command == "CAP" || command == "USER" || command == "PASS")
-	{
 		return (true);
-	}
 	return (false);
 }
 

@@ -1,7 +1,6 @@
 #include "../includes/include.hpp"
-#define DEBUG
 
-
+//TODO change all split by this one
 std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 {
 	std::vector<std::string>	result;
@@ -22,7 +21,10 @@ std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 			toAdd = toSplit.substr(start, toSplit.size() - 1 - start);
 		if (!toAdd.empty())
 			result.push_back(toAdd);
+#ifndef DEBUG
+		std::cout << "code a supprimer dans srcs/utils.cpp splitCmd" << std::endl;
 		std::cout << toAdd << std::endl;
+#endif
 	};
 
 	return (result);
@@ -263,17 +265,17 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 /**
  * @brief Print info on list of clients
  */
-void printWho(Server *server, int socket, std::deque<Client *>listOfClients)
+void printWho(Server *server, int socket, std::vector<Client *>listOfClients)
 {
 	if (listOfClients.empty())
 		return;
-	std::deque<Client *>::iterator listOfClientsIterator;
+/*	std::vector<Client *>::iterator listOfClientsIterator;
 	for (listOfClientsIterator = listOfClients.begin(); listOfClientsIterator < listOfClients.end(); listOfClientsIterator++)
 	{
 		// Get all params values
 		// chan == activeChannel ?
 		// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
-	}
+	}*/
 	NumericReplies msg = RPL_ENDOFWHO(server->getClientByFd(socket)->getNickname());
 	server->sendMsg(msg, socket);
 }

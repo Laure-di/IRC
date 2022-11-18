@@ -37,7 +37,7 @@ class Channel
 		void sendJoin(std::string nickname);
 		void sendTopic(int socket);
 		void sendListOfNames(int socket);
-		std::deque<Client*>			getAllClients(void)const;
+		std::vector<Client*>			getAllClients(void)const;
 		void changeNickname(std::string oldNickname, std::string newNickname);
 };
 

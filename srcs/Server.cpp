@@ -3,6 +3,7 @@
 //TODO add client message
 
 #include "../includes/include.hpp"
+#define DEBUG
 
 static bool	is_running=true;
 
@@ -106,21 +107,24 @@ void	stopServer(int signal)
 void	Server::executeCommands(char *buffer, Client *client)
 {
 	std::string							toSplit(buffer);
-	std::vector<std::string>				listOfCommands = splitCmd(toSplit, "\r\n");
+	std::vector<std::string>			listOfCommands = splitCmd(toSplit, "\r\n");
 	std::vector<Commands>				commandsList = manageMultipleCommands(listOfCommands);
-	std::vector<Commands>::iterator		it;
+	std::vector<Commands>::iterator		it = commandsList.begin();
 	std::string							cmdFail;
 
 	transformCmdsToUpper(&commandsList);
+		std::cout << "command size " << commandsList.size() << std::endl; 
 	if (!checkCmdLength(listOfCommands))
 		return ;
-	for (it = commandsList.begin(); it != commandsList.end(); it++)
+	for (size_t i = 0; i < commandsList.size(); i++)
 	{
 		if (!isFullyClientRegister(client) && !isRegistrationCmd(it->command))
 			return this->sendMsg(ERR_NOTREGISTERED, client->getFd()); //451
 		this->_cmdDict[it->command](this, client->getFd(), *it);
-	}
-
+		if (i == commandsList.size())
+			break;
+		it++;
+	};
 	//TODO
 	//Check length of command
 	//Check nb of arg ??!!
@@ -218,7 +222,7 @@ void				Server::addNicknameUnavailable(std::string nick, time_t time)
 
 std::vector<Client*>	Server::getAllClients(void)const
 {
-	std::vector<Client*> allUsers;
+	std::vector<Client*> allClients;
 
 	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
 	{
@@ -228,9 +232,9 @@ std::vector<Client*>	Server::getAllClients(void)const
 	return (allClients);
 }
 
-std::deque<Client*>	Server::getAllClientsMatching(std::string pattern) const
+std::vector<Client*>	Server::getAllClientsMatching(std::string pattern) const
 {
-	std::deque<Client*> allClients;
+	std::vector<Client*> allClients;
 
 	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
 	{
@@ -286,7 +290,7 @@ void	Server::sendMsg(const std::string msg, Client *client)
 }
 
 void	Server::createCmdDict(void) {
-	//	_cmdDict["PASS"] = &pass;
+	_cmdDict["PASS"] = &pass;
 	_cmdDict["NICK"] = &nick;
 	_cmdDict["USER"] = &user;
 	_cmdDict["CAP"] = &cap;
@@ -396,4 +400,6 @@ void Server::changeNicknameAsKeysInChannels(std::string oldNickname, std::string
 void Server::createNewChannel(int creator, std::string name)
 {
 	//Add creation of channel
+	(void)creator;
+	(void)name;
 }

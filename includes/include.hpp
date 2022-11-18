@@ -44,10 +44,7 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #include "Exceptions.hpp"
 #include "parser.hpp"
 #include "execution_utils.hpp"
-#endif
-#ifndef COMMANDSUTILS_HPP
 #include "commandsUtils.hpp"
-#endif
 
 
 

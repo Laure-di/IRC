@@ -12,15 +12,17 @@
 void pass(Server *server, int socket, Commands command) {
 
 	if(command.params.empty() || command.params[0].empty())
-		return (server->sendMsgToFd(ERR_NEEDMOREPARAMS(command.command), socket));
+		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
 	Client *client = server->getClientByFd(socket);
 	if (client != NULL)
-		if (!canRegisterPass(client) || client->getPwd())
-			return (server->sendMsgToFd(ERR_ALREADYREGISTRED, socket));
-	if (server->checkPassword(command.params[0]))
 	{
-		client->setPwd(true);
-		return ;
+		if (!canRegisterPass(client) || client->getPwd())
+			return (server->sendMsg(ERR_ALREADYREGISTRED, socket));
+		if (server->checkPassword(command.params[0]))
+		{
+			client->setPwd(true);
+			return ;
+		}
 	}
 };
 
@@ -34,27 +36,27 @@ void nick(Server *server, int socket, Commands command) {
 	std::cout << "entre dans nick function" << std::endl;
 	Client *client = server->getClientByFd(socket);
 	std::cout << client->getNickname() << std::endl;
-		if(command.params.empty() || command.params[0].empty())
-			return server->sendMsgToFd(ERR_NONICKNAMEGIVEN, socket);
-		std::string nickname = command.params[0];
-		if (client->getNickname() == nickname)
-			return ;
-		if (!checkNickname(nickname))
-			return server->sendMsgToFd(ERR_ERRONEUSNICKNAME(nickname), socket);
-		if (server->findClientByNickname(nickname))
-			return server->sendMsgToFd(ERR_NICKNAMEINUSE(nickname), socket);
-		if (isUnavailableNickname(server, nickname))
-			return server->sendMsgToFd(ERR_UNAVAILRESOURCE(nickname), socket);
-		if (client->getMode() == Restricted)
-			return server->sendMsgToFd(ERR_RESTRICTED, socket);
-		if (client->getNickname().empty())
-			client->setNickname(nickname);
-		//is fully register? 
-		else
-		{
-			client->setNickname(nickname);
-			return server->sendMsgToFd("NICK " + nickname, socket);
-		}
+	if(command.params.empty() || command.params[0].empty())
+		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
+	std::string nickname = command.params[0];
+	if (client->getNickname() == nickname)
+		return ;
+	if (!checkNickname(nickname))
+		return server->sendMsg(ERR_ERRONEUSNICKNAME(nickname), socket);
+	if (server->getClientByNickname(nickname))
+		return server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
+	if (isUnavailableNickname(server, nickname))
+		return server->sendMsg(ERR_UNAVAILRESOURCE(nickname), socket);
+	if (client->getMode() == Restricted)
+		return server->sendMsg(ERR_RESTRICTED, socket);
+	if (client->getNickname().empty())
+		client->setNickname(nickname);
+	//is fully register? 
+	else
+	{
+		client->setNickname(nickname);
+		return server->sendMsg("NICK " + nickname, socket);
+	}
 };
 
 /**
@@ -168,7 +170,7 @@ void part(Server *server, int socket, Commands command)
  * @brief The user MODE's are typically changes which affect either how the
  * client is seen by others or what 'extra' messages the client is sent.
  * The channel MODE command is provided so that users may query and change the
-<<<<<<< HEAD
+ <<<<<<< HEAD
  * characteristics of a channel.
  *
  * MODE follows IRSSI documentation, particularly the fact that if the target
@@ -412,8 +414,8 @@ void notice(Server *server, int socket, Commands command)
 }
 
 /*
-* 3.4 Server queries and commands
-*/
+ * 3.4 Server queries and commands
+ */
 
 /**
  * 3.4.1 Motd message
@@ -461,8 +463,8 @@ cmd_func servlist;
 cmd_func squery;
 
 /*
-* 3.6 User based queries
-*/
+ * 3.6 User based queries
+ */
 
 /**
  * 3.6.1 Who query
