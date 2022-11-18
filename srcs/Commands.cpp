@@ -458,7 +458,12 @@ cmd_func lusers;
 cmd_func version;
 cmd_func stats;
 cmd_func links;
-cmd_func time;
+
+void	time(Server *server, int socket, Commands command)
+{
+	server->printCurrentLocaltime();
+}
+
 cmd_func connect;
 cmd_func trace;
 cmd_func admin;

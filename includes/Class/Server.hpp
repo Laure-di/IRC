@@ -64,6 +64,7 @@ class Server
 		void									executeCommands(char *buffer, Client* currentClient);
 		void									changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
 		void									createNewChannel(int creator, std::string name);
+		void									printCurrentLocaltime(void);
 
 };
 

@@ -312,7 +312,7 @@ void	Server::createCmdDict(void) {
 	// _cmdDict["VERSION"] = &version;
 	// _cmdDict["STATS"] = &stats;
 	// _cmdDict["LINKS"] = &links;
-	// _cmdDict["TIME"] = &time;
+	 _cmdDict["TIME"] = &time;
 	// _cmdDict["CONNECT"] = &connect;
 	// _cmdDict["TRACE"] = &trace;
 	// _cmdDict["ADMIN"] = &admin;
@@ -401,4 +401,19 @@ void Server::createNewChannel(int creator, std::string name)
 	//Add creation of channel
 	(void)creator;
 	(void)name;
+}
+
+/*
+** @Brief display the localtime of the server
+**		  https://cplusplus.com/reference/ctime/localtime/
+*/
+
+void	Server::printCurrentLocaltime(void)
+{
+	time_t		rawtime;
+	struct tm*	timeinfo;
+
+	time (&rawtime);
+	timeinfo = localtime(&rawtime);
+	std::cout << "Current localtime of the current server : " << asctime(this->getLocaltime()) << std::endl;
 }
