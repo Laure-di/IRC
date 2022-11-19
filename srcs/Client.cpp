@@ -2,7 +2,7 @@
 //TODO change mode and status in consructor
 #include "../includes/include.hpp"
 
-Client::Client(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(None), _status(None), _pwd(false)
+Client::Client(const int fd, std::string hostname): _nickname(""), _username(""), _fullName(""), _fd(fd), _hostname(hostname), _mode(NONE), _status(NONE), _pwd(false)
 {
 }
 
@@ -126,19 +126,13 @@ void	Client::setActiveChannel(Channel* active)
 std::string		Client::getModeStr(void) const
 {
 	std::string res = "+";
-	if (_mode & Away)
+	if (_mode & AWAY)
 		res += "a";
-	if (_mode & Invisible)
+	if (_mode & INVISIBLE)
 		res += "i";
-	if (_mode & Wallops)
-		res += "w";
-	if (_mode & Restricted)
+	if (_mode & RESTRICTED)
 		res += "r";
-	if (_mode & Operator)
+	if (_mode & SERVEROPERATOR)
 		res += "o";
-	if (_mode & LocalOperator)
-		res += "O";
-	if (_mode & ServerNotices)
-		res += "a";
 	return res;
 }

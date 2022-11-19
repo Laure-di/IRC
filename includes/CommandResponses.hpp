@@ -72,8 +72,8 @@ struct NumericReplies
 #define RPL_ENDOFWHOWAS(nickname) \
     NumericReplies(369, nickname + " :End of WHOWAS\r\n")
 // LIST
-#define RPL_LIST(channel, visible, topic) \
-    NumericReplies(322, channel + " " + visible + " :" + topic + "\r\n")
+#define RPL_LIST(channel, clientCount, channelTopic) \
+    NumericReplies(322, channel + " " + clientCount + " :" + channelTopic + "\r\n")
 #define RPL_LISTEND NumericReplies(323, ":End of LIST\r\n")
 // MODE
 #define RPL_UNIQOPIS(channel, nickname) \

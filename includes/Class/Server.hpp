@@ -23,7 +23,7 @@ class Server
 		sockaddr_in						_addr;
 		int								_listenSocket, _pollfd;
 		epoll_event						_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
-		std::map<const int, Client*>	_clientsOnServer;
+		std::map<const int, Client*>	_clients;
 		std::map<std::string, Channel*>	_channels;
 		cmd_dict						_cmdDict;
 		std::string						_messageOfTheDay;
@@ -51,7 +51,9 @@ class Server
 		std::vector<Client*>					getAllClientsMatching(std::string pattern)const;
 		void									clearServer(void);
 		void									deleteClient(Client* client);
-		void									printAllUsersFd(void);//TODO delete just debug
+		void									sendAllUsersFd(void);//TODO delete just debug
+		void									sendAllUsers(int socket);
+		void									sendAllChannels(int socket);
 		void									sendMsg(const std::string msg, const int fd);
 		void									sendMsg(NumericReplies reply, const int fd);
 		void									sendMsg(const std::string msg, Client* client);
@@ -67,6 +69,7 @@ class Server
 		void									checkAndJoinChannel(int socket, std::string channelName, std::string key);
 		void									checkAndLeaveChannel(int socket, std::string channelName);
 		void									printCurrentLocaltime(int socket);
+		bool									isInChannel(const std::string nickname) const;
 
 };
 

@@ -2,8 +2,8 @@
 
 Channel::Channel(Server *server, std::string name, Client* creator): _server(server), _name(name)
 {
-	_clientsOperator[creator->getNickname()] = creator;
-	_clientsOnChannel[creator->getNickname()] = creator;
+	_clients[creator->getNickname()] = creator;
+	_clientsMode[creator->getNickname()] = CREATOR;
 }
 
 std::string Channel::getName(void) {
@@ -28,12 +28,12 @@ void Channel::clearTopic(void) {
 
 Client *Channel::findClientByNickname(const std::string nickname)
 {
-	return _clientsOnChannel[nickname];
+	return _clients[nickname];
 }
 
-Client *Channel::findOperatorByNickname(const std::string nickname)
+bool Channel::checkOperatorByNickname(std::string nickname)
 {
-	return _clientsOperator[nickname];
+	return _clientsMode[nickname] & OPERATOR;
 }
 
 Client *Channel::findBannedUserByNickname(const std::string nickname)
@@ -44,19 +44,20 @@ Client *Channel::findBannedUserByNickname(const std::string nickname)
 void Channel::addClient(int socket)
 {
 	Client *client = _server->getClientByFd(socket);
-	_clientsOnChannel[client->getNickname()] = client;
+	_clients[client->getNickname()] = client;
+	_clientsMode[client->getNickname()] = NONE;
 }
 
 void Channel::deleteClient(std::string nickname)
 {
-	_clientsOnChannel.erase(nickname);
-	_clientsOperator.erase(nickname);
+	_clients.erase(nickname);
+	_clientsMode.erase(nickname);
 }
 
 void Channel::sendMsg(std::string message)
 {
 	std::map<std::string, Client*>::iterator clientIterator;
-	for (clientIterator = _clientsOnChannel.begin(); clientIterator != _clientsOnChannel.end(); clientIterator++)
+	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
 	{
 		Client *client = clientIterator->second;
 		_server->sendMsg(message, client->getFd());
@@ -87,27 +88,52 @@ void Channel::sendListOfNames(int socket)
 {
 	// Add Channel Status
 	// Add Nickname prefix for client mode
-	std::vector<std::string> clients;
+	std::vector<std::string> clientNicknames;
 	std::map<std::string, Client*>::iterator clientIterator;
-	for (clientIterator = _clientsOnChannel.begin(); clientIterator != _clientsOnChannel.end(); clientIterator++)
-		clients.push_back(clientIterator->second->getNickname());
+	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
+		clientNicknames.push_back(clientIterator->second->getNickname());
 	std::string delim = " ";
-	std::ostringstream joined;
-	std::copy(clients.begin(), clients.end(), std::ostream_iterator<std::string>(joined, delim.c_str()));
+	std::ostringstream joinedClientNicknames;
+	std::copy(clientNicknames.begin(), clientNicknames.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
 	std::string channelStatus = "=";
-	_server->sendMsg(RPL_NAMREPLY(channelStatus, _name, joined.str()), socket);
+	_server->sendMsg(RPL_NAMREPLY(channelStatus, _name, joinedClientNicknames.str()), socket);
 	_server->sendMsg(RPL_ENDOFNAMES(_name), socket);
 }
 
 size_t Channel::getNumberOfUsers(void)
 {
-	return _clientsOnChannel.size();
+	return _clients.size();
+}
+
+std::string		Channel::getModeStr(void) const
+{
+	std::string res = "+";
+	if (_mode & INVITATION)
+		res += "i";
+	if (_mode & KEY)
+		res += "k";
+	if (_mode & MODERATED)
+		res += "m";
+	if (_mode & OUTSIDE)
+		res += "n";
+	if (_mode & PRIVATE)
+		res += "p";
+	if (_mode & SECRET)
+		res += "s";
+	if (_mode & TOPIC)
+		res += "t";
+	return res;
+}
+
+size_t Channel::getMaxLimitOfUsers(void)
+{
+	return _maxLimit;
 }
 
 std::vector<Client*>			Channel::getAllClients(void)const
 {
 	std::vector<Client*> allClients;
-	for (std::map<std::string, Client*>::const_iterator it = _clientsOnChannel.begin(); it!= _clientsOnChannel.end(); it++)
+	for (std::map<std::string, Client*>::const_iterator it = _clients.begin(); it!= _clients.end(); it++)
 	{
 		allClients.push_back(it->second);
 	}
@@ -117,17 +143,11 @@ std::vector<Client*>			Channel::getAllClients(void)const
 
 void Channel::changeNickname(std::string oldNickname, std::string newNickname)
 {
-	std::map<std::string, Client*>::iterator it = _clientsOnChannel.find(oldNickname);
-	if (it != _clientsOnChannel.end())
+	std::map<std::string, Client*>::iterator it = _clients.find(oldNickname);
+	if (it != _clients.end())
 	{
-		std::swap(_clientsOnChannel[newNickname], it->second);
-		_clientsOnChannel.erase(it);
-	}
-	it = _clientsOperator.find(oldNickname);
-	if (it != _clientsOperator.end())
-	{
-		std::swap(_clientsOperator[newNickname], it->second);
-		_clientsOperator.erase(it);
+		std::swap(_clients[newNickname], it->second);
+		_clients.erase(it);
 	}
 	it = _clientsBanned.find(oldNickname);
 	if (it != _clientsBanned.end())
@@ -135,4 +155,123 @@ void Channel::changeNickname(std::string oldNickname, std::string newNickname)
 		std::swap(_clientsBanned[newNickname], it->second);
 		_clientsBanned.erase(it);
 	}
+}
+
+void	Channel::addMode(int mask)
+{
+	_mode |= mask;
+}
+
+void	Channel::remMode(int mask)
+{
+	_mode &= ~mask;
+}
+
+void	Channel::modMode(int mask, bool add)
+{
+	if (add)
+		return addMode(mask);
+	remMode(mask);
+}
+
+void Channel::modKey(bool add, std::string key)
+{
+	if (add)
+		_keyHash = hasher(key.c_str());
+	modMode(KEY, add);
+}
+
+void Channel::modLimit(bool add, std::string max)
+{
+	if (add)
+		_maxLimit = toInt(max.c_str());
+	modMode(LIMIT, add);
+}
+
+unsigned char Channel::getMode()
+{
+	return _mode;
+}
+
+unsigned char Channel::getMode(int socket)
+{
+	Client *client = _server->getClientByFd(socket);
+	int mode = _clientsMode[client->getNickname()];
+	if (!mode)
+		return NONE;
+	return mode;
+}
+
+void Channel::modClientMode(int socket, std::string nickname, unsigned char mask, bool add)
+{
+	if (!_clients[nickname])
+		return _server->sendMsg(ERR_USERNOTINCHANNEL(nickname, _name), socket);
+	if (add)
+		_clientsMode[nickname] |= mask;
+	else
+		_clientsMode[nickname] &= ~mask;
+}
+
+void Channel::modClientMask(unsigned char type, bool add, std::string mask)
+{
+	std::vector<std::string> *_masksList;
+	switch (type)
+	{
+	case 'b':
+		_masksList = &_banMasks;
+		break;
+	case 'e':
+		_masksList = &_banMasks;
+		break;
+	case 'I':
+		_masksList = &_banMasks;
+		break;
+	}
+	if (add)
+		_masksList->push_back(mask);
+	else
+		_masksList->erase(std::remove(_masksList->begin(), _masksList->end(), mask), _masksList->end());
+}
+
+bool Channel::isInvited(std::string nickname)
+{
+	std::vector<std::string>::const_iterator cit;
+	for (cit = _inviteMasks.begin(); cit != _inviteMasks.end(); cit++)
+	{
+		if (strmatch(nickname, *cit))
+			return true;
+	}
+	return false;
+}
+
+bool Channel::isBanned(std::string nickname)
+{
+	std::vector<std::string>::const_iterator cit;
+	for (cit = _banMasks.begin(); cit != _banMasks.end(); cit++)
+	{
+		if (strmatch(nickname, *cit))
+			return true;
+	}
+	return false;
+}
+
+bool Channel::isExcepted(std::string nickname)
+{
+	std::vector<std::string>::const_iterator cit;
+	for (cit = _banExceptionMasks.begin(); cit != _banExceptionMasks.end(); cit++)
+	{
+		if (strmatch(nickname, *cit))
+			return true;
+	}
+	return false;
+}
+
+bool Channel::checkPassword(std::string key)
+{
+	return (hasher(key.c_str()) == _keyHash);
+}
+
+void Channel::sendInfo(int socket)
+{
+	_server->sendMsg(RPL_NAMREPLY(_name, toString(getNumberOfUsers()), _topic), socket);
 }

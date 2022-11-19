@@ -50,7 +50,7 @@ void nick(Server *server, int socket, Commands command) {
 		return server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
 	if (isUnavailableNickname(server, nickname))
 		return server->sendMsg(ERR_UNAVAILRESOURCE(nickname), socket);
-	if (client->getMode() == Restricted)
+	if (client->getMode() == RESTRICTED)
 		return server->sendMsg(ERR_RESTRICTED, socket);
 	if (client->getNickname().empty())
 	{
@@ -183,7 +183,6 @@ void part(Server *server, int socket, Commands command)
  * @brief The user MODE's are typically changes which affect either how the
  * client is seen by others or what 'extra' messages the client is sent.
  * The channel MODE command is provided so that users may query and change the
- <<<<<<< HEAD
  * characteristics of a channel.
  *
  * MODE follows IRSSI documentation, particularly the fact that if the target
@@ -195,7 +194,7 @@ void mode(Server *server, int socket, Commands command)
 	Client *client = NULL;
 	Channel *channel = NULL;
 	std::string flags;
-	std::string params;
+	std::string param;
 	if(command.params.size() == 0)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string name = command.params[0];
@@ -205,7 +204,7 @@ void mode(Server *server, int socket, Commands command)
 		channel = client->getActiveChannel();
 		flags = command.params[0];
 		if(command.params.size() > 1)
-			params = command.params[0];
+			param = command.params[0];
 	}
 	else
 	{
@@ -227,9 +226,14 @@ void mode(Server *server, int socket, Commands command)
 		}
 		flags = command.params[1];
 		if(command.params.size() > 2)
-			params = command.params[2];
+			param = command.params[2];
 	}
-	applyModeChanges(server, socket, flags, params, client, channel);
+	std::string flagWithParams = "beIv";
+	for (size_t i = 0; i < flagWithParams.size(); i++) {
+		if (name.find(flagWithParams[i]) != std::string::npos)
+			return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
+	}
+	applyModeChanges(server, socket, flags, param, client, channel);
 }
 
 /**
@@ -248,16 +252,16 @@ void topic(Server *server, int socket, Commands command)
 	Client *currentUser = server->getClientByFd(socket);
 	if (channel->findClientByNickname(currentUser->getNickname()))
 		return server->sendMsg(ERR_NOTONCHANNEL(channel->getName()), socket);
-	if(command.params.size() == 1) {
+	if (command.params.size() == 1 && !command.colon) {
 		if (channel->getTopic().empty())
 			return server->sendMsg(RPL_NOTOPIC(channel->getName()), socket);
 		return server->sendMsg(RPL_TOPIC(channel->getName(), channel->getTopic()), socket);
 	}
-	if (channel->findOperatorByNickname(currentUser->getNickname()))
+	if ((channel->getMode() & TOPIC) && !(channel->checkOperatorByNickname(currentUser->getNickname())))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
 	// Add check for ERR_NOCHANMODES
 	std::string topic = command.params[1];
-	if (topic == ":")
+	if (command.params.size() == 1 && command.colon)
 		return channel->clearTopic();
 	channel->setTopic(topic);
 }
@@ -270,7 +274,19 @@ void topic(Server *server, int socket, Commands command)
  */
 void names(Server *server, int socket, Commands command)
 {
-	
+	if(!command.params.size())
+		return server->sendAllUsers(socket);
+	std::vector<std::string> channelNames = splitComma(command.params[0]);
+	std::vector<std::string>::const_iterator cit;
+	for (cit = channelNames.begin(); cit != channelNames.end(); cit++)
+	{
+		std::string channelName = *cit;
+		Channel *channel = server->getChannelByName(channelName);
+		if (channel)
+			channel->sendListOfNames(socket);
+		else
+			server->sendMsg(RPL_ENDOFNAMES(channelName), socket);
+	}
 }
 
 /**
@@ -280,16 +296,15 @@ void names(Server *server, int socket, Commands command)
  */
 void list(Server *server, int socket, Commands command)
 {
-	std::map<std::string, Channel*> channels = server->getChannels();
-	std::map<std::string, Channel*>::iterator channelsIterator;
-	for (channelsIterator = channels.begin(); channelsIterator != channels.end(); channelsIterator++)
+	if(!command.params.size())
+		return server->sendAllChannels(socket);
+	std::vector<std::string> channelNames = splitComma(command.params[0]);
+	std::vector<std::string>::const_iterator cit;
+	for (cit = channelNames.begin(); cit != channelNames.end(); cit++)
 	{
-		Channel *channel = channelsIterator->second;
-		std::string name = channel->getName();
-		std::string topic = channel->getTopic();
-		if (topic.empty())
-			topic = toString(channel->getNumberOfUsers());
-		server->sendMsg(name + " " + topic + "\n", socket);
+		Channel *channel = server->getChannelByName(*cit);
+		if (channel && !(channel->getMode() & SECRET))
+			channel->sendInfo(socket);
 	}
 }
 
@@ -355,7 +370,7 @@ void kick(Server *server, int socket, Commands command)
 			server->sendMsg(ERR_NOSUCHCHANNEL(channelName), socket);
 			continue;
 		}
-		if (!channel->findOperatorByNickname(currentUser->getUsername()))
+		if (!channel->checkOperatorByNickname(currentUser->getUsername()))
 		{
 			server->sendMsg(ERR_CHANOPRIVSNEEDED(channelName), socket);
 			continue;
@@ -388,7 +403,7 @@ void kick(Server *server, int socket, Commands command)
  */
 void privmsg(Server *server, int socket, Commands command)
 {
-	// Add special targets for irssi "*", ",", "."
+	// Add special targets for irssi "*", ",", "." ?
 	return;
 }
 

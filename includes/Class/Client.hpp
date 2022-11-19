@@ -3,16 +3,13 @@
 
 #include "../include.hpp"
 
-enum UserModes
+enum ClientModes
 {
-	None = 0,
-    Away = 1,
-    Invisible = 2,
-    Wallops = 4,
-    Restricted = 8,
-    Operator = 16,
-    LocalOperator = 32,
-    ServerNotices = 64
+    NONE = 0,
+    AWAY = 1,
+    INVISIBLE = 2,
+    RESTRICTED = 4,
+    SERVEROPERATOR = 8,
 };
 
 class Client
@@ -23,7 +20,7 @@ class Client
 		std::string			_fullName;
 		const int			_fd;
 		std::string			_hostname;
-		int					_mode;
+		unsigned char		_mode;
 		int					_status;
 		bool				_pwd;
 		bool				_isAuthenticated;

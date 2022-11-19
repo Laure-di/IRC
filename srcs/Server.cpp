@@ -59,7 +59,7 @@ void	Server::_acceptNewClient(int listenSocket, int pollfd)
 	memset(&client_addr, 0, sizeof(sockaddr_storage));
 	if ((client_fd = accept(listenSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
 		std::cerr << std::strerror(errno) << std::endl; //QUID throw an exception or just a error?!
-	this->_clientsOnServer[client_fd] = new Client(client_fd, this->getHostname()); //TODO check hostname
+	this->_clients[client_fd] = new Client(client_fd, this->getHostname()); //TODO check hostname
 	this->_ev.events = EPOLLIN;
 	this->_ev.data.fd = client_fd;
 	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &this->_ev) == -1)
@@ -162,10 +162,10 @@ void	Server::clearServer(void) //TODO link with signal??!!
 {
 	//TODO delete channels before user bc channels are links to users
 	//Close connection and fd and delete users
-	if (!this->_clientsOnServer.empty())
+	if (!this->_clients.empty())
 	{
-		std::map<int, Client*>::const_iterator it_end = this->_clientsOnServer.end();
-		for (std::map<int, Client*>::const_iterator it_begin = this->_clientsOnServer.begin(); it_begin != it_end; it_begin++)
+		std::map<int, Client*>::const_iterator it_end = this->_clients.end();
+		for (std::map<int, Client*>::const_iterator it_begin = this->_clients.begin(); it_begin != it_end; it_begin++)
 		{
 			try
 			{
@@ -222,7 +222,7 @@ std::vector<Client*>	Server::getAllClients(void)const
 {
 	std::vector<Client*> allClients;
 
-	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
+	for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it!= this->_clients.end(); it++)
 	{
 		allClients.push_back(it->second);
 	}
@@ -234,7 +234,7 @@ std::vector<Client*>	Server::getAllClientsMatching(std::string pattern) const
 {
 	std::vector<Client*> allClients;
 
-	for (std::map<int, Client*>::const_iterator it = this->_clientsOnServer.begin(); it!= this->_clientsOnServer.end(); it++)
+	for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it!= this->_clients.end(); it++)
 	{
 		if (strmatch(it->second->getNickname(), pattern)
 			|| strmatch(it->second->getHostname(), pattern)
@@ -245,13 +245,13 @@ std::vector<Client*>	Server::getAllClientsMatching(std::string pattern) const
 	return (allClients);
 }
 
-void	Server::printAllUsersFd(void)
+void	Server::sendAllUsersFd(void)
 {
-	if (!this->_clientsOnServer.empty())
+	if (!this->_clients.empty())
 	{
 		std::map<int, Client*>::const_iterator it;
-		std::map<int, Client*>::const_iterator ite = this->_clientsOnServer.end();
-		for (it = this->_clientsOnServer.begin(); it != ite; it++)
+		std::map<int, Client*>::const_iterator ite = this->_clients.end();
+		for (it = this->_clients.begin(); it != ite; it++)
 		{
 			std::cout << (it->second)->getHostname() << std::endl;
 		}
@@ -259,17 +259,58 @@ void	Server::printAllUsersFd(void)
 
 }
 
+void	Server::sendAllUsers(int socket)
+{
+	std::map<std::string, Channel*>::const_iterator cit;
+	for (cit = _channels.begin(); cit != _channels.end(); cit++)
+	{
+		Channel *channel = cit->second;
+		channel->sendListOfNames(socket);
+	}
+	std::vector<std::string> clientNotInChannels;
+	std::map<const int, Client*>::const_iterator cit2;
+	for (cit2 = _clients.begin(); cit2 != _clients.end(); cit2++)
+	{
+		Client *client = cit2->second;
+		if (!isInChannel(client->getNickname()))
+			clientNotInChannels.push_back(client->getNickname());
+	}
+	if (clientNotInChannels.size())
+	{
+		std::vector<std::string> clientNicknames;
+		std::string delim = " ";
+		std::ostringstream joinedClientNicknames;
+		std::copy(clientNicknames.begin(), clientNicknames.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
+		std::string channelStatus = "*";
+		std::string channelName = "channel";
+		sendMsg(RPL_NAMREPLY(channelStatus, channelName, joinedClientNicknames.str()), socket);
+		sendMsg(RPL_ENDOFNAMES(channelName), socket);
+	}
+}
+
+void	Server::sendAllChannels(int socket)
+{
+	std::map<std::string, Channel*>::const_iterator cit;
+	for (cit = _channels.begin(); cit != _channels.end(); cit++)
+	{
+		Channel *channel = cit->second;
+		if (!(channel->getMode() & SECRET))
+			channel->sendInfo(socket);
+	}
+	sendMsg(RPL_LISTEND, socket);
+}
+
 void	Server::deleteClient(Client* user)
 {
 	std::map<int, Client*>::iterator it;
-	std::map<int, Client*>::iterator ite = this->_clientsOnServer.end();
-	for (it = this->_clientsOnServer.begin(); it != ite;)
+	std::map<int, Client*>::iterator ite = this->_clients.end();
+	for (it = this->_clients.begin(); it != ite;)
 	{
 		if (user == it->second)
 		{
 			delete it->second;
 			//close (it->second->getFd());
-			this->_clientsOnServer.erase(it++);
+			this->_clients.erase(it++);
 		}
 		else
 			it++;
@@ -342,7 +383,7 @@ void	Server::createCmdDict(void) {
 Client* Server::getClientByNickname(const std::string nickname) const
 {
 	std::map<const int, Client*>::const_iterator currentUser;
-	for (currentUser = _clientsOnServer.begin(); currentUser != _clientsOnServer.end(); currentUser++)
+	for (currentUser = _clients.begin(); currentUser != _clients.end(); currentUser++)
 	{
 		if (currentUser->second->getNickname() == nickname)
 			return currentUser->second;
@@ -352,7 +393,7 @@ Client* Server::getClientByNickname(const std::string nickname) const
 
 Client* Server::getClientByFd(size_t fd)
 {
-	return _clientsOnServer[fd];
+	return _clients[fd];
 }
 
 void	Server::sendMsg(NumericReplies reply, const int fd)
@@ -410,8 +451,17 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 		return sendMsg(ERR_BADCHANMASK(channelName), socket);
 	Channel *channel = getChannelByName(channelName);
 	Client *client = getClientByFd(socket);
+	std::string nickname = client->getNickname();
 	if (!channel)
 		return addChannel(channelName, client);
+	if ((channel->getMode() & INVITATION) && !(channel->isInvited(nickname)))
+		return sendMsg(ERR_INVITEONLYCHAN(channelName), socket);
+	if (channel->isBanned(nickname) && !(channel->isExcepted(nickname)))
+		return sendMsg(ERR_BANNEDFROMCHAN(channelName), socket);
+	if ((channel->getMode() & LIMIT) && channel->getNumberOfUsers() == channel->getMaxLimitOfUsers())
+		return sendMsg(ERR_CHANNELISFULL(channelName), socket);
+	if ((channel->getMode() & PRIVATE) && !channel->checkPassword(key))
+		return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
 	channel->addClient(socket);
 	channel->sendJoin(client->getHostname());
 	if (!channel->getTopic().empty())
@@ -448,4 +498,16 @@ void	Server::printCurrentLocaltime(int socket)
 	timeinfo = localtime(&rawtime);
 	std::string localtime = (std::string)"Current localtime of the current server " + (std::string)asctime(timeinfo);
 	this->sendMsg(localtime , socket);
+}
+
+bool	Server::isInChannel(const std::string nickname) const
+{
+	std::map<std::string, Channel*>::const_iterator cit;
+	for (cit = _channels.begin(); cit != _channels.end(); cit++)
+	{
+		Channel *channel = cit->second;
+		if (channel->findClientByNickname(nickname))
+			return true;
+	}
+	return false;
 }
