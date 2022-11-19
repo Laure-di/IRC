@@ -14,6 +14,23 @@ std::string	Client::getNickname(void)const
 	return (this->_nickname);
 }
 
+std::string	Client::getPrefix(void)const
+{
+	if (getMode() & CREATOR)
+		return "~";
+	if (getMode() & OPERATOR)
+		return "@";
+	if (getMode() & VOICE)
+		return "+";
+	return ("");
+}
+
+std::string	Client::getNicknameWithPrefix(void)const
+{
+
+	return getPrefix() + getNickname();
+}
+
 std::string	Client::getUsername(void)const
 {
 	return (this->_username);

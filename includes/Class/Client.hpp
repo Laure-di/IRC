@@ -35,6 +35,8 @@ class Client
 		Client(const int fd, std::string hostname);
 		~Client();
 		std::string		getNickname(void)const;
+		std::string		getPrefix(void)const;
+		std::string		getNicknameWithPrefix(void)const;
 		std::string		getUsername(void)const;
 		int				getFd(void)const;
 		std::string		getHostname(void)const;

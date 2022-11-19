@@ -41,6 +41,7 @@ class Channel
 	public:
 		Channel(Server *server, std::string name, Client* creator);
 		std::string getName(void);
+		std::string getChannelStatus(void);
 		void setName(std::string name);
 		std::string getTopic(void);
 		void setTopic(std::string topic);

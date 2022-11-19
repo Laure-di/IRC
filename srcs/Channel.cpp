@@ -10,6 +10,14 @@ std::string Channel::getName(void) {
 	return _name;
 }
 
+std::string Channel::getChannelStatus(void) {
+	if (getMode() & SECRET)
+		return "@";
+	if (getMode() & PRIVATE)
+		return "*";
+	return "=";
+}
+
 void Channel::setName(std::string name) {
 	_name = name;
 }
@@ -91,11 +99,11 @@ void Channel::sendListOfNames(int socket)
 	std::vector<std::string> clientNicknames;
 	std::map<std::string, Client*>::iterator clientIterator;
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
-		clientNicknames.push_back(clientIterator->second->getNickname());
+		clientNicknames.push_back(clientIterator->second->getNicknameWithPrefix());
 	std::string delim = " ";
 	std::ostringstream joinedClientNicknames;
 	std::copy(clientNicknames.begin(), clientNicknames.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
-	std::string channelStatus = "=";
+	std::string channelStatus = getChannelStatus();
 	_server->sendMsg(RPL_NAMREPLY(channelStatus, _name, joinedClientNicknames.str()), socket);
 	_server->sendMsg(RPL_ENDOFNAMES(_name), socket);
 }
