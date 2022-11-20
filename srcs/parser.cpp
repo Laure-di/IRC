@@ -2,7 +2,6 @@
 
 #define MAX_CMD_LGTH 510
 #define	MAX_PARAMS	15
-#define DEBUG
 
 void	print_debug(std::vector<std::string> print)
 {
@@ -72,7 +71,6 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 	std::vector<std::string>	params;
 	bool						colon;
 
-	//(void)command;
 
 	prefix = handlePrefix(&cmd);
 	if (cmd.find(":") != std::string::npos)
@@ -80,17 +78,7 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 		colon = true;
 		std::vector<std::string>first;
 		rslt = splitBy(cmd, ":");
-#ifdef DEBUG
-		std::cout << "after split : : " << std::endl;
-		print_debug(rslt);
-		std::cout << "rslt begin()" << std::endl;
-		std::cout << *rslt.begin() << std::endl;
-#endif
 		first = splitBy(*rslt.begin(), " ");
-#ifdef DEBUG
-		std::cout << "after split : : " << std::endl;
-		print_debug(first);
-#endif
 		pop_front<std::string>(rslt);
 		cd =*(first.begin());
 		if (1 < first.size())
@@ -100,11 +88,6 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 			//params = first;
 			addElementsVector(&params, rslt);
 		}
-#ifdef DEBUG
-		std::cout << "Case of command with colon : " << std::endl;
-		std::cout << "command : " << cd << std::endl;
-		print_debug(params);
-#endif
 	}
 	else
 	{
@@ -119,8 +102,10 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 		}
 		command->push_back(Commands(cd, prefix, params, colon));
 #ifdef DEBUG
-		std::cout << "command : " << cd << std::endl;
+		std::cout << "Command : " << cd << std::endl;
+		std::cout << "Params : ";
 		print_debug(params);
+		std::cout << std::endl;
 #endif
 	}
 }
@@ -131,7 +116,10 @@ std::vector<Commands>	manageMultipleCommands(std::vector<std::string> listOfComm
 	std::vector<std::string>::iterator				it;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
 	{
-		parseCmd(*it, &commandsToExecute);
+		if (it->size() < MAX_CMD_LGTH)
+			parseCmd(*it, &commandsToExecute);
+		else
+			std::cerr << *it << "command too long to be executed" << std::endl;
 	}
 	return (commandsToExecute);
 }

@@ -11,20 +11,12 @@ std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 	{
 		start = end + delimiter.size();
 		end = toSplit.find(delimiter, start);
-#ifdef DEBUG
-		std::cout << "Size of string to split" << toSplit.size() << std::endl;
-		std::cout << "value of end split " << end <<  std::endl;
-#endif
 		if (end != std::string::npos)
 			toAdd = toSplit.substr(start, end - start);
 		else
 			toAdd = toSplit.substr(start, toSplit.size() - 1 - start);
 		if (!toAdd.empty())
 			result.push_back(toAdd);
-#ifndef DEBUG
-		std::cout << "code a supprimer dans srcs/utils.cpp splitCmd" << std::endl;
-		std::cout << toAdd << std::endl;
-#endif
 	};
 
 	return (result);

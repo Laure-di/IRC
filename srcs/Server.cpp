@@ -223,19 +223,14 @@ void	deleteAllCmds(std::vector<Commands> cmd)
 
 void	Server::executeCommands(std::string buffer, Client *client)
 {
-	std::cout << "argument buffer :" << buffer << std::endl;
-	std::cout << "client->getBuffer()" << client->getBuffer() << std::endl;
 	std::vector<std::string>			listOfCommands = splitCmd(buffer, "\r\n");
 	std::vector<Commands>				commandsList = manageMultipleCommands(listOfCommands);
 	std::vector<Commands>::iterator		it = commandsList.begin();
 	std::string							cmdFail;
 
 	transformCmdsToUpper(&commandsList);
-	if (!checkCmdLength(listOfCommands))
-		return ;
 	for (size_t i = 0; i < commandsList.size(); i++)
 	{
-		std::cout << commandsList[i].command << std::endl;
 		if (!isClientFullyRegister(client) && !isRegistrationCmd(commandsList[i].command))
 			return this->sendMsg(ERR_NOTREGISTERED, client->getFd()); //451
 		if (_cmdDict.find(commandsList[i].command) != _cmdDict.end())
@@ -247,10 +242,7 @@ void	Server::executeCommands(std::string buffer, Client *client)
 		it++;
 	};
 	//TODO
-	//Check length of command
 	//Check nb of arg ??!!
-	//Check registration cmd
-	//check is fully register
 #ifdef DEBUG
 //	printAllCmds(commandsList);
 #endif
@@ -303,7 +295,6 @@ int		Server::_handleMessage(epoll_event ep_event)
 	memset(buffer, 0, BUFFER_SIZE);
 	currentClient->clearBuffer();
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
-	std::cout << "result recv " << buffer << std::endl;
 	if (numbytes <= 0)
 		return (-1);
 	else

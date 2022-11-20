@@ -25,5 +25,5 @@ int	areParamsValid(std::vector<std::string> params)
 		return (mode = toInt(params[1]));
 	else if (params[1] != params[0])
 		return (mode = -1);
-	return (mode = -1); //TODO change
+	return (mode = 0); //TODO change
 }
