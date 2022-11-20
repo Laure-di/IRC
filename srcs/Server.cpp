@@ -7,7 +7,7 @@
 static bool	is_running=true;
 
 
-Server::Server(int port, std::string password):_port(port), _hostname(HOSTNAME), _passwordHash(hasher(password.c_str()))
+Server::Server(int port, std::string password): _port(port), _hostname(HOSTNAME), _passwordHash(hasher(password.c_str())), _adminLogin("admin"), _adminPasswordHash(4141857313)
 {
 	int			optval = 1;
 

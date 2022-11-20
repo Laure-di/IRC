@@ -102,7 +102,7 @@ void oper(Server *server, int socket, Commands command)
 	std::string password = command.params[1];
 	if (!server->checkPassword(password))
 		return server->sendMsg(ERR_PASSWDMISMATCH, socket);
-	// Add check for ERR_NOOPERHOST (client not allowed to be an operator)
+	// TODO Add check for ERR_NOOPERHOST (client not allowed to be an operator)
 
 }
 
@@ -145,7 +145,7 @@ cmd_func squit;
  */
 void join(Server *server, int socket, Commands command)
 {
-	// ADD Join 0
+	// TODO Add Join 0
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> names = splitComma(command.params[0]);
@@ -404,7 +404,7 @@ void kick(Server *server, int socket, Commands command)
  */
 void privmsg(Server *server, int socket, Commands command)
 {
-	// Add special targets for irssi "*", ",", "." ?
+	// TODO Add special targets for irssi "*", ",", "." ?
 	return;
 }
 
@@ -453,7 +453,7 @@ void notice(Server *server, int socket, Commands command)
  */
 void motd(Server *server, int socket, Commands command)
 {
-	// Reminder to create a message of the day when constructing the Server
+	// TODO Reminder to create a message of the day when constructing the Server
 	std::string messageOfTheDay = server->getMessageOfTheDay();
 	if (messageOfTheDay.empty())
 		return server->sendMsg(ERR_NOMOTD, socket);

@@ -28,6 +28,8 @@ class Server
 		cmd_dict						_cmdDict;
 		std::string						_messageOfTheDay;
 		std::map<std::string, time_t>	_nicknameUnavailable;
+		const std::string	_adminLogin;
+		const unsigned _adminPasswordHash;
 		/* Private method */
 		void							_createPoll(void);
 		int								_waitPool(void);

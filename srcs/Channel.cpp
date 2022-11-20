@@ -222,23 +222,23 @@ void Channel::modClientMode(int socket, std::string nickname, unsigned char mask
 
 void Channel::modClientMask(unsigned char type, bool add, std::string mask)
 {
-	std::vector<std::string> *_masksList;
+	std::vector<std::string> *masksList;
 	switch (type)
 	{
 	case 'b':
-		_masksList = &_banMasks;
+		masksList = &_banMasks;
 		break;
 	case 'e':
-		_masksList = &_banMasks;
+		masksList = &_banMasks;
 		break;
 	case 'I':
-		_masksList = &_banMasks;
+		masksList = &_banMasks;
 		break;
 	}
 	if (add)
-		_masksList->push_back(mask);
+		masksList->push_back(mask);
 	else
-		_masksList->erase(std::remove(_masksList->begin(), _masksList->end(), mask), _masksList->end());
+		masksList->erase(std::remove(masksList->begin(), masksList->end(), mask), masksList->end());
 }
 
 bool Channel::isInvited(std::string nickname)
