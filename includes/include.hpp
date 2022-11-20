@@ -9,6 +9,10 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <sys/epoll.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <cstring>
 #include <cerrno>
@@ -25,6 +29,8 @@
 #include <bits/types/sig_atomic_t.h>
 #include <bits/types/siginfo_t.h>
 #include <bits/stdc++.h>
+#include <netdb.h>
+
 
 class Channel;
 class Client;
@@ -50,16 +56,18 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 
 struct	Commands
 {
-	std::string				command;
-	std::string				prefix;
+	std::string					command;
+	std::string					prefix;
 	std::vector<std::string>	params;
-	bool					colon;
-	/*Commands(std::string cmd, std::string pref, std::vector<std::string> parameters)
+	bool						colon;
+	Commands(std::string _command, std::string _prefix, std::vector<std::string> _params, bool _colon)
 	{
-		command = cmd;
-		prefix = pref;
-		params = parameters;
-	}*/
+		command = _command;
+		prefix = _prefix;
+		params = _params;
+		colon = _colon;
+
+	}
 };
 
 #endif

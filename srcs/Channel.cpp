@@ -18,6 +18,18 @@ std::string Channel::getChannelStatus(void) {
 	return "=";
 }
 
+std::vector<Client*>	Channel::getAllClients(void)const
+{
+	std::vector<Client*>						list;
+	std::map<std::string, Client*>::const_iterator	it;
+
+	for (it = _clients.begin(); it != _clients.end(); it++)
+	{
+		list.push_back(it->second);
+	}
+	return (list);
+}
+
 void Channel::setName(std::string name) {
 	_name = name;
 }
@@ -92,7 +104,7 @@ void Channel::sendTopic(int socket)
 	_server->sendMsg(RPL_TOPIC(_name, _topic), socket);
 }
 
-void Channel::sendListOfNames(int socket)
+void Channel::sendListOfNames(const int socket)
 {
 	// Add Channel Status
 	// Add Nickname prefix for client mode
@@ -136,17 +148,6 @@ std::string		Channel::getModeStr(void) const
 size_t Channel::getMaxLimitOfUsers(void)
 {
 	return _maxLimit;
-}
-
-std::vector<Client*>			Channel::getAllClients(void)const
-{
-	std::vector<Client*> allClients;
-	for (std::map<std::string, Client*>::const_iterator it = _clients.begin(); it!= _clients.end(); it++)
-	{
-		allClients.push_back(it->second);
-	}
-
-	return (allClients);
 }
 
 void Channel::changeNickname(std::string oldNickname, std::string newNickname)
@@ -210,7 +211,7 @@ unsigned char Channel::getMode(int socket)
 	return mode;
 }
 
-void Channel::modClientMode(int socket, std::string nickname, unsigned char mask, bool add)
+void Channel::modClientMode(const int socket, std::string nickname, unsigned char mask, bool add)
 {
 	if (!_clients[nickname])
 		return _server->sendMsg(ERR_USERNOTINCHANNEL(nickname, _name), socket);
@@ -279,7 +280,7 @@ bool Channel::checkPassword(std::string key)
 	return (hasher(key.c_str()) == _keyHash);
 }
 
-void Channel::sendInfo(int socket)
+void Channel::sendInfo(const int socket)
 {
 	_server->sendMsg(RPL_NAMREPLY(_name, toString(getNumberOfUsers()), _topic), socket);
 }

@@ -42,6 +42,7 @@ class Channel
 		Channel(Server *server, std::string name, Client* creator);
 		std::string getName(void);
 		std::string getChannelStatus(void);
+		std::vector<Client*>	getAllClients(void)const;
 		void setName(std::string name);
 		std::string getTopic(void);
 		void setTopic(std::string topic);
@@ -60,7 +61,6 @@ class Channel
 		void sendPart(std::string fullClientName, std::string nickname, std::string leaveMessage);
 		void sendTopic(int socket);
 		void sendListOfNames(int socket);
-		std::vector<Client*>			getAllClients(void)const;
 		void changeNickname(std::string oldNickname, std::string newNickname);
 		void addMode(int mask);
 		void remMode(int mask);

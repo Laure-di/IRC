@@ -1,6 +1,5 @@
 #include "../includes/include.hpp"
 
-#define DEBUG
 
 /*
  * 3.1 Connection Registration
@@ -56,7 +55,13 @@ void nick(Server *server, int socket, Commands command) {
 	{
 		client->setNickname(nickname);
 		if (isClientFullyRegister(client))
-			return server->sendMsg(RPL_WELCOME(nickname, client->getUsername(), client->getHostname()), socket);
+		{
+			server->sendMsg(RPL_WELCOME(nickname, client->getUsername(), client->getHostname()), socket);
+			server->sendMsg(RPL_YOURHOST(client->getHostname(), server->getVersion()), socket);
+			server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
+			//TODO trouver a quoi correspond channelmode
+			//	server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), client->getMode()), socket);
+		}
 	}
 	else
 	{
@@ -77,16 +82,24 @@ void user(Server *server, int socket, Commands command)
 	Client *currentUser = server->getClientByFd(socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
+	int mode;
+	if ((mode = areParamsValid(command.params)) == -1)
+		return ;
 	std::string userName = command.params[0];
-	int mode = toInt(command.params[1]);
 	std::string fullName = command.params[3];
 	if (!checkUsername(userName))
 		return;
 	currentUser->setUsername(userName);
 	currentUser->setFullName(fullName);
-	currentUser->setMode(mode);
+	if (-1 < mode)
+		currentUser->setMode(mode);
 	if (isClientFullyRegister(currentUser))
-		return server->sendMsg(RPL_WELCOME(currentUser->getNickname(), currentUser->getUsername(), currentUser->getHostname()), socket);
+	{
+		server->sendMsg(RPL_WELCOME(currentUser->getNickname(), currentUser->getUsername(), server->getHostname()), socket);
+		server->sendMsg(RPL_YOURHOST(server->getHostname(), server->getVersion()), socket);
+		server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
+		//	server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), client->getMode()), socket);
+	}
 };
 
 /**
@@ -126,11 +139,30 @@ void service(Server *server, int socket, Commands command)
  */
 void cap(Server *server, int socket, Commands command)
 {
-	std::cout << "entre ici" << std::endl;
+	(void)server;
+	(void)socket;
+	(void)command;
 	return ;
 }
+//TODO a finir
+void	quit(Server *server, int socket, Commands command)
+{
+	Client *clientQuitting = server->getClientByFd(socket);
+	std::vector<Channel*> channelsToInform = clientQuitting->getAllChannels();
+	if (command.params.empty())
+		server->sendMsg("QUIT\r\n", socket);
+	else if (!command.params[0].empty())
+		server->sendMsg("QUIT : " + command.params[0] + "\r\n", socket);
+	if (!command.params.empty())
+		std::string msgChannel = "QUIT : " + command.params[0] + "\r\n";
+	else
+		std::string msgChannel = "QUIT\r\n";
+	struct epoll_event ep_event = server->getEventFd(clientQuitting);
+	server->deleteClient(clientQuitting, ep_event);
+	//if (!channelsToInform.empty())
+	//	server->sendMsg(msgChannel, channelsToInform);
 
-cmd_func quit;
+}
 cmd_func squit;
 
 /*
@@ -314,7 +346,7 @@ void list(Server *server, int socket, Commands command)
  *
  * @brief The INVITE command is used to invite a user to a channel.
  */
-void invite(Server *server, int socket, Commands command)
+void invite(Server *server, const int socket, Commands command)
 {
 	if(command.params.size() < 2)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
@@ -457,7 +489,7 @@ void motd(Server *server, int socket, Commands command)
 	std::string messageOfTheDay = server->getMessageOfTheDay();
 	if (messageOfTheDay.empty())
 		return server->sendMsg(ERR_NOMOTD, socket);
-	server->sendMsg(RPL_MOTDSTART(server->getHostname()), socket);
+	server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
 	server->sendMsg(RPL_MOTD(messageOfTheDay), socket);
 	server->sendMsg(RPL_ENDOFMOTD, socket);
 }

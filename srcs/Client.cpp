@@ -72,9 +72,25 @@ Client*	Client::getLastRecipient(void)const
 	return (this->_lastRecipient);
 }
 
+std::vector<Channel*>	Client::getAllChannels(void)const
+{
+	std::vector<Channel*>							list;
+	std::map<std::string, Channel*>::const_iterator	it;
+	for (it = this->_channels.begin(); it != this->_channels.end(); it++)
+	{
+		list.push_back(it->second);
+	}
+	return (list);
+}
+
 Channel*	Client::getActiveChannel(void)const
 {
 	return (this->_activeChannel);
+}
+
+std::string		Client::getBuffer(void)const
+{
+	return _buffer;
 }
 
 void	Client::setNickname(std::string nickname)
@@ -138,6 +154,16 @@ void	Client::setLastRecipient(Client* recipient)
 void	Client::setActiveChannel(Channel* active)
 {
 	this->_activeChannel = active;
+}
+
+void	Client::append(std::string buffer)
+{
+	_buffer += buffer;
+}
+
+void	Client::clearBuffer(void)
+{
+	_buffer.clear();
 }
 
 std::string		Client::getModeStr(void) const

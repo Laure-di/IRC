@@ -11,20 +11,12 @@ std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 	{
 		start = end + delimiter.size();
 		end = toSplit.find(delimiter, start);
-#ifdef DEBUG
-		std::cout << "Size of string to split" << toSplit.size() << std::endl;
-		std::cout << "value of end split " << end <<  std::endl;
-#endif
 		if (end != std::string::npos)
 			toAdd = toSplit.substr(start, end - start);
 		else
 			toAdd = toSplit.substr(start, toSplit.size() - 1 - start);
 		if (!toAdd.empty())
 			result.push_back(toAdd);
-#ifndef DEBUG
-		std::cout << "code a supprimer dans srcs/utils.cpp splitCmd" << std::endl;
-		std::cout << toAdd << std::endl;
-#endif
 	};
 
 	return (result);
@@ -183,7 +175,30 @@ void	addElementsVector(std::vector<std::string> *list, std::vector<std::string> 
 {
 	std::vector<std::string>::iterator	it;
 	for (it = toAdd.begin(); it != toAdd.end(); it++)
-		list->push_back(*it);
+	{
+		if (!it->empty())
+			list->push_back(*it);
+	}
+}
+
+std::vector<std::string> splitBy(std::string string, std::string delimiter)
+{
+	std::vector<std::string>	result;
+	size_t			start = 0;
+	size_t			end;
+	std::string		toAdd;
+
+	while (true)
+	{
+		end = string.find(delimiter, start);
+		if (end  == std::string::npos)
+			break;
+		toAdd = string.substr(start, end - start);
+		result.push_back(toAdd);
+		start = end + 1;
+	}
+	result.push_back(string.substr(start, string.length()));
+	return (result);
 }
 
 std::vector<std::string> splitComma(std::string string)
@@ -203,7 +218,6 @@ std::vector<std::string> splitComma(std::string string)
 	result.push_back(string.substr(start, string.length()));
 	return (result);
 }
-
 /**
  * @brief  Wildcard pattern matching algorithm
  *
@@ -469,12 +483,12 @@ void printWho(Server *server, int socket, std::vector<Client *>listOfClients)
 {
 	if (listOfClients.empty())
 		return;
-/*	std::vector<Client *>::iterator listOfClientsIterator;
-	for (listOfClientsIterator = listOfClients.begin(); listOfClientsIterator < listOfClients.end(); listOfClientsIterator++)
-	{
-		// Get all params values
-		// chan == activeChannel ?
-		// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
+	/*	std::vector<Client *>::iterator listOfClientsIterator;
+		for (listOfClientsIterator = listOfClients.begin(); listOfClientsIterator < listOfClients.end(); listOfClientsIterator++)
+		{
+	// Get all params values
+	// chan == activeChannel ?
+	// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
 	}*/
 	NumericReplies msg = RPL_ENDOFWHO(server->getClientByFd(socket)->getNickname());
 	server->sendMsg(msg, socket);

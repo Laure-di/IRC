@@ -1,71 +1,64 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include "../include.hpp"
-
-//Variables server use
 #define MAX_EVENTS	20
-#define HOSTNAME	"localhost"
-#define BUFFER_SIZE	50000
 #define BACKLOG		10
-
-//Variables commands use
-#define	CMD_MAX_LGHT	510
-#define MAX_PARAM		15
+#define TIME_OUT	-1
+#define BUFFER_SIZE 500000
+#define HOSTNAME "mumurdelamachine.42.fr"
+#define	VERSION	"1.0"
 
 class Server
 {
 	private:
-		/* Attributs */
 		int								_port;
 		std::string						_hostname;
+		std::string						_version;
+		std::string						_launchingDate;
 		unsigned						_passwordHash;
-		sockaddr_in						_addr;
-		int								_listenSocket, _pollfd;
-		epoll_event						_ev, _ep_event[MAX_EVENTS];//TODO degager de la class
+		int								_listenSocket, _pollFd;
+		epoll_event						_ep_event[MAX_EVENTS];
+		std::string						_messageOftheDay;
+		cmd_dict						_cmdDict;
 		std::map<const int, Client*>	_clients;
 		std::map<std::string, Channel*>	_channels;
-		cmd_dict						_cmdDict;
-		std::string						_messageOfTheDay;
 		std::map<std::string, time_t>	_nicknameUnavailable;
 		const std::string	_adminLogin;
 		const unsigned _adminPasswordHash;
-		/* Private method */
-		void							_createPoll(void);
-		int								_waitPool(void);
-		void							_acceptNewClient(int listenSocket, int poolSocket);
-		void							_handleMessage(int i);
+
+		void									_createPoll(void);
+		void									_acceptNewClient(int listenSocket, int pollfd);
+		int										_handleMessage(epoll_event ep_event);
 
 	public:
-		/* Constructeur */
-		Server(int port, std::string password);
+		Server(int port, std::string password, char *portStr);
 
-		/* Getter && Setter */
-		const std::string&						getHostname(void) const;
-		const int&								getListenSocket(void) const;
-		std::map<std::string, Channel*>			getChannels(void);
-		const std::map<std::string, time_t>&    getNicknameUnavailable(void)const;
-		void									setHostname(std::string);
-		void									addNicknameUnavailable(std::string nick, time_t time);
-		/* Methods */
-		void									execute(void);
+		unsigned								getPasswordHash(void)const;
+		int										getMessageOftheDay(void)const;
+		std::string								getLaunchingDate(void)const;
+		std::string								getHostname(void)const;
+		std::string								getVersion(void)const;
+		std::string								getMessageOfTheDay(void);
+		std::map<std::string, Channel*>			getAllChannels(void);
+		Channel*								getChannelByName(const std::string name);
+		Client*									getClientByFd(size_t fd);
+		struct epoll_event						getEventFd(Client *client);
+		Client*									getClientByNickname(const std::string nickname) const;
+		std::vector<Client*>					getAllClientsMatching(std::string pattern) const;
 		std::vector<Client*>					getAllClients(void)const;
-		std::vector<Client*>					getAllClientsMatching(std::string pattern)const;
-		void									clearServer(void);
-		void									deleteClient(Client* client);
-		void									sendAllUsersFd(void);//TODO delete just debug
-		void									sendAllUsers(int socket);
-		void									sendAllChannels(int socket);
+		const std::map<std::string, time_t>&	getNicknameUnavailable(void)const;
+
+
+		void									createNewChannel(int creator, std::string name);
+
 		void									sendMsg(const std::string msg, const int fd);
 		void									sendMsg(NumericReplies reply, const int fd);
-		void									sendMsg(const std::string msg, Client* client);
-		void									createCmdDict(void);
-		Client*									getClientByNickname(const std::string nickname) const;
-		Client*									getClientByFd(size_t fd);
+		void									sendMsg(const std::string msg, Client *client);
+		void									sendMsg(const std::string msg, std::vector<Channel*> channels);
+		void									sendAllUsers(int socket);
+		void									sendAllChannels(int socket);
 		bool									checkPassword(const std::string password) const;
-		Channel*								getChannelByName(const std::string name);
 		void									addChannel(std::string name, Client* client);
-		std::string								getMessageOfTheDay(void);
 		void									executeCommands(char *buffer, Client* currentClient);
 		void									changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
 		void									checkAndJoinChannel(int socket, std::string channelName, std::string key);
@@ -73,6 +66,29 @@ class Server
 		void									printCurrentLocaltime(int socket);
 		bool									isInChannel(const std::string nickname) const;
 
+		void									executeCommands(std::string buffer, Client *client);
+		void									execute(void);
+
+		void									createCmdDict(void);
+		void									createAndBind(char *port);
+
+		void									deleteClient(Client* user, epoll_event ep_event);
+		void									clearServer(void);
+
+
+		class serverError: public std::exception{
+			private:
+				std::string	_msg;
+			public:
+				serverError(const std::string type, const std::string error_msg) : _msg(type + ": " + error_msg){}
+				~serverError()throw(){}
+				const char* what() const throw()
+				{
+					return (this->_msg.c_str());
+				}
+	};
+
 };
+
 
 #endif

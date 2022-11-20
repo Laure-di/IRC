@@ -9,13 +9,11 @@ int		main(int argc, char **argv)
 	}
 	int			port;
 	std::string	pwd(argv[2]);
-	std::cout << pwd << std::endl;
-
 	port = std::atoi(argv[1]);
 
 	try
 	{
-		Server IRCServer(port, pwd);
+		Server IRCServer(port, pwd, argv[1]);
 		IRCServer.execute();
 		IRCServer.clearServer();
 	}

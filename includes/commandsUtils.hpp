@@ -2,5 +2,7 @@
 # define COMMANDSUTILS_HPP
 
 bool	isUnavailableNickname(Server* server, std::string nick);
+bool	isNumber(std::string nb);
+int		areParamsValid(std::vector<std::string> params);
 
 #endif

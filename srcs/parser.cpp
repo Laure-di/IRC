@@ -2,6 +2,7 @@
 
 #define MAX_CMD_LGTH 510
 #define	MAX_PARAMS	15
+#define DEBUG
 
 void	print_debug(std::vector<std::string> print)
 {
@@ -45,65 +46,69 @@ bool	checkMaxParam(Commands commands)
 	return (true);
 }
 
-void	handlePrefix(std::string *cmd, Commands *command)
+std::string		handlePrefix(std::string *cmd)
 {
+	std::string	prefix;
 	if (cmd->find(":") == 0)
 	{
 		size_t	end;
 		end = cmd->find(" ");
-		command->prefix = cmd->substr(0, end + 1);
+		prefix = cmd->substr(0, end + 1);
 		cmd->erase(0, end + 1);
 #ifdef DEBUG
-		std::cout << command->prefix << std::endl;
+		std::cout << prefix << std::endl;
 		std::cout << *cmd << std::endl;
 #endif
 	}
+	return (prefix);
 }
 
-Commands	parseCmd(std::string cmd) //change return type to Commands
+
+void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return type to Commands
 {
 	std::vector<std::string>	rslt;
-	Commands				command;
+	std::string					cd;
+	std::string					prefix;
+	std::vector<std::string>	params;
+	bool						colon;
 
-	handlePrefix(&cmd, &command);
+
+	prefix = handlePrefix(&cmd);
 	if (cmd.find(":") != std::string::npos)
 	{
-		command.colon = true;
+		colon = true;
 		std::vector<std::string>first;
-		rslt = split(cmd, ":");
-		first = split(*(rslt.begin()), " ");
+		rslt = splitBy(cmd, ":");
+		first = splitBy(*rslt.begin(), " ");
 		pop_front<std::string>(rslt);
-		command.command =*(first.begin());
+		cd =*(first.begin());
 		if (1 < first.size())
 		{
 			pop_front<std::string>(first);
-			command.params = first;
-			addElementsVector(&command.params, rslt);
+			//addElementsVector(&params, first);
+			params = first;
+			addElementsVector(&params, rslt);
 		}
-#ifdef DEBUG
-		std::cout << "Case of command with colon : " << std::endl;
-		std::cout << "command : " << command.command << std::endl;
-		print_debug(command.params);
-#endif
 	}
 	else
 	{
-		command.colon = false;
-		rslt = split(cmd, " ");
-		command.command = *(rslt.begin());
+		colon = false;
+		rslt = splitBy(cmd, " ");
+		cd = *(rslt.begin());
 		std::cout << rslt.size() << std::endl;
 		if (rslt.size() > 1)
 		{
 			pop_front<std::string>(rslt);
-			command.params = rslt;
+			params = rslt;
 		}
 #ifdef DEBUG
-		std::cout << "command : " << command.command << std::endl;
-		print_debug(command.params);
+		std::cout << "Command : " << cd << std::endl;
+		std::cout << "Params : ";
+		print_debug(params);
+		std::cout << std::endl;
 #endif
 	}
-	return (command);
-
+	command->push_back(Commands(cd, prefix, params, colon));
 }
 
 std::vector<Commands>	manageMultipleCommands(std::vector<std::string> listOfCommands)
@@ -112,7 +117,10 @@ std::vector<Commands>	manageMultipleCommands(std::vector<std::string> listOfComm
 	std::vector<std::string>::iterator				it;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
 	{
-		commandsToExecute.push_back(parseCmd(*it));
+		if (it->size() < MAX_CMD_LGTH)
+			parseCmd(*it, &commandsToExecute);
+		else
+			std::cerr << *it << "command too long to be executed" << std::endl;
 	}
 	return (commandsToExecute);
 }
