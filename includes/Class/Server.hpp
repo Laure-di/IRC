@@ -29,7 +29,7 @@ class Server
 		int										_handleMessage(epoll_event ep_event);
 
 	public:
-		Server(int port, std::string password);
+		Server(int port, std::string password, char *portStr);
 
 		unsigned								getPasswordHash(void)const;
 		int										getMessageOftheDay(void)const;
@@ -62,7 +62,7 @@ class Server
 		void									execute(void);
 
 		void									createCmdDict(void);
-		void									createAndBind(void);
+		void									createAndBind(char *port);
 
 		void									deleteClient(Client* user, epoll_event ep_event);
 		void									clearServer(void);

@@ -15,10 +15,10 @@ static bool is_running=true;
  **			Bind the socket to the address and port number (with info from getaddrinfo)
  **/
 
-Server::Server(int port, std::string password): _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str()))
+Server::Server(int port, std::string password, char *portStr): _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str()))
 {
 	_port = port;
-	this->createAndBind();
+	this->createAndBind(portStr);
 	memset(&_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
 	this->createCmdDict();
 	if (listen(_listenSocket, BACKLOG) == -1)
@@ -419,7 +419,7 @@ void	Server::createCmdDict(void)
 	// _cmdDict["ISON"] = &ison;
 }
 
-void		Server::createAndBind(void)
+void		Server::createAndBind(char *port)
 {
 	int		optval = 1;
 	struct addrinfo hints, *result, *p;
@@ -428,7 +428,7 @@ void		Server::createAndBind(void)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	if (getaddrinfo(NULL, "3336", &hints, &result) == -1)
+	if (getaddrinfo(NULL, port, &hints, &result) == -1)
 		throw serverError("getaddrinfo", strerror(errno));
 	for (p = result; p != NULL; p = p->ai_next)
 	{

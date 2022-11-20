@@ -174,10 +174,6 @@ std::vector<std::string> splitBy(std::string string, std::string delimiter)
 		if (end  == std::string::npos)
 			break;
 		toAdd = string.substr(start, end - start);
-		std::cout << "value of string"  << string << std::endl;
-		std::cout << "string to add : " << toAdd << std::endl;
-		std::cout << "value of start :" << start << std::endl;
-		std::cout << "value of end :" << end << std::endl;
 		result.push_back(toAdd);
 		start = end + 1;
 	}

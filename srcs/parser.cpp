@@ -2,6 +2,7 @@
 
 #define MAX_CMD_LGTH 510
 #define	MAX_PARAMS	15
+#define DEBUG
 
 void	print_debug(std::vector<std::string> print)
 {
@@ -84,8 +85,8 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 		if (1 < first.size())
 		{
 			pop_front<std::string>(first);
-			addElementsVector(&params, first);
-			//params = first;
+			//addElementsVector(&params, first);
+			params = first;
 			addElementsVector(&params, rslt);
 		}
 	}
@@ -100,7 +101,6 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 			pop_front<std::string>(rslt);
 			params = rslt;
 		}
-		command->push_back(Commands(cd, prefix, params, colon));
 #ifdef DEBUG
 		std::cout << "Command : " << cd << std::endl;
 		std::cout << "Params : ";
@@ -108,6 +108,7 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 		std::cout << std::endl;
 #endif
 	}
+	command->push_back(Commands(cd, prefix, params, colon));
 }
 
 std::vector<Commands>	manageMultipleCommands(std::vector<std::string> listOfCommands)
