@@ -156,6 +156,7 @@ void	Server::sendMsg(NumericReplies reply, const int fd)
 
 void	Server::sendMsg(const std::string msg, const int fd)
 {
+	std::cout << "Sent : " << msg;
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
@@ -328,6 +329,7 @@ int		Server::_handleMessage(epoll_event ep_event)
 	memset(buffer, 0, BUFFER_SIZE);
 	currentClient->clearBuffer();
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
+	std::cout << "Received : " << buffer;
 	if (numbytes <= 0)
 		return (-1);
 	else
