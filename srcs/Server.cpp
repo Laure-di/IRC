@@ -585,7 +585,7 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 	if ((channel->getMode() & PRIVATE) && !channel->checkPassword(key))
 		return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
 	channel->addClient(socket);
-	channel->sendJoin(client->getHostname());
+	channel->sendJoin(client);
 	if (!channel->getTopic().empty())
 		channel->sendTopic(socket);
 	channel->sendListOfNames(socket);
