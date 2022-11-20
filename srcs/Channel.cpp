@@ -10,6 +10,18 @@ std::string Channel::getName(void) {
 	return _name;
 }
 
+std::vector<Client*>	Channel::getAllClients(void)const
+{
+	std::vector<Client*>						list;
+	std::map<std::string, Client*>::const_iterator	it;
+
+	for (it = _clientsOnChannel.begin(); it != _clientsOnChannel.end(); it++)
+	{
+		list.push_back(it->second);
+	}
+	return (list);
+}
+
 void Channel::setName(std::string name) {
 	_name = name;
 }
@@ -95,17 +107,6 @@ void Channel::sendListOfNames(int socket)
 size_t Channel::getNumberOfUsers(void)
 {
 	return _clientsOnChannel.size();
-}
-
-std::vector<Client*>			Channel::getAllClients(void)const
-{
-	std::vector<Client*> allClients;
-	for (std::map<std::string, Client*>::const_iterator it = _clientsOnChannel.begin(); it!= _clientsOnChannel.end(); it++)
-	{
-		allClients.push_back(it->second);
-	}
-
-	return (allClients);
 }
 
 void Channel::changeNickname(std::string oldNickname, std::string newNickname)

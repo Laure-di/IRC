@@ -166,6 +166,30 @@ void	addElementsVector(std::vector<std::string> *list, std::vector<std::string> 
 		list->push_back(*it);
 }
 
+std::vector<std::string> splitBy(std::string string, std::string delimiter)
+{
+	std::vector<std::string>	result;
+	size_t			start = 0;
+	size_t			end;
+	std::string		toAdd;
+
+	while (true)
+	{
+		end = string.find(delimiter, start);
+		if (end  == std::string::npos)
+			break;
+		toAdd = string.substr(start, end - start);
+		std::cout << "value of string"  << string << std::endl;
+		std::cout << "string to add : " << toAdd << std::endl;
+		std::cout << "value of start :" << start << std::endl;
+		std::cout << "value of end :" << end << std::endl;
+		result.push_back(toAdd);
+		start = end + 1;
+	}
+	result.push_back(string.substr(start, string.length()));
+	return (result);
+}
+
 std::vector<std::string> splitComma(std::string string)
 {
 	std::vector<std::string>	result;
@@ -183,7 +207,6 @@ std::vector<std::string> splitComma(std::string string)
 	result.push_back(string.substr(start, string.length()));
 	return (result);
 }
-
 /**
  * @brief  Wildcard pattern matching algorithm
  *
@@ -269,12 +292,12 @@ void printWho(Server *server, int socket, std::vector<Client *>listOfClients)
 {
 	if (listOfClients.empty())
 		return;
-/*	std::vector<Client *>::iterator listOfClientsIterator;
-	for (listOfClientsIterator = listOfClients.begin(); listOfClientsIterator < listOfClients.end(); listOfClientsIterator++)
-	{
-		// Get all params values
-		// chan == activeChannel ?
-		// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
+	/*	std::vector<Client *>::iterator listOfClientsIterator;
+		for (listOfClientsIterator = listOfClients.begin(); listOfClientsIterator < listOfClients.end(); listOfClientsIterator++)
+		{
+	// Get all params values
+	// chan == activeChannel ?
+	// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
 	}*/
 	NumericReplies msg = RPL_ENDOFWHO(server->getClientByFd(socket)->getNickname());
 	server->sendMsg(msg, socket);

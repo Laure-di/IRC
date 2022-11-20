@@ -40,11 +40,15 @@ bool	isRegistrationCmd(std::string command)
 	return (false);
 }
 
-void	transformCmdsToUpper(std::vector<Commands> *commandsList)
+void	transformCmdsToUpper(std::vector<Commands> commandsList)
 {
-	std::vector<Commands>::iterator it;
+	for (int i = 0; i < (int)commandsList.size(); i++)
+	{
+		stringToUpper(&commandsList[i].command);
+	}
+	/*std::vector<Commands>::iterator it;
 	for (it = commandsList->begin(); it != commandsList->end(); it++)
-		stringToUpper(&it->command);
+		stringToUpper(&it->command);*/
 }
 
 void	stringToUpper(std::string *string)
