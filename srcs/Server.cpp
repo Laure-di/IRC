@@ -230,7 +230,7 @@ void	Server::executeCommands(std::string buffer, Client *client)
 	std::vector<Commands>::iterator		it = commandsList.begin();
 	std::string							cmdFail;
 
-	transformCmdsToUpper(commandsList);
+	transformCmdsToUpper(&commandsList);
 	if (!checkCmdLength(listOfCommands))
 		return ;
 	for (size_t i = 0; i < commandsList.size(); i++)

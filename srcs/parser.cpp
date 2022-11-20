@@ -64,7 +64,7 @@ std::string		handlePrefix(std::string *cmd)
 }
 
 
-void	parseCmd(std::string cmd, std::vector<Commands> *command, int i) //change return type to Commands
+void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return type to Commands
 {
 	std::vector<std::string>	rslt;
 	std::string					cd;
@@ -72,7 +72,7 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command, int i) //change r
 	std::vector<std::string>	params;
 	bool						colon;
 
-	(void)command;
+	//(void)command;
 
 	prefix = handlePrefix(&cmd);
 	if (cmd.find(":") != std::string::npos)
@@ -96,7 +96,8 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command, int i) //change r
 		if (1 < first.size())
 		{
 			pop_front<std::string>(first);
-			params = first;
+			addElementsVector(&params, first);
+			//params = first;
 			addElementsVector(&params, rslt);
 		}
 #ifdef DEBUG
@@ -128,11 +129,9 @@ std::vector<Commands>	manageMultipleCommands(std::vector<std::string> listOfComm
 {
 	std::vector<Commands>							commandsToExecute;
 	std::vector<std::string>::iterator				it;
-	int												i = 0;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
 	{
-		parseCmd(*it, &commandsToExecute, i);
-		i++;
+		parseCmd(*it, &commandsToExecute);
 	}
 	return (commandsToExecute);
 }

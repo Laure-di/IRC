@@ -163,7 +163,10 @@ void	addElementsVector(std::vector<std::string> *list, std::vector<std::string> 
 {
 	std::vector<std::string>::iterator	it;
 	for (it = toAdd.begin(); it != toAdd.end(); it++)
-		list->push_back(*it);
+	{
+		if (!it->empty())
+			list->push_back(*it);
+	}
 }
 
 std::vector<std::string> splitBy(std::string string, std::string delimiter)
