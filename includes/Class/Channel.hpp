@@ -57,7 +57,7 @@ class Channel
 		void addClient(int socket);
 		void deleteClient(std::string nickname);
 		void sendMsg(std::string message);
-		void sendJoin(std::string fullClientName);
+		void sendJoin(Client *client);
 		void sendPart(std::string fullClientName, std::string nickname, std::string leaveMessage);
 		void sendTopic(int socket);
 		void sendListOfNames(int socket);

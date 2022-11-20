@@ -42,6 +42,7 @@ class Client
 		std::string				getUsername(void)const;
 		int						getFd(void)const;
 		std::string				getHostname(void)const;
+		std::string 			getFullIdentifier(void) const;
 		int						getStatus(void)const;
 		int						getMode(void)const;
 		std::string				getModeStr(void) const;

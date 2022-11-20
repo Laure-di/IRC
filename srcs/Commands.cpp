@@ -56,7 +56,7 @@ void nick(Server *server, int socket, Commands command) {
 		client->setNickname(nickname);
 		if (isClientFullyRegister(client))
 		{
-			server->sendMsg(RPL_WELCOME(nickname, client->getUsername(), client->getHostname()), socket);
+			server->sendMsg(RPL_WELCOME(client->getFullIdentifier()), socket);
 			server->sendMsg(RPL_YOURHOST(client->getHostname(), server->getVersion()), socket);
 			server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
 			//TODO trouver a quoi correspond channelmode
@@ -95,7 +95,7 @@ void user(Server *server, int socket, Commands command)
 		currentUser->setMode(mode);
 	if (isClientFullyRegister(currentUser))
 	{
-		server->sendMsg(RPL_WELCOME(currentUser->getNickname(), currentUser->getUsername(), server->getHostname()), socket);
+		server->sendMsg(RPL_WELCOME(currentUser->getFullIdentifier()), socket);
 		server->sendMsg(RPL_YOURHOST(server->getHostname(), server->getVersion()), socket);
 		server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
 		//	server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), client->getMode()), socket);
@@ -188,7 +188,7 @@ void join(Server *server, int socket, Commands command)
 		std::string key;
 		if (i < keys.size())
 			key = keys[i];
-		server->checkAndJoinChannel(socket, names[i], keys[i]);
+		server->checkAndJoinChannel(socket, names[i], key);
 	}
 }
 

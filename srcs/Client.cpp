@@ -46,6 +46,11 @@ std::string	Client::getHostname(void)const
 	return (this->_hostname);
 }
 
+std::string Client::getFullIdentifier(void) const
+{
+	return (getNickname() + "!" + getUsername() + "@" + getHostname());
+}
+
 int		Client::getStatus(void)const
 {
 	return (this->_status);

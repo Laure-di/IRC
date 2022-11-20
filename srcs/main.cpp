@@ -9,7 +9,7 @@ int		main(int argc, char **argv)
 	}
 	int			port;
 	std::string	pwd(argv[2]);
-	port = std::atoi(argv[1]);
+	port = std::atoi(argv[1]); // TODO ajouter un check sur le port
 
 	try
 	{

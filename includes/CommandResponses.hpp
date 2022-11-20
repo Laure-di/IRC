@@ -14,9 +14,8 @@ struct NumericReplies
 ///////////////////////////////////////GLOBAL
 ///REPLIES////////////////////////////////////////
 // Connection & registration
-#define RPL_WELCOME(nick, user, host)                                     \
-    NumericReplies(001, "Welcome to the Internet Relay Network " + nick + \
-				"!" + user + "@" + host + "\r\n")
+#define RPL_WELCOME(fullIdentifier)                                     \
+    NumericReplies(001, "Welcome to the Internet Relay Network " + fullIdentifier + "\r\n")
 #define RPL_CREATED(date) \
     NumericReplies(003, ":This server was created " + date + "\r\n")
 #define RPL_BOUNCE(serverName, port) \

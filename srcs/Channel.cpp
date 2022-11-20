@@ -2,8 +2,10 @@
 
 Channel::Channel(Server *server, std::string name, Client* creator): _server(server), _name(name)
 {
-	_clients[creator->getNickname()] = creator;
-	_clientsMode[creator->getNickname()] = CREATOR;
+	std::string nickname = creator->getNickname();
+	_clients[nickname] = creator;
+	_clientsMode[nickname] = CREATOR;
+	sendJoin(creator);
 }
 
 std::string Channel::getName(void) {
@@ -84,18 +86,18 @@ void Channel::sendMsg(std::string message)
 	}
 }
 
-void Channel::sendJoin(std::string fullClientName)
+void Channel::sendJoin(Client *client)
 {
-	sendMsg(fullClientName + " JOIN " + _name);
+	sendMsg(client->getFullIdentifier() + " JOIN " + _name + "\r\n");
 }
 
 void Channel::sendPart(std::string fullClientName, std::string nickname, std::string leaveMessage)
 {
 	std::string msg;
 	if (!leaveMessage.empty())
-		msg = fullClientName + " PART " + _name + " :" + leaveMessage;
+		msg = fullClientName + " PART " + _name + " :" + leaveMessage + "\r\n";
 	else
-		msg = fullClientName + " PART " + _name + " :" + nickname;
+		msg = fullClientName + " PART " + _name + " :" + nickname + "\r\n";
 	sendMsg(msg);
 }
 
