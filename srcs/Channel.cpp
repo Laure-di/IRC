@@ -1,6 +1,6 @@
 #include "../includes/include.hpp"
 
-Channel::Channel(Server *server, std::string name, Client* creator): _server(server), _name(name)
+Channel::Channel(Server *server, std::string name, Client* creator): _server(server), _name(name), _mode(NONE)
 {
 	std::string nickname = creator->getNickname();
 	_clients[nickname] = creator;
@@ -55,7 +55,7 @@ Client *Channel::findClientByNickname(const std::string nickname)
 
 bool Channel::checkOperatorByNickname(std::string nickname)
 {
-	return _clientsMode[nickname] & OPERATOR;
+	return _clientsMode[nickname] & OPERATOR || _clientsMode[nickname] & CREATOR;
 }
 
 Client *Channel::findBannedUserByNickname(const std::string nickname)
@@ -66,11 +66,12 @@ Client *Channel::findBannedUserByNickname(const std::string nickname)
 void Channel::addClient(int socket)
 {
 	Client *client = _server->getClientByFd(socket);
-	_clients[client->getNickname()] = client;
-	_clientsMode[client->getNickname()] = NONE;
+	std::string nickname = client->getNickname();
+	_clients[nickname] = client;
+	_clientsMode[nickname] = 0;
 }
 
-void Channel::deleteClient(std::string nickname)
+void Channel::remClient(std::string nickname)
 {
 	_clients.erase(nickname);
 	_clientsMode.erase(nickname);
@@ -91,13 +92,13 @@ void Channel::sendJoin(Client *client)
 	sendMsg(client->getFullIdentifier() + " JOIN " + _name + "\r\n");
 }
 
-void Channel::sendPart(std::string fullClientName, std::string nickname, std::string leaveMessage)
+void Channel::sendPart(Client *client, std::string leaveMessage)
 {
 	std::string msg;
 	if (!leaveMessage.empty())
-		msg = fullClientName + " PART " + _name + " :" + leaveMessage + "\r\n";
+		msg = client->getFullIdentifier() + " PART " + _name + " :" + leaveMessage + "\r\n";
 	else
-		msg = fullClientName + " PART " + _name + " :" + nickname + "\r\n";
+		msg = client->getFullIdentifier() + " PART " + _name + " :" + client->getNickname() + "\r\n";
 	sendMsg(msg);
 }
 
@@ -113,7 +114,7 @@ void Channel::sendListOfNames(const int socket)
 	std::vector<std::string> clientNicknames;
 	std::map<std::string, Client*>::iterator clientIterator;
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
-		clientNicknames.push_back(clientIterator->second->getNicknameWithPrefix());
+		clientNicknames.push_back(clientIterator->second->getNicknameWithPrefix(this));
 	std::string delim = " ";
 	std::ostringstream joinedClientNicknames;
 	std::copy(clientNicknames.begin(), clientNicknames.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
@@ -199,21 +200,19 @@ void Channel::modLimit(bool add, std::string max)
 	modMode(LIMIT, add);
 }
 
-unsigned char Channel::getMode()
+unsigned Channel::getMode()
 {
 	return _mode;
 }
 
-unsigned char Channel::getMode(int socket)
+unsigned Channel::getMode(int socket)
 {
 	Client *client = _server->getClientByFd(socket);
 	int mode = _clientsMode[client->getNickname()];
-	if (!mode)
-		return NONE;
 	return mode;
 }
 
-void Channel::modClientMode(const int socket, std::string nickname, unsigned char mask, bool add)
+void Channel::modClientMode(const int socket, std::string nickname, unsigned mask, bool add)
 {
 	if (!_clients[nickname])
 		return _server->sendMsg(ERR_USERNOTINCHANNEL(nickname, _name), socket);
@@ -223,7 +222,7 @@ void Channel::modClientMode(const int socket, std::string nickname, unsigned cha
 		_clientsMode[nickname] &= ~mask;
 }
 
-void Channel::modClientMask(unsigned char type, bool add, std::string mask)
+void Channel::modClientMask(unsigned type, bool add, std::string mask)
 {
 	std::vector<std::string> *masksList;
 	switch (type)
@@ -285,4 +284,16 @@ bool Channel::checkPassword(std::string key)
 void Channel::sendInfo(const int socket)
 {
 	_server->sendMsg(RPL_NAMREPLY(_name, toString(getNumberOfUsers()), _topic), socket);
+}
+
+std::string Channel::getClientPrefix(const Client *client)
+{
+	std::string nickname = client->getNickname();
+	if (_clientsMode[nickname] & CREATOR)
+		return "~";
+	if (_clientsMode[nickname] & OPERATOR)
+		return "@";
+	if (_clientsMode[nickname] & VOICE)
+		return "+";
+	return ("");
 }

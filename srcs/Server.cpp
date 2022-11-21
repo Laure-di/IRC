@@ -442,7 +442,7 @@ void	Server::createCmdDict(void)
 	_cmdDict["QUIT"] = &quit;
 	// _cmdDict["SQUIT"] = &squit;
 	_cmdDict["JOIN"] = &join;
-	// _cmdDict["PART"] = &part;
+	_cmdDict["PART"] = &part;
 	// _cmdDict["TOPIC"] = &topic;
 	// _cmdDict["NAMES"] = &names;
 	// _cmdDict["LIST"] = &list;
@@ -623,7 +623,7 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
  * @brief Helper function to check wether the channel name is correct and the
  * client can leave it
  */
-void	Server::checkAndLeaveChannel(int socket, std::string channelName)
+void	Server::checkAndLeaveChannel(int socket, std::string channelName, std::string leaveMessage)
 {
 	Channel *channel = getChannelByName(channelName);
 	if (!channel)
@@ -631,7 +631,8 @@ void	Server::checkAndLeaveChannel(int socket, std::string channelName)
 	Client *client = getClientByFd(socket);
 	if (!channel->findClientByNickname(client->getNickname()))
 		return sendMsg(ERR_NOTONCHANNEL(channelName), socket);
-	channel->deleteClient(client->getNickname());
+	channel->sendPart(client, leaveMessage);
+	channel->remClient(client->getNickname());
 }
 
 bool	Server::isInChannel(const std::string nickname) const

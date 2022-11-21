@@ -192,8 +192,11 @@ void part(Server *server, int socket, Commands command)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> names = splitComma(command.params[0]);
 	std::vector<std::string>::iterator name;
+	std::string leaveMessage;
+	if(command.params.size() > 1)
+		leaveMessage = command.params[1];
 	for (name = names.begin(); name != names.end(); name++)
-		server->checkAndLeaveChannel(socket, *name);
+		server->checkAndLeaveChannel(socket, *name, leaveMessage);
 }
 
 /**
@@ -213,47 +216,31 @@ void mode(Server *server, int socket, Commands command)
 {
 	Client *client = NULL;
 	Channel *channel = NULL;
-	std::string flags;
-	std::string param;
 	if(command.params.size() == 0)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string name = command.params[0];
-	if(command.params[0][0] == '+' || command.params[0][0] == '-')
-	{
-		client = server->getClientByFd(socket);
-		channel = client->getActiveChannel();
-		flags = command.params[0];
-		if(command.params.size() > 1)
-			param = command.params[0];
-	}
-	else
-	{
-		if (checkChannelName(name))
-		{
-			channel = server->getChannelByName(name);
-			if (!channel)
-				return server->sendMsg(ERR_NOSUCHCHANNEL(name), socket);
-			// if (command.params.size() == 0)
-			// 	return server->sendMsgToFd(channel->getModeStr(), socket);
-		}
-		else
-		{
-			client = server->getClientByFd(socket);
-			if (client->getNickname() != name)
-				return server->sendMsg(ERR_USERSDONTMATCH, socket);
-			if (command.params.size() == 1)
-				return server->sendMsg("Your user mode is " + client->getModeStr(), socket);
-		}
+	std::string flags;
+	if(command.params.size() > 1)
 		flags = command.params[1];
+	if (checkChannelName(name))
+	{
+		channel = server->getChannelByName(name);
+		if (!channel)
+			return server->sendMsg(ERR_NOSUCHCHANNEL(name), socket);
+		if (command.params.size() == 1)
+			return server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n", socket);
+		std::string param;
 		if(command.params.size() > 2)
 			param = command.params[2];
+
+		return applyModeChangesChannel(server, socket, flags, param, channel);
 	}
-	std::string flagWithParams = "beIv";
-	for (size_t i = 0; i < flagWithParams.size(); i++) {
-		if (name.find(flagWithParams[i]) != std::string::npos)
-			return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	}
-	applyModeChanges(server, socket, flags, param, client, channel);
+	client = server->getClientByFd(socket);
+	if (client->getNickname() != name)
+		return server->sendMsg(ERR_USERSDONTMATCH, socket);
+	if (command.params.size() == 1)
+		return server->sendMsg("Your user mode is " + client->getModeStr() + "\r\n", socket);
+	applyModeChangesClient(server, socket, flags, client);
 }
 
 /**
@@ -406,7 +393,7 @@ void kick(Server *server, int socket, Commands command)
 			}
 			if (!kickMessage.empty())
 				server->sendMsg("KICK " + channelName + " " + userName + " :" + kickMessage, socket);
-			channel->deleteClient(userName);
+			channel->remClient(userName);
 		}
 	}
 }

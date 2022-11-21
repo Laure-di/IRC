@@ -63,7 +63,7 @@ class Server
 		void									executeCommands(char *buffer, Client* currentClient);
 		void									changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
 		void									checkAndJoinChannel(int socket, std::string channelName, std::string key);
-		void									checkAndLeaveChannel(int socket, std::string channelName);
+		void									checkAndLeaveChannel(int socket, std::string channelName, std::string leaveMessage);
 		void									printCurrentLocaltime(int socket);
 		bool									isInChannel(const std::string nickname) const;
 

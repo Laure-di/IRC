@@ -21,7 +21,7 @@ class Client
 		std::string						_buffer;
 		const int						_fd;
 		std::string						_hostname;
-		int								_mode;
+		unsigned						_mode;
 		int								_status;
 		bool							_pwd;
 		bool							_isAuthenticated;
@@ -38,7 +38,7 @@ class Client
 		~Client();
 		std::string				getNickname(void)const;
 		std::string				getPrefix(void)const;
-		std::string				getNicknameWithPrefix(void)const;
+		std::string				getNicknameWithPrefix(Channel *channel)const;
 		std::string				getUsername(void)const;
 		int						getFd(void)const;
 		std::string				getHostname(void)const;
@@ -56,10 +56,10 @@ class Client
 		void					setNickname(std::string nickname);
 		void					setUsername(std::string username);
 		void					setFullName(std::string fullName);
-		void					setMode(int mode);
-		void					addMode(int mask);
-		void					remMode(int mask);
-		void					modMode(int mask, bool add);
+		void					setMode(unsigned mode);
+		void					addMode(unsigned mask);
+		void					remMode(unsigned mask);
+		void					modMode(unsigned mask, bool add);
 		void					setMode(Commands command);
 		void					setStatus(int status);
 		void					setPwd(bool pwd);
