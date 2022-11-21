@@ -100,10 +100,12 @@ void oper(Server *server, int socket, Commands command)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string name = command.params[0];
 	std::string password = command.params[1];
-	if (!server->checkPassword(password))
+	if (!server->checkAdmin(name, password))
 		return server->sendMsg(ERR_PASSWDMISMATCH, socket);
 	// TODO Add check for ERR_NOOPERHOST (client not allowed to be an operator)
-
+	Client *client = server->getClientByFd(socket);
+	client->addMode(SERVEROPERATOR);
+	server->sendMsg(RPL_YOUREOPER, socket);
 }
 
 /**

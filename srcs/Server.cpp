@@ -207,6 +207,11 @@ bool	Server::checkPassword(const std::string password) const
 	return hasher(password.c_str()) == _passwordHash;
 }
 
+bool	Server::checkAdmin(const std::string login, const std::string password) const
+{
+	return (login == _adminLogin) & (hasher(password.c_str()) == _adminPasswordHash);
+}
+
 void Server::changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname)
 {
 	std::map<std::string, Channel*>::iterator it;
@@ -436,8 +441,8 @@ void	Server::createCmdDict(void)
 	_cmdDict["NICK"] = &nick;
 	_cmdDict["USER"] = &user;
 	_cmdDict["CAP"] = &cap;
-	// _cmdDict["OPER"] = &oper;
-	 _cmdDict["MODE"] = &mode;
+	_cmdDict["OPER"] = &oper;
+	_cmdDict["MODE"] = &mode;
 	// _cmdDict["SERVICE"] = &service;
 	_cmdDict["QUIT"] = &quit;
 	// _cmdDict["SQUIT"] = &squit;

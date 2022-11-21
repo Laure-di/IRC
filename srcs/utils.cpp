@@ -287,7 +287,7 @@ void applyModeChangesClient(Server *server, int socket, std::string flags, Clien
 				server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 		}
 	}
-
+	server->sendMsg("Your user mode is " + client->getModeStr() + "\r\n", socket);
 }
 
 /**
@@ -389,6 +389,7 @@ void applyModeChangesChannel(Server *server, int socket, std::string flags, std:
 				server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 		}
 	}
+	server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n", socket);
 }
 
 /**
