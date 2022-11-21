@@ -71,6 +71,7 @@ class Channel
 		unsigned getMode(int socket);
 		void modClientMode(int socket, std::string nickname, unsigned mask, bool add);
 		void modClientMask(unsigned mask, bool add, std::string type);
+		void sendClientMask(std::string maskName, std::vector<std::string> *masksList);
 		bool isInvited(std::string nickname);
 		bool isBanned(std::string nickname);
 		bool isExcepted(std::string nickname);
