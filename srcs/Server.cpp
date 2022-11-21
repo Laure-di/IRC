@@ -15,7 +15,7 @@ static bool is_running=true;
  **			Bind the socket to the address and port number (with info from getaddrinfo)
  **/
 
-Server::Server(int port, std::string password, char *portStr): _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str())), _adminLogin("admin"), _adminPasswordHash(4141857313)
+Server::Server(int port, std::string password, char *portStr): _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str())), _messageOftheDay(MOTD_FILE), _adminLogin("admin"), _adminPasswordHash(4141857313)
 {
 	this->createAndBind(portStr);
 	memset(&_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
@@ -129,6 +129,7 @@ std::string		Server::getMessageOfTheDay(void)
 	return _messageOftheDay;
 }
 
+
 /* SETTER */
 
 void Server::createNewChannel(int creator, std::string name)
@@ -137,6 +138,31 @@ void Server::createNewChannel(int creator, std::string name)
 	(void)creator;
 	(void)name;
 }
+
+/**
+ ** @Brief manage an ifstream and return a formated string to send to client
+ **		https://cplusplus.com/reference/ios/ios/exceptions/
+ **		https://gehrcke.de/2011/06/reading-files-in-c-using-ifstream-dealing-correctly-with-badit-failbit-eofbit-and-perror/
+ **/
+void	Server::shapeMessageOftheDay(std::string fileName, int socket)
+{
+	std::string		msg;
+	std::ifstream	file;
+	file.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
+	try
+	{
+		file.open(fileName.c_str(), std::ifstream::in);
+	}
+	catch (std::ifstream::failure e) {
+		throw numericRepliesError();
+	}
+	try
+	{
+		while (std::getline(file, msg))
+				this->sendMsg(RPL_MOTD(msg), socket);
+	}catch (std::istream::failure e){}
+}
+
 
 
 /****************************************************************************/
@@ -238,7 +264,7 @@ void	Server::executeCommands(std::string buffer, Client *client)
 	//TODO
 	//Check nb of arg ??!!
 #ifdef DEBUG
-//	printAllCmds(commandsList);
+	//	printAllCmds(commandsList);
 #endif
 }
 
@@ -411,7 +437,7 @@ void	Server::createCmdDict(void)
 	_cmdDict["USER"] = &user;
 	_cmdDict["CAP"] = &cap;
 	// _cmdDict["OPER"] = &oper;
-	// _cmdDict["MODE"] = &mode;
+	 _cmdDict["MODE"] = &mode;
 	// _cmdDict["SERVICE"] = &service;
 	_cmdDict["QUIT"] = &quit;
 	// _cmdDict["SQUIT"] = &squit;
@@ -424,7 +450,7 @@ void	Server::createCmdDict(void)
 	// _cmdDict["KICK"] = &kick;
 	// _cmdDict["PRIVMSG"] = &privmsg;
 	_cmdDict["NOTICE"] = &notice;
-	// _cmdDict["MOTD"] = &motd;
+	_cmdDict["MOTD"] = &motd;
 	// _cmdDict["LUSERS"] = &lusers;
 	// _cmdDict["VERSION"] = &version;
 	// _cmdDict["STATS"] = &stats;

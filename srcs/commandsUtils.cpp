@@ -1,5 +1,24 @@
 #include "../includes/include.hpp"
 
+void	welcomeClient(Server *server, int socket, Client *currentUser)
+{
+	if (isClientFullyRegister(currentUser))
+	{
+		std::vector<std::string> params;
+		Commands modtCmd("MOTD", "", params, false);
+		params.push_back(currentUser->getNickname());
+		params.push_back("+i");
+		Commands modeCmd("MODE", "", params, false);
+		server->sendMsg(RPL_WELCOME(currentUser->getFullIdentifier()), socket);
+		server->sendMsg(RPL_YOURHOST(server->getHostname(), server->getVersion()), socket);
+		server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
+		server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), CLIENT_MODE, CHANNEL_MODE), socket);
+		mode(server, socket, modeCmd);
+		motd(server, socket, modtCmd);
+	}
+	return ;
+}
+
 bool	isUnavailableNickname(Server* server, std::string nick)
 {
 	std::map<std::string, time_t>::const_iterator it = server->getNicknameUnavailable().end();

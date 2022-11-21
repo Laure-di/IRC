@@ -17,7 +17,7 @@ int		main(int argc, char **argv)
 		IRCServer.execute();
 		IRCServer.clearServer();
 	}
-	catch (std::exception &e)
+	catch (Server::serverError &e)
 	{
 		std::cerr << e.what() << std::endl;
 	}

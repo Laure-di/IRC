@@ -2,18 +2,14 @@
 # define EXCEPTIONS_HPP 
 
 #include "include.hpp"
-
-class serverError: public std::exception
-{
-	private:
-		std::string	_msg;
+class numericRepliesError: public std::exception{
 	public:
-		serverError(const std::string type, const std::string error_msg) : _msg(type + ": " + error_msg){}
-		~serverError()throw(){}
-		virtual const char* what() const throw()
+		~numericRepliesError()throw(){}
+		void sendReply(const NumericReplies _reply, const int _fd, Server *_server) const throw()
 		{
-			return (this->_msg.c_str());
+			return (_server->sendMsg(_reply, _fd));
 		}
+
 };
 
 #endif
