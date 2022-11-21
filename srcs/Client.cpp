@@ -161,6 +161,11 @@ void	Client::setActiveChannel(Channel* active)
 	this->_activeChannel = active;
 }
 
+void	Client::addChannel(Channel* channel, std::string channelName)
+{
+	_channels.insert(std::make_pair(channelName, channel));
+}
+
 void	Client::append(std::string buffer)
 {
 	_buffer += buffer;

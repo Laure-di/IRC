@@ -43,7 +43,7 @@ void nick(Server *server, int socket, Commands command) {
 	std::string nickname = command.params[0];
 	if (client->getNickname() == nickname)
 		return server->sendMsg("NICK " + nickname + "\r\n", socket);
-	if (!checkNickname(nickname))
+	if (!checkNickname(nickname) || command.colon == true)
 		return server->sendMsg(ERR_ERRONEUSNICKNAME(nickname), socket);
 	if (server->getClientByNickname(nickname))
 		return server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
@@ -70,14 +70,15 @@ void nick(Server *server, int socket, Commands command) {
  */
 void user(Server *server, int socket, Commands command)
 {
-	if(command.params.size() < 4)
-		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
+
 	Client *currentUser = server->getClientByFd(socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
+	if(command.params.size() < 4)
+		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	int mode;
 	if ((mode = areParamsValid(command.params)) == -1)
-		return ;
+		return server->sendMsg(ERR_CLIENT((std::string)"USER : you are not using the correct syntax"), socket);
 	std::string userName = command.params[0];
 	std::string fullName = command.params[3];
 	if (!checkUsername(userName))
@@ -134,20 +135,26 @@ void cap(Server *server, int socket, Commands command)
 //TODO a finir
 void	quit(Server *server, int socket, Commands command)
 {
-	Client *clientQuitting = server->getClientByFd(socket);
-	std::vector<Channel*> channelsToInform = clientQuitting->getAllChannels();
+	Client					*clientQuitting = server->getClientByFd(socket);
+	std::vector<Channel*>	channelsToInform = clientQuitting->getAllChannels();
+	std::string				msgChannel;
+
 	if (command.params.empty())
 		server->sendMsg("QUIT\r\n", socket);
 	else if (!command.params[0].empty())
 		server->sendMsg("QUIT : " + command.params[0] + "\r\n", socket);
 	if (!command.params.empty())
-		std::string msgChannel = "QUIT : " + command.params[0] + "\r\n";
+		msgChannel = "QUIT : " + command.params[0] + "\r\n\r\n";
 	else
-		std::string msgChannel = "QUIT\r\n";
+		msgChannel = "QUIT\r\n";
 	struct epoll_event ep_event = server->getEventFd(clientQuitting);
+	if (!channelsToInform.empty())
+	{
+		std::cout << msgChannel << std::endl;
+		server->sendMsg(msgChannel, channelsToInform);
+	}
+	//TODO send to every client except the one who quit the channel
 	server->deleteClient(clientQuitting, ep_event);
-	//if (!channelsToInform.empty())
-	//	server->sendMsg(msgChannel, channelsToInform);
 
 }
 cmd_func squit;
@@ -474,10 +481,6 @@ void notice(Server *server, int socket, Commands command)
 
 void motd(Server *server, int socket, Commands command)
 {
-	// TODO Reminder to create a message of the day when constructing the Server
-	/*std::string messageOfTheDay = server->getMessageOfTheDay();
-	  if (messageOfTheDay.empty())
-	  return server->sendMsg(ERR_NOMOTD, socket);*/
 	try
 	{
 		server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
@@ -556,6 +559,10 @@ cmd_func whowas;
  * 3.7 Miscellaneous messages
  */
 cmd_func kill;
+void	kill(Server *server, int socket, Commands command)
+{
+	return;
+}
 cmd_func ping;
 cmd_func pong;
 cmd_func error;

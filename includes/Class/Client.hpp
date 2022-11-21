@@ -67,6 +67,7 @@ class Client
 		void					setLastExpediteur(Client* expediteur);
 		void					setLastRecipient(Client* recipient);
 		void					setActiveChannel(Channel* active);
+		void					addChannel(Channel* channel, std::string channelName);
 		void					append(std::string buffer);
 		void					clearBuffer(void);
 };

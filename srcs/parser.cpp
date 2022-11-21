@@ -79,15 +79,24 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 		colon = true;
 		std::vector<std::string>first;
 		rslt = splitBy(cmd, ":");
-		first = splitBy(*rslt.begin(), " ");
-		pop_front<std::string>(rslt);
-		cd =*(first.begin());
-		if (1 < first.size())
+		if ((*rslt.begin()).find(" ") != std::string::npos)
 		{
-			pop_front<std::string>(first);
-			//addElementsVector(&params, first);
-			params = first;
-			addElementsVector(&params, rslt);
+			first = splitBy(*rslt.begin(), " ");
+			pop_front<std::string>(rslt);
+			cd =*(first.begin());
+			if (1 < first.size())
+			{
+				pop_front<std::string>(first);
+				addElementsVector(&params, first);
+				//params = first;
+				addElementsVector(&params, rslt);
+			}
+		}
+		else
+		{
+			cd = *(rslt.begin());
+			pop_front<std::string>(rslt);
+			addElementsVector(&params,rslt);
 		}
 	}
 	else

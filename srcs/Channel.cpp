@@ -82,7 +82,8 @@ void Channel::sendMsg(std::string message)
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
 	{
 		Client *client = clientIterator->second;
-		_server->sendMsg(message, client->getFd());
+		if (client)
+			_server->sendMsg(message, client->getFd());
 	}
 }
 

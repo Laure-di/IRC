@@ -571,24 +571,25 @@ void	Server::deleteClient(Client* user, epoll_event ep_event)
 {
 	struct epoll_event	ev;
 
-	memset(&ev, 0, sizeof(ev));
-	if (epoll_ctl(this->_pollFd, EPOLL_CTL_DEL, ep_event.data.fd, &ev) == -1)
-		throw serverError("epoll_ctl", strerror(errno));
-	if (close(ep_event.data.fd) == -1)
-		throw serverError("close", strerror(errno));
+	memset(&ev, 0, sizeof(ev));	
 	std::map<int, Client*>::iterator it;
 	std::map<int, Client*>::iterator ite = this->_clients.end();
 	for (it = this->_clients.begin(); it != ite;)
 	{
 		if (user == it->second)
 		{
-			delete it->second;
 			//close (it->second->getFd());
+			delete it->second;
 			this->_clients.erase(it++);
 		}
 		else
 			it++;
 	}
+	if (epoll_ctl(this->_pollFd, EPOLL_CTL_DEL, ep_event.data.fd, &ev) == -1)
+		throw serverError("epoll_ctl", strerror(errno));
+	if (close(ep_event.data.fd) == -1)
+		throw serverError("close", strerror(errno));
+	std::cout << "Connection close by client" << std::endl;
 }
 
 /**
@@ -617,6 +618,7 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 	if (!channel->getTopic().empty())
 		channel->sendTopic(socket);
 	channel->sendListOfNames(socket);
+	client->addChannel(channel, channelName);
 }
 
 /**
