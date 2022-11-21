@@ -17,7 +17,6 @@ static bool is_running=true;
 
 Server::Server(int port, std::string password, char *portStr): _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str())), _adminLogin("admin"), _adminPasswordHash(4141857313)
 {
-	_port = port;
 	this->createAndBind(portStr);
 	memset(&_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
 	this->createCmdDict();
@@ -26,7 +25,8 @@ Server::Server(int port, std::string password, char *portStr): _port(port), _hos
 	time_t      rawtime = time(NULL);
 	struct tm   *info;
 	info = localtime(&rawtime);
-	_launchingDate = std::string(asctime(info));
+	std::string launchingDate = std::string(asctime(info));
+	_launchingDate = launchingDate.substr(0, launchingDate.size()-1);;
 }
 
 
@@ -156,7 +156,7 @@ void	Server::sendMsg(NumericReplies reply, const int fd)
 
 void	Server::sendMsg(const std::string msg, const int fd)
 {
-	std::cout << "Sent : " << msg;
+	std::cout << "Sent :\n---------------\n" << msg << "---------------\n\n";
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
@@ -329,7 +329,7 @@ int		Server::_handleMessage(epoll_event ep_event)
 	memset(buffer, 0, BUFFER_SIZE);
 	currentClient->clearBuffer();
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
-	std::cout << "Received : " << buffer;
+	std::cout << "Received :\n---------------\n" << buffer << "---------------\n\n";
 	if (numbytes <= 0)
 		return (-1);
 	else

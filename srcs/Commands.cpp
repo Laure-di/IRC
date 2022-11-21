@@ -98,7 +98,7 @@ void user(Server *server, int socket, Commands command)
 		server->sendMsg(RPL_WELCOME(currentUser->getFullIdentifier()), socket);
 		server->sendMsg(RPL_YOURHOST(server->getHostname(), server->getVersion()), socket);
 		server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
-		//	server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), client->getMode()), socket);
+		server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), "abc", "abc"), socket);
 	}
 };
 
