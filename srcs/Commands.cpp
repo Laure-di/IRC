@@ -54,14 +54,7 @@ void nick(Server *server, int socket, Commands command) {
 	if (client->getNickname().empty())
 	{
 		client->setNickname(nickname);
-		if (isClientFullyRegister(client))
-		{
-			server->sendMsg(RPL_WELCOME(client->getFullIdentifier()), socket);
-			server->sendMsg(RPL_YOURHOST(client->getHostname(), server->getVersion()), socket);
-			server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
-			//TODO trouver a quoi correspond channelmode
-			//	server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), client->getMode()), socket);
-		}
+		welcomeClient(server, socket, client);
 	}
 	else
 	{
@@ -93,13 +86,7 @@ void user(Server *server, int socket, Commands command)
 	currentUser->setFullName(fullName);
 	if (-1 < mode)
 		currentUser->setMode(mode);
-	if (isClientFullyRegister(currentUser))
-	{
-		server->sendMsg(RPL_WELCOME(currentUser->getFullIdentifier()), socket);
-		server->sendMsg(RPL_YOURHOST(server->getHostname(), server->getVersion()), socket);
-		server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
-		//	server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), client->getMode()), socket);
-	}
+	welcomeClient(server, socket, currentUser);
 };
 
 /**
@@ -483,15 +470,26 @@ void notice(Server *server, int socket, Commands command)
  * @brief The MOTD command is used to get the "Message Of The Day" of the given
  *  server, or current server if <target> is omitted.
  */
+
+
 void motd(Server *server, int socket, Commands command)
 {
 	// TODO Reminder to create a message of the day when constructing the Server
-	std::string messageOfTheDay = server->getMessageOfTheDay();
-	if (messageOfTheDay.empty())
-		return server->sendMsg(ERR_NOMOTD, socket);
-	server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
-	server->sendMsg(RPL_MOTD(messageOfTheDay), socket);
-	server->sendMsg(RPL_ENDOFMOTD, socket);
+	/*std::string messageOfTheDay = server->getMessageOfTheDay();
+	  if (messageOfTheDay.empty())
+	  return server->sendMsg(ERR_NOMOTD, socket);*/
+	try
+	{
+		server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
+		server->shapeMessageOftheDay(server->getMessageOfTheDay(), socket);
+		//server->sendMsg(RPL_MOTD(messageOfTheDay), socket);
+		server->sendMsg(RPL_ENDOFMOTD, socket);
+	}
+	catch (numericRepliesError &e)
+	{
+		return (e.sendReply(ERR_NOMOTD, socket, server));
+	}
+
 }
 
 /**

@@ -7,6 +7,7 @@
 #define BUFFER_SIZE 500000
 #define HOSTNAME "mumurdelamachine.42.fr"
 #define	VERSION	"1.0"
+#define MOTD_FILE "conf/motd.txt"
 
 class Server
 {
@@ -34,7 +35,6 @@ class Server
 		Server(int port, std::string password, char *portStr);
 
 		unsigned								getPasswordHash(void)const;
-		int										getMessageOftheDay(void)const;
 		std::string								getLaunchingDate(void)const;
 		std::string								getHostname(void)const;
 		std::string								getVersion(void)const;
@@ -59,6 +59,7 @@ class Server
 		void									sendAllChannels(int socket);
 		bool									checkPassword(const std::string password) const;
 		void									addChannel(std::string name, Client* client);
+		void									shapeMessageOftheDay(std::string fileName, int socket);
 		void									executeCommands(char *buffer, Client* currentClient);
 		void									changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
 		void									checkAndJoinChannel(int socket, std::string channelName, std::string key);

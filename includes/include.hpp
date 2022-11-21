@@ -52,7 +52,8 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #include "execution_utils.hpp"
 #include "commandsUtils.hpp"
 
-
+#define CLIENT_MODE "coucou"
+#define CHANNEL_MODE "hello"
 
 struct	Commands
 {

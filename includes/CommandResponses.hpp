@@ -91,7 +91,7 @@ struct NumericReplies
 #define RPL_NOTOPIC(channel) \
     NumericReplies(331, channel + " :No topic is set\r\n")
 #define RPL_TOPIC(channel, channelTopic) \
-    NumericReplies(332, channel + " :" + channelTopic)
+    NumericReplies(332, channel + " :" + channelTopic + "\r\n")
 // VERSION
 #define RPL_VERSION(serverVersion, debuglevel, server, comment)                  \
     NumericReplies(351, serverVersion + "." + debuglevel + " " + server + " :" + \
@@ -122,7 +122,7 @@ struct NumericReplies
 #define RPL_MOTDSTART(server) \
     NumericReplies(375, ":- " + server + " Message of the day - \r\n")
 #define RPL_MOTD(text) NumericReplies(372, ":- " + text + "\r\n")
-#define RPL_ENDOFMOTD NumericReplies(376, ":End of MOTD command")
+#define RPL_ENDOFMOTD NumericReplies(376, ":End of MOTD command\r\n")
 // OPER
 #define RPL_YOUREOPER \
     NumericReplies(381, ":You are now an IRC operator\r\n")
@@ -220,7 +220,7 @@ struct NumericReplies
     NumericReplies(476, channel + " :Bad Channel Mask\r\n")
 // PRIVMSG
 #define ERR_CANNOTSENDTOCHAN(channelName) \
-    NumericReplies(404, channelName + " :Cannot send to channel")
+    NumericReplies(404, channelName + " :Cannot send to channel\r\n")
 #define ERR_NORECIPIENT(command) \
     NumericReplies(411, ":No recipient given " + command + "\r\n")
 #define ERR_NOTEXTTOSEND NumericReplies(412, ":No text to send\r\n")
@@ -239,7 +239,7 @@ struct NumericReplies
 #define ERR_UNKNOWNCOMMAND(command) \
     NumericReplies(421, command + " :Unknown command\r\n")
 #define ERR_NOPRIVILEGES \
-    NumericReplies(481, ":Permission Denied- You're not an IRC operator")
+    NumericReplies(481, ":Permission Denied- You're not an IRC operator\r\n")
 #define ERR_UNIQOPPRIVSNEEDED \
     NumericReplies(485, ":You're not the original channel operator\r\n")
 #define ERR_CHANOPRIVSNEEDED(channel) \
