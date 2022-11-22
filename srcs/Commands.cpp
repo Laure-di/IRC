@@ -39,7 +39,7 @@ void nick(Server *server, int socket, Commands command) {
 
 	Client *client = server->getClientByFd(socket);
 	if (client->getPwd() == false)
-		return server->sendMsg(ERR_CLIENT((std::string)"NICK: You must connect with a password first\r\n"), socket);
+		return server->sendMsg(ERR_CLIENT(std::string("NICK: You must connect with a password first\r\n")), socket);
 	if(command.params.empty() || command.params[0].empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
@@ -75,7 +75,7 @@ void user(Server *server, int socket, Commands command)
 
 	Client *currentUser = server->getClientByFd(socket);
 	if (currentUser->getPwd() == false)
-		return server->sendMsg(ERR_CLIENT((std::string)"USER: You must connect with a password first\r\n"), socket);
+		return server->sendMsg(ERR_CLIENT(std::string("USER: You must connect with a password first\r\n")), socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
 	if(command.params.size() < 4)
@@ -478,7 +478,6 @@ void motd(Server *server, int socket, Commands command)
 	{
 		server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
 		server->shapeMessageOftheDay(server->getMessageOfTheDay(), socket);
-		//server->sendMsg(RPL_MOTD(messageOfTheDay), socket);
 		server->sendMsg(RPL_ENDOFMOTD, socket);
 	}
 	catch (numericRepliesError &e)
@@ -556,8 +555,58 @@ void	kill(Server *server, int socket, Commands command)
 {
 	return;
 }
-cmd_func ping;
-cmd_func pong;
+
+/*
+ * 3.7.2 Ping message
+ *	@Brief The PING command is used to test the presence of an active client or
+ *		   server at the other end of the connection.
+ *		   https://www.digitalocean.com/community/tutorials/compare-strings-in-c-plus-plus
+ */
+
+void	ping(Server *server, int socket, Commands command)
+{
+	if (command.params.size() == 0)
+		return server->sendMsg(ERR_NOORIGIN, socket);
+	if (1 <= command.params.size())
+	{
+		std::string expediteur = command.params[0];
+		if (command.params.size() == 2)
+		{
+			std::string serverRecipient = command.params[1];
+			std::cout << server->getHostname() << std::endl;
+			if (server->getHostname().compare(serverRecipient) != 0)
+				return server->sendMsg(ERR_NOSUCHSERVER(serverRecipient), socket);
+		}
+		return server->sendMsg(PONG(server->getHostname()), socket);
+	}
+
+}
+
+/*
+ * 3.7.3 Pong message
+ *	@Brief PONG message is a reply to ping message.
+ */
+void	pong(Server *server, int socket, Commands command)
+{
+	if (command.params.size() == 0)
+		return server->sendMsg(ERR_NOORIGIN, socket);
+	if (1 <= command.params.size())
+	{
+		std::string expediteur = command.params[0];
+		if (command.params.size() == 2)
+		{
+			std::string serverRecipient = command.params[1];
+			std::cout << server->getHostname() << std::endl;
+			if (server->getHostname().compare(serverRecipient) != 0)
+				return server->sendMsg(ERR_NOSUCHSERVER(serverRecipient), socket);
+		}
+		Client *client = server->getClientByFd(socket);
+		if (client)
+			client->setStatus(ALIVE);
+	}
+
+}
+
 cmd_func error;
 
 /*

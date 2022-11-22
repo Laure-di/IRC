@@ -12,6 +12,13 @@ enum ClientModes
     SERVEROPERATOR = 8,
 };
 
+enum ClientStatus
+{
+	ALIVE = 0,
+	PINGED = 1,
+	DEAD = 3,
+};
+
 class Client
 {
 	private:
