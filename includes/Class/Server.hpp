@@ -58,12 +58,13 @@ class Server
 		void									sendAllUsers(int socket);
 		void									sendAllChannels(int socket);
 		bool									checkPassword(const std::string password) const;
+		bool									checkAdmin(const std::string login, const std::string password) const;
 		void									addChannel(std::string name, Client* client);
 		void									shapeMessageOftheDay(std::string fileName, int socket);
 		void									executeCommands(char *buffer, Client* currentClient);
 		void									changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);
 		void									checkAndJoinChannel(int socket, std::string channelName, std::string key);
-		void									checkAndLeaveChannel(int socket, std::string channelName);
+		void									checkAndLeaveChannel(int socket, std::string channelName, std::string leaveMessage);
 		void									printCurrentLocaltime(int socket);
 		bool									isInChannel(const std::string nickname) const;
 

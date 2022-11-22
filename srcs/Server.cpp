@@ -17,7 +17,6 @@ static bool is_running=true;
 
 Server::Server(int port, std::string password, char *portStr): _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str())), _messageOftheDay(MOTD_FILE), _adminLogin("admin"), _adminPasswordHash(4141857313)
 {
-	_port = port;
 	this->createAndBind(portStr);
 	memset(&_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
 	this->createCmdDict();
@@ -26,7 +25,8 @@ Server::Server(int port, std::string password, char *portStr): _port(port), _hos
 	time_t      rawtime = time(NULL);
 	struct tm   *info;
 	info = localtime(&rawtime);
-	_launchingDate = std::string(asctime(info));
+	std::string launchingDate = std::string(asctime(info));
+	_launchingDate = launchingDate.substr(0, launchingDate.size()-1);;
 }
 
 
@@ -182,7 +182,7 @@ void	Server::sendMsg(NumericReplies reply, const int fd)
 
 void	Server::sendMsg(const std::string msg, const int fd)
 {
-	std::cout << "Sent : " << msg;
+	std::cout << "Sent :\n---------------\n" << msg << "---------------\n\n";
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
@@ -205,6 +205,11 @@ void	Server::sendMsg(const std::string msg, std::vector<Channel*> channels)
 bool	Server::checkPassword(const std::string password) const
 {
 	return hasher(password.c_str()) == _passwordHash;
+}
+
+bool	Server::checkAdmin(const std::string login, const std::string password) const
+{
+	return (login == _adminLogin) & (hasher(password.c_str()) == _adminPasswordHash);
 }
 
 void Server::changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname)
@@ -355,7 +360,7 @@ int		Server::_handleMessage(epoll_event ep_event)
 	memset(buffer, 0, BUFFER_SIZE);
 	currentClient->clearBuffer();
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
-	std::cout << "Received : " << buffer;
+	std::cout << "Received :\n---------------\n" << buffer << "---------------\n\n";
 	if (numbytes <= 0)
 		return (-1);
 	else
@@ -436,13 +441,13 @@ void	Server::createCmdDict(void)
 	_cmdDict["NICK"] = &nick;
 	_cmdDict["USER"] = &user;
 	_cmdDict["CAP"] = &cap;
-	// _cmdDict["OPER"] = &oper;
-	 _cmdDict["MODE"] = &mode;
+	_cmdDict["OPER"] = &oper;
+	_cmdDict["MODE"] = &mode;
 	// _cmdDict["SERVICE"] = &service;
 	_cmdDict["QUIT"] = &quit;
 	// _cmdDict["SQUIT"] = &squit;
 	_cmdDict["JOIN"] = &join;
-	// _cmdDict["PART"] = &part;
+	_cmdDict["PART"] = &part;
 	// _cmdDict["TOPIC"] = &topic;
 	// _cmdDict["NAMES"] = &names;
 	// _cmdDict["LIST"] = &list;
@@ -625,7 +630,7 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
  * @brief Helper function to check wether the channel name is correct and the
  * client can leave it
  */
-void	Server::checkAndLeaveChannel(int socket, std::string channelName)
+void	Server::checkAndLeaveChannel(int socket, std::string channelName, std::string leaveMessage)
 {
 	Channel *channel = getChannelByName(channelName);
 	if (!channel)
@@ -633,7 +638,8 @@ void	Server::checkAndLeaveChannel(int socket, std::string channelName)
 	Client *client = getClientByFd(socket);
 	if (!channel->findClientByNickname(client->getNickname()))
 		return sendMsg(ERR_NOTONCHANNEL(channelName), socket);
-	channel->deleteClient(client->getNickname());
+	channel->sendPart(client, leaveMessage);
+	channel->remClient(client->getNickname());
 }
 
 bool	Server::isInChannel(const std::string nickname) const

@@ -28,10 +28,10 @@ class Channel
 		Server *_server;
 		std::string _name;
 		std::string _topic;
-		unsigned char _mode;
+		unsigned _mode;
 		std::map<std::string, Client*>	_clients;
 		std::map<std::string, Client*>	_clientsBanned;
-		std::map<std::string, unsigned char>	_clientsMode;
+		std::map<std::string, unsigned>	_clientsMode;
 		std::vector<std::string> _banMasks;
 		std::vector<std::string> _banExceptionMasks;
 		std::vector<std::string> _inviteMasks;
@@ -55,10 +55,10 @@ class Channel
 		bool checkOperatorByNickname(std::string nickname);
 		Client *findBannedUserByNickname(std::string nickname);
 		void addClient(int socket);
-		void deleteClient(std::string nickname);
+		void remClient(std::string nickname);
 		void sendMsg(std::string message);
 		void sendJoin(Client *client);
-		void sendPart(std::string fullClientName, std::string nickname, std::string leaveMessage);
+		void sendPart(Client *Client, std::string leaveMessage);
 		void sendTopic(int socket);
 		void sendListOfNames(int socket);
 		void changeNickname(std::string oldNickname, std::string newNickname);
@@ -67,15 +67,17 @@ class Channel
 		void modMode(int mask, bool add);
 		void modKey(bool add, std::string key);
 		void modLimit(bool add, std::string max);
-		unsigned char getMode();
-		unsigned char getMode(int socket);
-		void modClientMode(int socket, std::string nickname, unsigned char mask, bool add);
-		void modClientMask(unsigned char mask, bool add, std::string type);
+		unsigned getMode();
+		unsigned getMode(int socket);
+		void modClientMode(int socket, std::string nickname, unsigned mask, bool add);
+		void modClientMask(unsigned mask, bool add, std::string type);
+		void sendClientMask(std::string maskName, std::vector<std::string> *masksList);
 		bool isInvited(std::string nickname);
 		bool isBanned(std::string nickname);
 		bool isExcepted(std::string nickname);
 		bool checkPassword(std::string key);
 		void sendInfo(int socket);
+		std::string getClientPrefix(const Client *client);
 };
 
 #endif

@@ -249,9 +249,9 @@ bool strmatch(std::string string, std::string pattern)
 }
 
 /**
- * @brief Apply flags to client or channels
+ * @brief Apply flags to client
  */
-void applyModeChanges(Server *server, int socket, std::string flags, std::string param, Client *client, Channel *channel)
+void applyModeChangesClient(Server *server, int socket, std::string flags, Client *client)
 {
 	// Add custom error message? From Modern IRC: The text used in the last param of this message may vary.
 	char firstChar = flags[0];
@@ -263,67 +263,78 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 		char nChar = flags[i];
 		switch (nChar)
 		{
-			case 'b':
-				if (!channel)
+			case 'i':
+				client->modMode(INVISIBLE, add);
+				break;
+			case 'r':
+				client->modMode(RESTRICTED, add);
+				break;
+			case 'o':
+				// Only for removing for client
+				if (add)
 				{
 					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 					break;
 				}
-				if (!(channel->getMode(socket) & OPERATOR))
+				client->modMode(OPERATOR, add);
+			case '+':
+				add = true;
+				break;
+			case '-':
+				add = false;
+				break;
+			default:
+				server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
+		}
+	}
+	server->sendMsg("Your user mode is " + client->getModeStr() + "\r\n", socket);
+}
+
+/**
+ * @brief Apply flags to client or channels
+ */
+void applyModeChangesChannel(Server *server, int socket, std::string flags, std::string param, Channel *channel)
+{
+	// TODO Add custom error message? From Modern IRC: The text used in the last param of this message may vary.
+	if (!(channel->getMode(socket) & OPERATOR || channel->getMode(socket) & CREATOR))
+		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
+	char firstChar = flags[0];
+	if (firstChar != '-' && firstChar != '+')
+		return server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
+	bool add = (firstChar == '+');
+	for (size_t i = 1; i < flags.length(); i++)
+	{
+		char nChar = flags[i];
+		switch (nChar)
+		{
+			case 'b':
+				if (param.empty())
 				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
+					server->sendMsg(ERR_NEEDMOREPARAMS(std::string("MODE")), socket);
 					break;
 				}
 				channel->modClientMask(nChar, add, param);
 				break;
 			case 'e':
-				if (!channel)
+				if (param.empty())
 				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
+					server->sendMsg(ERR_NEEDMOREPARAMS(std::string("MODE")), socket);
 					break;
 				}
 				channel->modClientMask(nChar, add, param);
 				break;
 			case 'I':
-				if (!channel)
+				if (param.empty())
 				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
+					server->sendMsg(ERR_NEEDMOREPARAMS(std::string("MODE")), socket);
 					break;
 				}
 				channel->modClientMask(nChar, add, param);
 				break;
 			case 'i':
-				if (!client && !channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (client)
-					client->modMode(INVISIBLE, add);
-				if (channel)
-					channel->modMode(INVITATION, add);
+				channel->modMode(INVITATION, add);
 				break;
 			case 'k':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				if (add && param.empty())
 				{
 					server->sendMsg(ERR_NEEDMOREPARAMS(std::string("MODE")), socket);
@@ -332,14 +343,9 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 				channel->modKey(add, param);
 				break;
 			case 'l':
-				if (!channel || (add && toInt(param) < 0))
+				if (add && toInt(param) < 0)
 				{
 					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
 					break;
 				}
 				if (add && param.empty())
@@ -350,118 +356,27 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 				channel->modLimit(add, param);
 				break;
 			case 'm':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				channel->modMode(MODERATED, add);
 				break;
 			case 'n':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				channel->modMode(OUTSIDE, add);
 				break;
 			case 'p':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				channel->modMode(PRIVATE, add);
 				break;
 			case 's':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				channel->modMode(SECRET, add);
 				break;
 			case 't':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				channel->modMode(TOPIC, add);
 				break;
-			case 'r':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				client->modMode(RESTRICTED, add);
-				break;
 			case 'o':
-				// Only for removing for client
-				if ((!client || add) && !channel )
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (client)
-					client->modMode(OPERATOR, add);
-				if (channel)
-				{
-					if (!(channel->getMode(socket) & OPERATOR))
-						server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					channel->modClientMode(socket, param, OPERATOR, add);
-				}
+				channel->modClientMode(socket, param, OPERATOR, add);
 				break;
 			case 'O':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				channel->modClientMode(socket, param, CREATOR, add);
 				break;
 			case 'v':
-				if (!channel)
-				{
-					server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
-					break;
-				}
-				if (!(channel->getMode(socket) & OPERATOR))
-				{
-					server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-					break;
-				}
 				channel->modClientMode(socket, param, VOICE, add);
 				break;
 			case '+':
@@ -474,6 +389,7 @@ void applyModeChanges(Server *server, int socket, std::string flags, std::string
 				server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 		}
 	}
+	server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n", socket);
 }
 
 /**

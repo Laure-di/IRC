@@ -25,10 +25,10 @@ std::string	Client::getPrefix(void)const
 	return ("");
 }
 
-std::string	Client::getNicknameWithPrefix(void)const
+std::string	Client::getNicknameWithPrefix(Channel *channel)const
 {
 
-	return getPrefix() + getNickname();
+	return channel->getClientPrefix(this) + getNickname();
 }
 
 std::string	Client::getUsername(void)const
@@ -109,7 +109,7 @@ void	Client::setUsername(std::string username)
 	this->_username = username;
 }
 
-void	Client::setMode(int mode)
+void	Client::setMode(unsigned mode)
 {
 	this->_mode = mode;
 }
@@ -129,17 +129,17 @@ void	Client::setPwd(bool pwd)
 	this->_pwd = pwd;
 }
 
-void	Client::addMode(int mask)
+void	Client::addMode(unsigned mask)
 {
 	_mode |= mask;
 }
 
-void	Client::remMode(int mask)
+void	Client::remMode(unsigned mask)
 {
 	_mode &= ~mask;
 }
 
-void	Client::modMode(int mask, bool add)
+void	Client::modMode(unsigned mask, bool add)
 {
 	if (add)
 		return addMode(mask);
