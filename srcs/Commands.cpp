@@ -38,6 +38,8 @@ void pass(Server *server, int socket, Commands command) {
 void nick(Server *server, int socket, Commands command) {
 
 	Client *client = server->getClientByFd(socket);
+	if (client->getPwd() == false)
+		return server->sendMsg(ERR_CLIENT((std::string)"NICK: You must connect with a password first\r\n"), socket);
 	if(command.params.empty() || command.params[0].empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
@@ -72,6 +74,8 @@ void user(Server *server, int socket, Commands command)
 {
 
 	Client *currentUser = server->getClientByFd(socket);
+	if (currentUser->getPwd() == false)
+		return server->sendMsg(ERR_CLIENT((std::string)"USER: You must connect with a password first\r\n"), socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
 	if(command.params.size() < 4)
