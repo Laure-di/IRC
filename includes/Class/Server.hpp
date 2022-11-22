@@ -44,7 +44,7 @@ class Server
 		std::map<std::string, Channel*>			getAllChannels(void);
 		Channel*								getChannelByName(const std::string name);
 		Client*									getClientByFd(size_t fd);
-		struct epoll_event						getEventFd(Client *client);
+		//struct epoll_event						getEventFd(Client *client);
 		Client*									getClientByNickname(const std::string nickname) const;
 		std::vector<Client*>					getAllClientsMatching(std::string pattern) const;
 		std::vector<Client*>					getAllClients(void)const;
@@ -57,6 +57,7 @@ class Server
 		void									sendMsg(NumericReplies reply, const int fd);
 		void									sendMsg(const std::string msg, Client *client);
 		void									sendMsg(const std::string msg, std::vector<Channel*> channels);
+		void									broadcast(std::string msg, int expediteur);
 		void									sendAllUsers(int socket);
 		void									sendAllChannels(int socket);
 		bool									checkPassword(const std::string password) const;

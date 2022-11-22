@@ -101,7 +101,7 @@ Client* Server::getClientByFd(size_t fd)
 	return _clients[fd];
 }
 
-struct epoll_event		Server::getEventFd(Client *client)
+/*struct epoll_event		Server::getEventFd(Client *client)
 {
 	int	i = 0;
 	struct epoll_event ep_event;
@@ -112,7 +112,7 @@ struct epoll_event		Server::getEventFd(Client *client)
 		i++;
 	}
 	return (ep_event);
-}
+}*/
 
 Channel* Server::getChannelByName(const std::string name)
 {
@@ -200,6 +200,14 @@ void	Server::sendMsg(const std::string msg, std::vector<Channel*> channels)
 	{
 		(*it)->sendMsg(msg);
 	}
+}
+
+void	Server::broadcast(std::string msg, int expediteur)
+{
+	std::string finalMsg = "message from : " + getClientByFd(expediteur)->getNickname() + " " + msg;
+	std::map<const int, Client*>::iterator	it = _clients.begin();
+	for (; it != _clients.end(); it++)
+		sendMsg(finalMsg, it->second->getFd());
 }
 
 bool	Server::checkPassword(const std::string password) const
