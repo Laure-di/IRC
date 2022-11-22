@@ -219,7 +219,7 @@ std::vector<std::string> splitComma(std::string string)
 	return (result);
 }
 /**
- * @brief  Wildcard pattern matching algorithm
+ * @brief Wildcard pattern matching algorithm
  *
  * Help from https://www.geeksforgeeks.org/wildcard-pattern-matching/
  */
@@ -296,7 +296,9 @@ void applyModeChangesClient(Server *server, int socket, std::string flags, Clien
 void applyModeChangesChannel(Server *server, int socket, std::string flags, std::string param, Channel *channel)
 {
 	// TODO Add custom error message? From Modern IRC: The text used in the last param of this message may vary.
-	if (!(channel->getMode(socket) & OPERATOR || channel->getMode(socket) & CREATOR))
+	Client *client = server->getClientByFd(socket);
+	std::string nickname = client->getNickname();
+	if (!(channel->checkOperatorByNickname(nickname)))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
 	char firstChar = flags[0];
 	if (firstChar != '-' && firstChar != '+')

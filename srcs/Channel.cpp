@@ -4,7 +4,7 @@ Channel::Channel(Server *server, std::string name, Client* creator): _server(ser
 {
 	std::string nickname = creator->getNickname();
 	_clients[nickname] = creator;
-	_clientsMode[nickname] = CREATOR;
+	_clientsMode[nickname] = 4;
 	sendJoin(creator);
 }
 
@@ -48,7 +48,7 @@ void Channel::clearTopic(void) {
 	_topic.clear();
 }
 
-Client *Channel::findClientByNickname(const std::string nickname)
+Client *Channel::getClientByNickname(const std::string nickname)
 {
 	return _clients[nickname];
 }
@@ -56,11 +56,6 @@ Client *Channel::findClientByNickname(const std::string nickname)
 bool Channel::checkOperatorByNickname(std::string nickname)
 {
 	return _clientsMode[nickname] & OPERATOR || _clientsMode[nickname] & CREATOR;
-}
-
-Client *Channel::findBannedUserByNickname(const std::string nickname)
-{
-	return _clientsBanned[nickname];
 }
 
 void Channel::addClient(int socket)
@@ -75,6 +70,14 @@ void Channel::remClient(std::string nickname)
 {
 	_clients.erase(nickname);
 	_clientsMode.erase(nickname);
+}
+
+void Channel::sendMsg(std::string message, Client *sender)
+{
+	std::string nickname = sender->getNickname();
+	if ((_mode & OUTSIDE) && !(getClientByNickname(nickname)))
+		return _server->sendMsg(ERR_CANNOTSENDTOCHAN(nickname), sender->getFd());
+	sendMsg(message);
 }
 
 void Channel::sendMsg(std::string message)
@@ -161,11 +164,11 @@ void Channel::changeNickname(std::string oldNickname, std::string newNickname)
 		std::swap(_clients[newNickname], it->second);
 		_clients.erase(it);
 	}
-	it = _clientsBanned.find(oldNickname);
-	if (it != _clientsBanned.end())
+	std::map<std::string, unsigned>::iterator it2 = _clientsMode.find(oldNickname);
+	if (it2 != _clientsMode.end())
 	{
-		std::swap(_clientsBanned[newNickname], it->second);
-		_clientsBanned.erase(it);
+		std::swap(_clientsMode[newNickname], it2->second);
+		_clientsMode.erase(it2);
 	}
 }
 

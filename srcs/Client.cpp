@@ -98,6 +98,11 @@ std::string		Client::getBuffer(void)const
 	return _buffer;
 }
 
+std::string		Client::getAwayMessage(void)const
+{
+	return _awayMessage;
+}
+
 void	Client::setNickname(std::string nickname)
 {
 	//TODO faire les check nickname
@@ -159,6 +164,11 @@ void	Client::setLastRecipient(Client* recipient)
 void	Client::setActiveChannel(Channel* active)
 {
 	this->_activeChannel = active;
+}
+
+void	Client::setAwayMessage(std::string awayMessage)
+{
+	_awayMessage = awayMessage;
 }
 
 void	Client::append(std::string buffer)

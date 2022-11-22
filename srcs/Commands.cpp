@@ -259,14 +259,15 @@ void topic(Server *server, int socket, Commands command)
 	if (!channel)
 		return;
 	Client *currentUser = server->getClientByFd(socket);
-	if (channel->findClientByNickname(currentUser->getNickname()))
+	std::string nickname = currentUser->getNickname();
+	if (channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_NOTONCHANNEL(channel->getName()), socket);
 	if (command.params.size() == 1 && !command.colon) {
 		if (channel->getTopic().empty())
 			return server->sendMsg(RPL_NOTOPIC(channel->getName()), socket);
 		return server->sendMsg(RPL_TOPIC(channel->getName(), channel->getTopic()), socket);
 	}
-	if ((channel->getMode() & TOPIC) && !(channel->checkOperatorByNickname(currentUser->getNickname())))
+	if ((channel->getMode() & TOPIC) && !(channel->checkOperatorByNickname(nickname)))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
 	// Add check for ERR_NOCHANMODES
 	std::string topic = command.params[1];
@@ -328,21 +329,22 @@ void invite(Server *server, const int socket, Commands command)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string nickname = command.params[0];
 	std::string channelName = command.params[1];
-
-	Client *invitedUser = server->getClientByNickname(nickname);
-	if (!invitedUser)
+	Client *invitedClient = server->getClientByNickname(nickname);
+	if (!invitedClient)
 		return server->sendMsg(ERR_NOSUCHNICK(nickname), socket);
 	Channel *channel = server->getChannelByName(channelName);
 	if (!channel)
 		return server->sendMsg(ERR_NOSUCHNICK(channelName), socket);
-	Client *currentUser = server->getClientByFd(socket);
-	if (!channel->findClientByNickname(currentUser->getNickname()))
+	Client *client = server->getClientByFd(socket);
+	if (!channel->getClientByNickname(client->getNickname()))
 		return server->sendMsg(ERR_NOTONCHANNEL(channelName), socket);
-	if (channel->findClientByNickname(nickname))
+	if (channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_USERONCHANNEL(nickname, channelName), socket);
-	// Add check for ERR_CHANOPRIVSNEEDED (channel is invite only and currentUser is not an operator)
-	// Add check for RPL_AWAY (Check that invitedUser is away and notify currentUser ? Not defined)
-	server->sendMsg(RPL_INVITING(nickname, channelName), invitedUser->getFd());
+	if (channel->getMode() | INVITATION && !channel->checkOperatorByNickname(nickname))
+		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channelName), socket);
+	if (invitedClient->getMode() & AWAY)
+		return server->sendMsg(RPL_AWAY(nickname, invitedClient->getAwayMessage()), socket);
+	server->sendMsg(RPL_INVITING(nickname, channelName), invitedClient->getFd());
 }
 
 /**
@@ -360,14 +362,16 @@ void kick(Server *server, int socket, Commands command)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> channels = splitComma(command.params[0]);
 	std::vector<std::string> users = splitComma(command.params[1]);
-	Client *currentUser = server->getClientByFd(socket);
+	Client *currentClient = server->getClientByFd(socket);
+	std::string nickname = currentClient->getNickname();
 	std::string kickMessage;
+	std::cout << "kick message : " << command.params[2] << std::endl;
 	if (channels.size() == 1 && users.size() == 1)
 	{
 		if (command.params.size() > 2)
-			kickMessage = command.params[0];
+			kickMessage = command.params[2];
 		else
-			kickMessage = currentUser->getNickname();
+			kickMessage = nickname;
 	}
 	std::vector<std::string>::iterator channelsIterator;
 	for (channelsIterator = channels.begin(); channelsIterator != channels.end(); channelsIterator++)
@@ -379,23 +383,22 @@ void kick(Server *server, int socket, Commands command)
 			server->sendMsg(ERR_NOSUCHCHANNEL(channelName), socket);
 			continue;
 		}
-		if (!channel->checkOperatorByNickname(currentUser->getUsername()))
+		if (!channel->checkOperatorByNickname(nickname))
 		{
 			server->sendMsg(ERR_CHANOPRIVSNEEDED(channelName), socket);
 			continue;
 		}
-		std::vector<std::string>::iterator usersIterator;
-		for (usersIterator = users.begin(); usersIterator != users.end(); usersIterator++)
+		std::vector<std::string>::const_iterator cit;
+		for (cit = users.begin(); cit != users.end(); cit++)
 		{
-			std::string userName = *usersIterator;
-			Client *user = server->getClientByNickname(userName);
-			if (!user) {
-				server->sendMsg(ERR_USERNOTINCHANNEL(userName, channelName), socket);
+			std::string clientName = *cit;
+			Client *client = server->getClientByNickname(clientName);
+			if (!client) {
+				server->sendMsg(ERR_USERNOTINCHANNEL(clientName, channelName), socket);
 				continue;
 			}
-			if (!kickMessage.empty())
-				server->sendMsg("KICK " + channelName + " " + userName + " :" + kickMessage, socket);
-			channel->remClient(userName);
+			channel->sendMsg("KICK " + channelName + " " + clientName + " :" + kickMessage + "\r\n");
+			channel->remClient(clientName);
 		}
 	}
 }
@@ -411,17 +414,6 @@ void kick(Server *server, int socket, Commands command)
  * send messages to channels.
  */
 void privmsg(Server *server, int socket, Commands command)
-{
-	// TODO Add special targets for irssi "*", ",", "." ?
-	return;
-}
-
-/**
- * 3.3.2 Notice
- *
- * @brief The NOTICE command is used similarly to PRIVMSG.
- */
-void notice(Server *server, int socket, Commands command)
 {
 	if(command.params.size() == 0)
 		return server->sendMsg(ERR_NORECIPIENT(command.command), socket);
@@ -447,6 +439,16 @@ void notice(Server *server, int socket, Commands command)
 		}
 	}
 	return;
+}
+
+/**
+ * 3.3.2 Notice
+ *
+ * @brief "The NOTICE command is used similarly to PRIVMSG."
+ */
+void notice(Server *server, int socket, Commands command)
+{
+	privmsg(server, socket, command);
 }
 
 /*
@@ -552,7 +554,15 @@ cmd_func error;
 /*
  * 4.1 Optional features
  */
-cmd_func away;
+void away(Server *server, int socket, Commands command)
+{
+	Client *client = server->getClientByFd(socket);
+	if(command.params.size() == 0)
+		return client->remMode(AWAY);
+	client->addMode(AWAY);
+	client->setAwayMessage(command.params[0]);
+}
+
 cmd_func rehash;
 cmd_func die;
 cmd_func restart;

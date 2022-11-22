@@ -448,12 +448,12 @@ void	Server::createCmdDict(void)
 	// _cmdDict["SQUIT"] = &squit;
 	_cmdDict["JOIN"] = &join;
 	_cmdDict["PART"] = &part;
-	// _cmdDict["TOPIC"] = &topic;
-	// _cmdDict["NAMES"] = &names;
+	_cmdDict["TOPIC"] = &topic;
+	_cmdDict["NAMES"] = &names;
 	// _cmdDict["LIST"] = &list;
 	// _cmdDict["INVITE"] = &invite;
-	// _cmdDict["KICK"] = &kick;
-	// _cmdDict["PRIVMSG"] = &privmsg;
+	_cmdDict["KICK"] = &kick;
+	_cmdDict["PRIVMSG"] = &privmsg;
 	_cmdDict["NOTICE"] = &notice;
 	_cmdDict["MOTD"] = &motd;
 	// _cmdDict["LUSERS"] = &lusers;
@@ -467,7 +467,7 @@ void	Server::createCmdDict(void)
 	// _cmdDict["INFO"] = &info;
 	// _cmdDict["SERVLIST"] = &servlist;
 	// _cmdDict["SQUERY"] = &squery;
-	// _cmdDict["WHO"] = &who;
+	_cmdDict["WHO"] = &who;
 	// _cmdDict["WHOIS"] = &whois;
 	// _cmdDict["WHOWAS"] = &whowas;
 	// _cmdDict["KILL"] = &kill;
@@ -615,7 +615,7 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 		return sendMsg(ERR_BANNEDFROMCHAN(channelName), socket);
 	if ((channel->getMode() & LIMIT) && channel->getNumberOfUsers() == channel->getMaxLimitOfUsers())
 		return sendMsg(ERR_CHANNELISFULL(channelName), socket);
-	if ((channel->getMode() & PRIVATE) && !channel->checkPassword(key))
+	if ((channel->getMode() & KEY) && !channel->checkPassword(key))
 		return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
 	channel->addClient(socket);
 	channel->sendJoin(client);
@@ -634,7 +634,7 @@ void	Server::checkAndLeaveChannel(int socket, std::string channelName, std::stri
 	if (!channel)
 		return sendMsg(ERR_NOSUCHCHANNEL(channelName), socket);
 	Client *client = getClientByFd(socket);
-	if (!channel->findClientByNickname(client->getNickname()))
+	if (!channel->getClientByNickname(client->getNickname()))
 		return sendMsg(ERR_NOTONCHANNEL(channelName), socket);
 	channel->sendPart(client, leaveMessage);
 	channel->remClient(client->getNickname());
@@ -646,7 +646,7 @@ bool	Server::isInChannel(const std::string nickname) const
 	for (cit = _channels.begin(); cit != _channels.end(); cit++)
 	{
 		Channel *channel = cit->second;
-		if (channel->findClientByNickname(nickname))
+		if (channel->getClientByNickname(nickname))
 			return true;
 	}
 	return false;
