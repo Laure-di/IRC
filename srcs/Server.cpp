@@ -421,7 +421,7 @@ void	Server::execute(void)
 					if (this->_handleMessage(this->_ep_event[i]) == -1)
 					{
 						Client* userToDel = this->getClientByFd(this->_ep_event[i].data.fd);
-						this->deleteClient(userToDel, this->_ep_event[i]);
+						this->deleteClient(userToDel->getFd());
 						std::cerr << "Socket closed by client" << std::endl;
 
 					}
@@ -490,7 +490,7 @@ void	Server::createCmdDict(void)
 void		Server::createAndBind(char *port)
 {
 	int		optval = 1;
-	struct addrinfo hints, *result, *p;
+	struct addrinfo hints, *result;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -498,35 +498,31 @@ void		Server::createAndBind(char *port)
 	hints.ai_flags = AI_PASSIVE;
 	if (getaddrinfo(NULL, port, &hints, &result) == -1)
 		throw serverError("getaddrinfo", strerror(errno));
-	for (p = result; p != NULL; p = p->ai_next)
-	{
+	//for (p = result; p != NULL; p = p->ai_next)
+//	{
 #ifdef DEBUG
 		std::cout << "Method createAndBind srcs/Server.cpp" << std::endl;
 		std::cout << "Value of result function getaddrinfo" << std::endl;
-		std::cout << "ai_family : " << p->ai_family << std::endl;
-		std::cout << "ai_protocol : " << p->ai_protocol << std::endl;
-		std::cout << "ai_addr : " << p->ai_addr << std::endl;
-		std::cout << "ai_addrlen : " << p->ai_addrlen << std::endl;
+		std::cout << "ai_family : " << result->ai_family << std::endl;
+		std::cout << "ai_protocol : " << result->ai_protocol << std::endl;
+		std::cout << "ai_addr : " << result->ai_addr << std::endl;
+		std::cout << "ai_addrlen : " << result->ai_addrlen << std::endl;
 #endif
-		if ((_listenSocket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		if ((_listenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1)
+			throw serverError("socket creation:", strerror(errno));
+		setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval));
+		fcntl(_listenSocket, F_SETFL, O_NONBLOCK);
+		if (bind(_listenSocket, result->ai_addr, result->ai_addrlen) != 0)
 		{
-			continue;
+			freeaddrinfo(result);
+			if (close(_listenSocket) == -1)
+				throw serverError("close:", strerror(errno));
+			throw serverError("bind:", strerror(errno));
 		}
-		if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval)) == -1)
-			continue ;
-		if (fcntl(_listenSocket, F_SETFL, O_NONBLOCK) == -1)
-			continue ;
-		if (bind(_listenSocket, p->ai_addr, p->ai_addrlen) == 0)
-			break;
-		if (close(_listenSocket) == -1)
-			throw serverError("close", strerror(errno));
-	}
-	if (p == NULL)
-		throw serverError("bind", strerror(errno));
+		freeaddrinfo(result);
 #ifdef DEBUG
 	std::cout << "Socket created" << std::endl;
 #endif
-	freeaddrinfo(result);
 }
 
 /**
@@ -539,12 +535,23 @@ void Server::addChannel(std::string name, Client* creator)
 	_channels[name] = newChannel;
 }
 
+void	Server::deleteAllChannels(void)
+{
+	if (!_channels.empty())
+	{
+		std::map<std::string, Channel*>::iterator it = _channels.begin();
+		for (; it != _channels.end(); it++)
+			delete it->second;
+	}
+}
+
 void	Server::clearServer(void) //TODO link with signal??!!
 {
 	//TODO delete channels before user bc channels are links to users
 	//Close connection and fd and delete users
 	struct epoll_event	ev;
 
+	deleteAllChannels();
 	if (!this->_clients.empty())
 	{
 		std::map<int, Client*>::const_iterator it_end = this->_clients.end();
@@ -574,7 +581,7 @@ void	Server::clearServer(void) //TODO link with signal??!!
 		std::cerr << "close issue" << std::endl;
 }
 
-void	Server::deleteClient(Client* user, epoll_event ep_event)
+/*void	Server::deleteClientbis(Client* user, epoll_event ep_event)
 {
 	struct epoll_event	ev;
 
@@ -595,6 +602,28 @@ void	Server::deleteClient(Client* user, epoll_event ep_event)
 	if (epoll_ctl(this->_pollFd, EPOLL_CTL_DEL, ep_event.data.fd, &ev) == -1)
 		throw serverError("epoll_ctl", strerror(errno));
 	if (close(ep_event.data.fd) == -1)
+		throw serverError("close", strerror(errno));
+	std::cout << "Connection close by client" << std::endl;
+}*/
+
+
+void	Server::deleteClient(int socket)
+{
+	struct epoll_event	ev;
+	std::map<int, Client*>::iterator	it;
+	it = this->_clients.find(socket);
+	if (it == _clients.end())
+	{
+		std::cerr << "Something went wrong, we can't find the client to delete" << std::endl;
+		return ;
+	}
+
+	it->second->removeFromAllChannels();
+	delete it->second;
+	_clients.erase(it->first);
+	if (epoll_ctl(this->_pollFd, EPOLL_CTL_DEL, socket, &ev) == -1)
+		throw serverError("epoll_ctl:", strerror(errno));
+	if (close(socket) == -1)
 		throw serverError("close", strerror(errno));
 	std::cout << "Connection close by client" << std::endl;
 }

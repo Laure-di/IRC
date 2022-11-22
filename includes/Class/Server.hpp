@@ -74,7 +74,8 @@ class Server
 		void									createCmdDict(void);
 		void									createAndBind(char *port);
 
-		void									deleteClient(Client* user, epoll_event ep_event);
+		void									deleteClient(int socket);
+		void									deleteAllChannels(void);
 		void									clearServer(void);
 
 

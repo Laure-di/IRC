@@ -40,6 +40,11 @@ std::string Channel::getTopic(void) {
 	return _topic;
 }
 
+std::map<std::string, Client*>	Channel::getClients(void)const
+{
+	return _clients;
+}
+
 void Channel::setTopic(std::string topic) {
 	_topic = topic;
 }

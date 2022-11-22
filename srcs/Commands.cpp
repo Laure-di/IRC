@@ -149,18 +149,17 @@ void	quit(Server *server, int socket, Commands command)
 		server->sendMsg("QUIT\r\n", socket);
 	else if (!command.params[0].empty())
 		server->sendMsg("QUIT : " + command.params[0] + "\r\n", socket);
+	server->deleteClient(clientQuitting->getFd());
 	if (!command.params.empty())
 		msgChannel = "QUIT : " + command.params[0] + "\r\n\r\n";
 	else
 		msgChannel = "QUIT\r\n";
-	struct epoll_event ep_event = server->getEventFd(clientQuitting);
 	if (!channelsToInform.empty())
 	{
 		std::cout << msgChannel << std::endl;
 		server->sendMsg(msgChannel, channelsToInform);
 	}
 	//TODO send to every client except the one who quit the channel
-	server->deleteClient(clientQuitting, ep_event);
 
 }
 cmd_func squit;
