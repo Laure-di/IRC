@@ -40,6 +40,11 @@ std::string Channel::getTopic(void) {
 	return _topic;
 }
 
+std::map<std::string, Client*>	Channel::getClients(void)const
+{
+	return _clients;
+}
+
 void Channel::setTopic(std::string topic) {
 	_topic = topic;
 }
@@ -86,7 +91,8 @@ void Channel::sendMsg(std::string message)
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
 	{
 		Client *client = clientIterator->second;
-		_server->sendMsg(message, client->getFd());
+		if (client)
+			_server->sendMsg(message, client->getFd());
 	}
 }
 

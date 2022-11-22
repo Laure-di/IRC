@@ -2,7 +2,6 @@
 
 #define MAX_CMD_LGTH 510
 #define	MAX_PARAMS	15
-#define DEBUG
 
 void	print_debug(std::vector<std::string> print)
 {
@@ -79,15 +78,24 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 		colon = true;
 		std::vector<std::string>first;
 		rslt = splitBy(cmd, ":");
-		first = splitBy(*rslt.begin(), " ");
-		pop_front<std::string>(rslt);
-		cd =*(first.begin());
-		if (1 < first.size())
+		if ((*rslt.begin()).find(" ") != std::string::npos)
 		{
-			pop_front<std::string>(first);
-			//addElementsVector(&params, first);
-			params = first;
-			addElementsVector(&params, rslt);
+			first = splitBy(*rslt.begin(), " ");
+			pop_front<std::string>(rslt);
+			cd =*(first.begin());
+			if (1 < first.size())
+			{
+				pop_front<std::string>(first);
+				addElementsVector(&params, first);
+				//params = first;
+				addElementsVector(&params, rslt);
+			}
+		}
+		else
+		{
+			cd = *(rslt.begin());
+			pop_front<std::string>(rslt);
+			addElementsVector(&params,rslt);
 		}
 	}
 	else
@@ -101,13 +109,13 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 			pop_front<std::string>(rslt);
 			params = rslt;
 		}
+	}
 #ifdef DEBUG
 		std::cout << "Command : " << cd << std::endl;
 		std::cout << "Params : ";
 		print_debug(params);
 		std::cout << std::endl;
 #endif
-	}
 	command->push_back(Commands(cd, prefix, params, colon));
 }
 

@@ -38,12 +38,14 @@ void pass(Server *server, int socket, Commands command) {
 void nick(Server *server, int socket, Commands command) {
 
 	Client *client = server->getClientByFd(socket);
+	if (client->getPwd() == false)
+		return server->sendMsg(ERR_CLIENT(std::string("NICK: You must connect with a password first\r\n")), socket);
 	if(command.params.empty() || command.params[0].empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
 	if (client->getNickname() == nickname)
 		return server->sendMsg("NICK " + nickname + "\r\n", socket);
-	if (!checkNickname(nickname))
+	if (!checkNickname(nickname) || command.colon == true)
 		return server->sendMsg(ERR_ERRONEUSNICKNAME(nickname), socket);
 	if (server->getClientByNickname(nickname))
 		return server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
@@ -70,14 +72,17 @@ void nick(Server *server, int socket, Commands command) {
  */
 void user(Server *server, int socket, Commands command)
 {
-	if(command.params.size() < 4)
-		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
+
 	Client *currentUser = server->getClientByFd(socket);
+	if (currentUser->getPwd() == false)
+		return server->sendMsg(ERR_CLIENT(std::string("USER: You must connect with a password first\r\n")), socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
+	if(command.params.size() < 4)
+		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	int mode;
 	if ((mode = areParamsValid(command.params)) == -1)
-		return ;
+		return server->sendMsg(ERR_CLIENT((std::string)"USER : you are not using the correct syntax"), socket);
 	std::string userName = command.params[0];
 	std::string fullName = command.params[3];
 	if (!checkUsername(userName))
@@ -133,26 +138,45 @@ void cap(Server *server, int socket, Commands command)
 	(void)command;
 	return ;
 }
-//TODO a finir
+
+
 void	quit(Server *server, int socket, Commands command)
 {
-	Client *clientQuitting = server->getClientByFd(socket);
-	std::vector<Channel*> channelsToInform = clientQuitting->getAllChannels();
+	Client					*clientQuitting = server->getClientByFd(socket);
+	std::vector<Channel*>	channelsToInform = clientQuitting->getAllChannels();
+	std::string				msgChannel;
+
 	if (command.params.empty())
 		server->sendMsg("QUIT\r\n", socket);
 	else if (!command.params[0].empty())
 		server->sendMsg("QUIT : " + command.params[0] + "\r\n", socket);
+	server->deleteClient(clientQuitting->getFd());
 	if (!command.params.empty())
-		std::string msgChannel = "QUIT : " + command.params[0] + "\r\n";
+		msgChannel = "QUIT : " + command.params[0] + "\r\n\r\n";
 	else
-		std::string msgChannel = "QUIT\r\n";
-	struct epoll_event ep_event = server->getEventFd(clientQuitting);
-	server->deleteClient(clientQuitting, ep_event);
-	//if (!channelsToInform.empty())
-	//	server->sendMsg(msgChannel, channelsToInform);
-
+		msgChannel = "QUIT\r\n";
+	if (!channelsToInform.empty())
+	{
+		std::cout << msgChannel << std::endl;
+		server->sendMsg(msgChannel, channelsToInform);
+	}
 }
-cmd_func squit;
+
+//TODO a tester
+void	squit(Server *server, int socket, Commands command)
+{
+	Client *client = server->getClientByFd(socket);
+	if (!(client->getMode() & SERVEROPERATOR))
+		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
+	if (command.params.size() != 2)
+		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
+	if ((server->getHostname()).compare(command.params[0]) != 0)
+		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
+	std::string msg = command.params[1];
+	server->broadcast(msg, socket);
+	is_running = false;
+}
+
 
 /*
  * 3.2 Channel operations
@@ -465,15 +489,10 @@ void notice(Server *server, int socket, Commands command)
 
 void motd(Server *server, int socket, Commands command)
 {
-	// TODO Reminder to create a message of the day when constructing the Server
-	/*std::string messageOfTheDay = server->getMessageOfTheDay();
-	  if (messageOfTheDay.empty())
-	  return server->sendMsg(ERR_NOMOTD, socket);*/
 	try
 	{
 		server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
 		server->shapeMessageOftheDay(server->getMessageOfTheDay(), socket);
-		//server->sendMsg(RPL_MOTD(messageOfTheDay), socket);
 		server->sendMsg(RPL_ENDOFMOTD, socket);
 	}
 	catch (numericRepliesError &e)
@@ -547,8 +566,62 @@ cmd_func whowas;
  * 3.7 Miscellaneous messages
  */
 cmd_func kill;
-cmd_func ping;
-cmd_func pong;
+void	kill(Server *server, int socket, Commands command)
+{
+	return;
+}
+
+/*
+ * 3.7.2 Ping message
+ *	@Brief The PING command is used to test the presence of an active client or
+ *		   server at the other end of the connection.
+ *		   https://www.digitalocean.com/community/tutorials/compare-strings-in-c-plus-plus
+ */
+
+void	ping(Server *server, int socket, Commands command)
+{
+	if (command.params.size() == 0)
+		return server->sendMsg(ERR_NOORIGIN, socket);
+	if (1 <= command.params.size())
+	{
+		std::string expediteur = command.params[0];
+		if (command.params.size() == 2)
+		{
+			std::string serverRecipient = command.params[1];
+			std::cout << server->getHostname() << std::endl;
+			if (server->getHostname().compare(serverRecipient) != 0)
+				return server->sendMsg(ERR_NOSUCHSERVER(serverRecipient), socket);
+		}
+		return server->sendMsg(PONG(server->getHostname()), socket);
+	}
+
+}
+
+/*
+ * 3.7.3 Pong message
+ *	@Brief PONG message is a reply to ping message.
+ */
+void	pong(Server *server, int socket, Commands command)
+{
+	if (command.params.size() == 0)
+		return server->sendMsg(ERR_NOORIGIN, socket);
+	if (1 <= command.params.size())
+	{
+		std::string expediteur = command.params[0];
+		if (command.params.size() == 2)
+		{
+			std::string serverRecipient = command.params[1];
+			std::cout << server->getHostname() << std::endl;
+			if (server->getHostname().compare(serverRecipient) != 0)
+				return server->sendMsg(ERR_NOSUCHSERVER(serverRecipient), socket);
+		}
+		Client *client = server->getClientByFd(socket);
+		if (client)
+			client->setStatus(ALIVE);
+	}
+
+}
+
 cmd_func error;
 
 /*

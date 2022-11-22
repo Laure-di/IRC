@@ -17,7 +17,7 @@ struct NumericReplies
 #define RPL_WELCOME(fullIdentifier)                                     \
     NumericReplies(001, "Welcome to the Internet Relay Network " + fullIdentifier + "\r\n")
 #define RPL_CREATED(date) \
-    NumericReplies(003, ":This server was created " + date + "\r\n")
+    NumericReplies(003, ":This server was created " + date) //TODO check pourquoi pas /r/n??
 #define RPL_BOUNCE(serverName, port) \
     NumericReplies(005, "Try server " + serverName + ", port " + port + "\r\n")
 #define RPL_YOURESERVICE(servicename) \
@@ -272,5 +272,14 @@ struct NumericReplies
 #define ERR_CANTKILLSERVER \
     NumericReplies(483, ":You can't kill a server!\r\n")
 #define ERR_NOOPERHOST NumericReplies(491, ":No O-lines for your host\r\n")
+
+#define RPL_CLIENT(line) \
+	NumericReplies(0, line + "\r\n")
+#define ERR_CLIENT(line) \
+	NumericReplies(0, line + "\r\n")
+#define	PONG(expediteur) \
+	NumericReplies(0, "Pong message from " + expediteur + "\r\n")
+#define	PING(expediteur)\
+	NumericReplies(0, "Ping message from " + expediteur + "\r\n")
 
 #endif

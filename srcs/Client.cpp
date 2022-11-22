@@ -105,7 +105,6 @@ std::string		Client::getAwayMessage(void)const
 
 void	Client::setNickname(std::string nickname)
 {
-	//TODO faire les check nickname
 	this->_nickname = nickname;
 }
 
@@ -171,6 +170,11 @@ void	Client::setAwayMessage(std::string awayMessage)
 	_awayMessage = awayMessage;
 }
 
+void	Client::addChannel(Channel* channel, std::string channelName)
+{
+	_channels.insert(std::make_pair(channelName, channel));
+}
+
 void	Client::append(std::string buffer)
 {
 	_buffer += buffer;
@@ -194,3 +198,16 @@ std::string		Client::getModeStr(void) const
 		res += "o";
 	return res;
 }
+
+void	Client::removeFromAllChannels(void)
+{
+	std::map<std::string, Channel*>::const_iterator	it = _channels.begin();
+	for(; it != _channels.end(); it++)
+	{
+		std::map<std::string, Client*>				clientsOnChannel = it->second->getClients();
+		std::map<std::string, Client*>::iterator	ite = clientsOnChannel.end();
+		if ((it->second->getClients()).find(_nickname) != ite)
+			(it->second)->remClient(_nickname);
+	}
+}
+

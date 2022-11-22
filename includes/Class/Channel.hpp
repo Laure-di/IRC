@@ -44,6 +44,7 @@ class Channel
 		std::vector<Client*>	getAllClients(void)const;
 		void setName(std::string name);
 		std::string getTopic(void);
+		std::map<std::string, Client*>	getClients(void)const;
 		void setTopic(std::string topic);
 		void clearTopic(void);
 		size_t getNumberOfUsers(void);

@@ -12,6 +12,13 @@ enum ClientModes
     SERVEROPERATOR = 8,
 };
 
+enum ClientStatus
+{
+	ALIVE = 0,
+	PINGED = 1,
+	DEAD = 3,
+};
+
 class Client
 {
 	private:
@@ -70,8 +77,10 @@ class Client
 		void					setLastRecipient(Client* recipient);
 		void					setActiveChannel(Channel* active);
 		void					setAwayMessage(std::string awayMessage);
+		void					addChannel(Channel* channel, std::string channelName);
 		void					append(std::string buffer);
 		void					clearBuffer(void);
+		void					removeFromAllChannels(void);
 };
 
 #endif
