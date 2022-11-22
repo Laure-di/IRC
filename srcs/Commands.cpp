@@ -162,7 +162,7 @@ void	quit(Server *server, int socket, Commands command)
 	}
 }
 
-cmd_func squit;
+//TODO a tester
 void	squit(Server *server, int socket, Commands command)
 {
 	Client *client = server->getClientByFd(socket);
@@ -173,8 +173,8 @@ void	squit(Server *server, int socket, Commands command)
 	if ((server->getHostname()).compare(command.params[0]) != 0)
 		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
 	std::string msg = command.params[1];
-	//TODO send to all users of the server
-	//close server
+	server->broadcast(msg, socket);
+	is_running = false;
 }
 
 
