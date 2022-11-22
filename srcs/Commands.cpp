@@ -557,10 +557,15 @@ cmd_func error;
 void away(Server *server, int socket, Commands command)
 {
 	Client *client = server->getClientByFd(socket);
+	std::string nickname = client->getNickname();
 	if(command.params.size() == 0)
-		return client->remMode(AWAY);
+	{
+		client->remMode(AWAY);
+		return server->sendMsg(RPL_NOWAWAY, socket);
+	}
 	client->addMode(AWAY);
 	client->setAwayMessage(command.params[0]);
+	server->sendMsg(RPL_UNAWAY, socket);
 }
 
 cmd_func rehash;
