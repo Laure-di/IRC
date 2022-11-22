@@ -257,9 +257,17 @@ void	Server::executeCommands(std::string buffer, Client *client)
 	for (size_t i = 0; i < commandsList.size(); i++)
 	{
 		if (!isClientFullyRegister(client) && !isRegistrationCmd(commandsList[i].command))
-			return this->sendMsg(ERR_NOTREGISTERED, client->getFd()); //451
+			return this->sendMsg(ERR_NOTREGISTERED, client->getFd());
 		if (_cmdDict.find(commandsList[i].command) != _cmdDict.end())
-			this->_cmdDict[commandsList[i].command](this, client->getFd(), commandsList[i]);
+		{
+			if (commandsList[i].params.size() <= MAX_PARAMS)
+				this->_cmdDict[commandsList[i].command](this, client->getFd(), commandsList[i]);
+			else
+			{
+				std::string error("You can't use more than 15 parameters");
+				this->sendMsg(ERR_CLIENT(error), client->getFd());
+			}
+		}
 		else
 			this->sendMsg(ERR_UNKNOWNCOMMAND(commandsList[i].command), client->getFd());
 		if (i == commandsList.size())
@@ -447,7 +455,7 @@ void	Server::createCmdDict(void)
 	_cmdDict["MODE"] = &mode;
 	// _cmdDict["SERVICE"] = &service;
 	_cmdDict["QUIT"] = &quit;
-	// _cmdDict["SQUIT"] = &squit;
+	_cmdDict["SQUIT"] = &squit;
 	_cmdDict["JOIN"] = &join;
 	_cmdDict["PART"] = &part;
 	// _cmdDict["TOPIC"] = &topic;

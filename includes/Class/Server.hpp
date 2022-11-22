@@ -5,6 +5,8 @@
 #define BACKLOG		10
 #define TIME_OUT	-1
 #define BUFFER_SIZE 500000
+#define	CMD_MAX_LGHT	510
+#define	MAX_PARAMS	15
 #define HOSTNAME "mumurdelamachine.42.fr"
 #define	VERSION	"1.0"
 #define MOTD_FILE "conf/motd.txt"
