@@ -174,7 +174,7 @@ void	squit(Server *server, int socket, Commands command)
 		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
 	std::string msg = command.params[1];
 	server->broadcast(msg, socket);
-	is_running = false;
+	// is_running = false;
 }
 
 
@@ -364,7 +364,7 @@ void invite(Server *server, const int socket, Commands command)
 		return server->sendMsg(ERR_NOTONCHANNEL(channelName), socket);
 	if (channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_USERONCHANNEL(nickname, channelName), socket);
-	if (channel->getMode() | INVITATION && !channel->checkOperatorByNickname(nickname))
+	if ((channel->getMode() & INVITATION) && !channel->checkOperatorByNickname(nickname))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channelName), socket);
 	if (invitedClient->getMode() & AWAY)
 		return server->sendMsg(RPL_AWAY(nickname, invitedClient->getAwayMessage()), socket);
@@ -389,7 +389,6 @@ void kick(Server *server, int socket, Commands command)
 	Client *currentClient = server->getClientByFd(socket);
 	std::string nickname = currentClient->getNickname();
 	std::string kickMessage;
-	std::cout << "kick message : " << command.params[2] << std::endl;
 	if (channels.size() == 1 && users.size() == 1)
 	{
 		if (command.params.size() > 2)
@@ -444,22 +443,27 @@ void privmsg(Server *server, int socket, Commands command)
 	if(command.params.size() == 1)
 		return server->sendMsg(ERR_NOTEXTTOSEND, socket);
 	std::vector<std::string> recipients = splitComma(command.params[0]);
-	std::string msg = command.params[1];
+	Client *client = server->getClientByFd(socket);
 	std::vector<std::string>::iterator it;
 	for (it = recipients.begin(); it != recipients.end(); it++)
 	{
 		std::string name = *it;
+		std::string msg = ":" + client->getFullIdentifier() + " " + command.command + " " + name + " :" + command.params[1] + "\r\n";
 		if (checkChannelName(name))
 		{
 			Channel *channel = server->getChannelByName(name);
 			if (channel)
-				channel->sendMsg(msg);
+				channel->sendMsg(msg, client);
 		}
 		else
 		{
-			Client *client = server->getClientByNickname(name);
-			if (client)
-				server->sendMsg(msg, client);
+			Client *recipient = server->getClientByNickname(name);
+			if (recipient)
+			{
+				if (recipient->getMode() & AWAY)
+					server->sendMsg(RPL_AWAY(name, recipient->getAwayMessage()), socket);
+				server->sendMsg(msg, recipient);
+			}
 		}
 	}
 	return;
@@ -489,6 +493,7 @@ void notice(Server *server, int socket, Commands command)
 
 void motd(Server *server, int socket, Commands command)
 {
+	(void) command;
 	try
 	{
 		server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
@@ -502,18 +507,6 @@ void motd(Server *server, int socket, Commands command)
 
 }
 
-/**
- * 3.4.2 Lusers message
- *
- * @brief The LUSERS command is used to get statistics about the size of the
- * IRC network.
- */
-void lusers(Server *server, int socket, Commands command)
-{
-	return;
-}
-
-
 cmd_func lusers;
 cmd_func version;
 cmd_func stats;
@@ -521,6 +514,7 @@ cmd_func links;
 
 void	time(Server *server, int socket, Commands command)
 {
+	(void) command;
 	server->printCurrentLocaltime(socket);
 }
 
@@ -566,10 +560,6 @@ cmd_func whowas;
  * 3.7 Miscellaneous messages
  */
 cmd_func kill;
-void	kill(Server *server, int socket, Commands command)
-{
-	return;
-}
 
 /*
  * 3.7.2 Ping message

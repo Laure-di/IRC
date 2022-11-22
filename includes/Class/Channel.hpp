@@ -55,8 +55,9 @@ class Channel
 		bool checkOperatorByNickname(std::string nickname);
 		void addClient(int socket);
 		void remClient(std::string nickname);
-		void sendMsg(std::string message, Client*sender);
 		void sendMsg(std::string message);
+		void sendMsg(std::string message, Client*sender);
+		void sendMsg(std::string message, int fd);
 		void sendJoin(Client *client);
 		void sendPart(Client *Client, std::string leaveMessage);
 		void sendTopic(int socket);

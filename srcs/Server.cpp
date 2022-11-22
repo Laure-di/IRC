@@ -1,7 +1,5 @@
 #include "../includes/include.hpp"
 
-#define DEBUG
-
 static bool is_running=true;
 
 /****************************************************************************/
@@ -182,7 +180,9 @@ void	Server::sendMsg(NumericReplies reply, const int fd)
 
 void	Server::sendMsg(const std::string msg, const int fd)
 {
-	std::cout << "Sent :\n---------------\n" << msg << "---------------\n\n";
+#ifdef DEBUG
+	std::cout << "Sent in fd " << fd << " :\n---------------\n" << msg << "---------------\n\n";
+#endif
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
@@ -377,7 +377,7 @@ int		Server::_handleMessage(epoll_event ep_event)
 	currentClient->clearBuffer();
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
 #ifdef DEBUG
-	std::cout << "Received :\n---------------\n" << buffer << "---------------\n\n";
+	std::cout << "Received from fd " << ep_event.data.fd << " :\n---------------\n" << buffer << "---------------\n\n";
 #endif
 	if (numbytes <= 0)
 		return (-1);
@@ -545,10 +545,11 @@ void		Server::createAndBind(char *port)
  **	Quit && Exit method
  **/
 
-void Server::addChannel(std::string name, Client* creator)
+Channel  *Server::addChannel(std::string name, Client* creator)
 {
 	Channel *newChannel = new Channel(this, name, creator);
 	_channels[name] = newChannel;
+	return newChannel;
 }
 
 void	Server::deleteAllChannels(void)
@@ -601,7 +602,7 @@ void	Server::clearServer(void) //TODO link with signal??!!
 {
 	struct epoll_event	ev;
 
-	memset(&ev, 0, sizeof(ev));	
+	memset(&ev, 0, sizeof(ev));
 	std::map<int, Client*>::iterator it;
 	std::map<int, Client*>::iterator ite = this->_clients.end();
 	for (it = this->_clients.begin(); it != ite;)
@@ -656,20 +657,26 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 	Client *client = getClientByFd(socket);
 	std::string nickname = client->getNickname();
 	if (!channel)
-		return addChannel(channelName, client);
-	if ((channel->getMode() & INVITATION) && !(channel->isInvited(nickname)))
-		return sendMsg(ERR_INVITEONLYCHAN(channelName), socket);
-	if (channel->isBanned(nickname) && !(channel->isExcepted(nickname)))
-		return sendMsg(ERR_BANNEDFROMCHAN(channelName), socket);
-	if ((channel->getMode() & LIMIT) && channel->getNumberOfUsers() == channel->getMaxLimitOfUsers())
-		return sendMsg(ERR_CHANNELISFULL(channelName), socket);
-	if ((channel->getMode() & KEY) && !channel->checkPassword(key))
-		return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
-	channel->addClient(socket);
+		channel = addChannel(channelName, client);
+	else
+	{
+		if ((channel->getMode() & INVITATION) && !(channel->isInvited(nickname)))
+			return sendMsg(ERR_INVITEONLYCHAN(channelName), socket);
+		if (channel->isBanned(nickname) && !(channel->isExcepted(nickname)))
+			return sendMsg(ERR_BANNEDFROMCHAN(channelName), socket);
+		if ((channel->getMode() & LIMIT) && channel->getNumberOfUsers() == channel->getMaxLimitOfUsers())
+			return sendMsg(ERR_CHANNELISFULL(channelName), socket);
+		if ((channel->getMode() & KEY) && !channel->checkPassword(key))
+			return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
+		channel->addClient(socket);
+
+	}
 	channel->sendJoin(client);
+	channel->sendListOfNames(socket);
 	if (!channel->getTopic().empty())
 		channel->sendTopic(socket);
-	channel->sendListOfNames(socket);
+	else
+		sendMsg(RPL_NOTOPIC(channelName), socket);
 	client->addChannel(channel, channelName);
 }
 
