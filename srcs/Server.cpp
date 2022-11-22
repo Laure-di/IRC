@@ -468,7 +468,7 @@ void	Server::createCmdDict(void)
 	_cmdDict["PART"] = &part;
 	_cmdDict["TOPIC"] = &topic;
 	_cmdDict["NAMES"] = &names;
-	// _cmdDict["LIST"] = &list;
+	_cmdDict["LIST"] = &list;
 	// _cmdDict["INVITE"] = &invite;
 	_cmdDict["KICK"] = &kick;
 	_cmdDict["PRIVMSG"] = &privmsg;

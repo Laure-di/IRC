@@ -190,7 +190,6 @@ void	squit(Server *server, int socket, Commands command)
  */
 void join(Server *server, int socket, Commands command)
 {
-	// TODO Add Join 0
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> names = splitComma(command.params[0]);
