@@ -138,7 +138,8 @@ void cap(Server *server, int socket, Commands command)
 	(void)command;
 	return ;
 }
-//TODO a finir
+
+
 void	quit(Server *server, int socket, Commands command)
 {
 	Client					*clientQuitting = server->getClientByFd(socket);
@@ -159,10 +160,23 @@ void	quit(Server *server, int socket, Commands command)
 		std::cout << msgChannel << std::endl;
 		server->sendMsg(msgChannel, channelsToInform);
 	}
-	//TODO send to every client except the one who quit the channel
-
 }
+
 cmd_func squit;
+void	squit(Server *server, int socket, Commands command)
+{
+	Client *client = server->getClientByFd(socket);
+	if (!(client->getMode() & SERVEROPERATOR))
+		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
+	if (command.params.size() != 2)
+		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
+	if ((server->getHostname()).compare(command.params[0]) != 0)
+		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
+	std::string msg = command.params[1];
+	//TODO send to all users of the server
+	//close server
+}
+
 
 /*
  * 3.2 Channel operations

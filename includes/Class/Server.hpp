@@ -24,8 +24,8 @@ class Server
 		std::map<const int, Client*>	_clients;
 		std::map<std::string, Channel*>	_channels;
 		std::map<std::string, time_t>	_nicknameUnavailable;
-		const std::string	_adminLogin;
-		const unsigned _adminPasswordHash;
+		const std::string				_adminLogin;
+		const unsigned					_adminPasswordHash;
 
 		void									_createPoll(void);
 		void									_acceptNewClient(int listenSocket, int pollfd);
