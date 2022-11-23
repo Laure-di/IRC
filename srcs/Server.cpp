@@ -97,7 +97,11 @@ Client* Server::getClientByNickname(const std::string nickname) const
 
 Client* Server::getClientByFd(size_t fd)
 {
-	return _clients[fd];
+	std::map<const int, Client*>::const_iterator cit;
+	cit = _clients.find(fd);
+	if (cit != _clients.end())
+		return cit->second;
+	return 0;
 }
 
 /*struct epoll_event		Server::getEventFd(Client *client)
@@ -115,7 +119,11 @@ Client* Server::getClientByFd(size_t fd)
 
 Channel* Server::getChannelByName(const std::string name)
 {
-	return _channels[name];
+	std::map<std::string, Channel*>::const_iterator cit;
+	cit = _channels.find(name);
+	if (cit != _channels.end())
+		return cit->second;
+	return 0;
 }
 
 std::map<std::string, Channel*> Server::getAllChannels(void)
@@ -345,10 +353,9 @@ void	Server::sendAllUsers(int socket)
 	}
 	if (clientNotInChannels.size())
 	{
-		std::vector<std::string> clientNicknames;
 		std::string delim = " ";
 		std::ostringstream joinedClientNicknames;
-		std::copy(clientNicknames.begin(), clientNicknames.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
+		std::copy(clientNotInChannels.begin(), clientNotInChannels.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
 		std::string channelStatus = "*";
 		std::string channelName = "channel";
 		sendMsg(RPL_NAMREPLY(channelStatus, channelName, joinedClientNicknames.str()), socket);
@@ -362,7 +369,7 @@ void	Server::sendAllChannels(int socket)
 	for (cit = _channels.begin(); cit != _channels.end(); cit++)
 	{
 		Channel *channel = cit->second;
-		if (!(channel->getMode() & SECRET))
+		if (channel && !(channel->getMode() & SECRET))
 			channel->sendInfo(socket);
 	}
 	sendMsg(RPL_LISTEND, socket);
@@ -560,6 +567,7 @@ void	Server::deleteAllChannels(void)
 		std::map<std::string, Channel*>::iterator it = _channels.begin();
 		for (; it != _channels.end(); it++)
 			delete it->second;
+		_channels.clear();
 	}
 }
 

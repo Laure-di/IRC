@@ -54,11 +54,19 @@ void Channel::clearTopic(void) {
 
 Client *Channel::getClientByNickname(const std::string nickname)
 {
-	return _clients[nickname];
+	std::map<std::string, Client*>::const_iterator cit;
+	cit = _clients.find(nickname);
+	if (cit != _clients.end())
+		return cit->second;
+	return 0;
 }
 
 bool Channel::checkOperatorByNickname(std::string nickname)
 {
+	std::map<std::string, Client*>::const_iterator cit;
+	cit = _clients.find(nickname);
+	if (cit == _clients.end())
+		return false;
 	return _clientsMode[nickname] & OPERATOR || _clientsMode[nickname] & CREATOR;
 }
 
@@ -324,6 +332,10 @@ void Channel::sendInfo(const int socket)
 std::string Channel::getClientPrefix(const Client *client)
 {
 	std::string nickname = client->getNickname();
+	std::map<std::string, Client*>::const_iterator cit;
+	cit = _clients.find(nickname);
+	if (cit == _clients.end())
+		return ("");
 	// IRSSI do not treat correctly "~" for creator
 	if (_clientsMode[nickname] & CREATOR)
 		return "@";

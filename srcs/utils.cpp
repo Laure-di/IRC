@@ -151,7 +151,6 @@ bool checkChannelid(std::string channelid) {
  * @brief Check channel name
  *
  * channel =  ( "#" / "+" / ( "!" channelid ) / "&" ) chanstring [ ":" chanstring ]
- * For now, only check channel = ("#" / "&") chanstring
  */
 bool checkChannelName(std::string name) {
 	if (name.length() < 2)
