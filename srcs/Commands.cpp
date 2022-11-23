@@ -162,19 +162,18 @@ void	quit(Server *server, int socket, Commands command)
 	}
 }
 
-//TODO a tester
 void	squit(Server *server, int socket, Commands command)
 {
 	Client *client = server->getClientByFd(socket);
-//	if (!(client->getMode() & SERVEROPERATOR))
-//		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
+	if (!(client->getMode() & SERVEROPERATOR))
+		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
 	if (command.params.size() != 2)
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
 	std::cout << "Hostname " << server->getHostname() << std::endl;
 	if (server->getHostname().compare(command.params[0]) != 0)
 		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
 	std::vector<std::string> msg;
-	msg.push_back(" to terminate the connection with the comment :  " + command.params[1]);
+	msg.push_back("terminate the connection with the comment :" + command.params[1]);
 	Commands cmd("WALLOPS", "", msg, false);
 	wallops(server, socket, cmd);
 	//server->broadcast(msg, socket);
@@ -651,7 +650,7 @@ void	wallops(Server *server, int socket, Commands command)
 {
 	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::vector<Client*> vec = server->getAllClients();
+	std::vector<std::string> vec = server->getAllClients();
 	std::vector<Client*>::iterator	it= vec.begin();
 	for(; it != vec.end(); it++)
 	{
