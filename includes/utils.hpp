@@ -24,7 +24,7 @@ bool							checkNickname(std::string nickname);
 unsigned						hasher(const char *s);
 bool							checkChanstring(std::string name);
 bool							checkChannelName(std::string name);
-std::vector<std::string>		splitComma(std::string string);
+bool isChannelName(std::string name);
 bool							strmatch(std::string string, std::string pattern);
 void applyModeChangesChannel(Server *server, int socket, std::string flags, std::string param, Channel *channel);
 void applyModeChangesClient(Server *server, int socket, std::string flags, Client *client);

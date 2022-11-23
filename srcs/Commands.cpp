@@ -195,10 +195,10 @@ void join(Server *server, int socket, Commands command)
 {
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::vector<std::string> names = splitComma(command.params[0]);
+	std::vector<std::string> names = splitBy(command.params[0], ",");
 	std::vector<std::string> keys;
 	if (command.params.size() > 1)
-		keys = splitComma(command.params[1]);
+		keys = splitBy(command.params[1], ",");
 	for (size_t i = 0; i < names.size(); i++) {
 		std::string key;
 		if (i < keys.size())
@@ -218,7 +218,7 @@ void part(Server *server, int socket, Commands command)
 {
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::vector<std::string> names = splitComma(command.params[0]);
+	std::vector<std::string> names = splitBy(command.params[0], ",");
 	std::vector<std::string>::iterator name;
 	std::string leaveMessage;
 	if(command.params.size() > 1)
@@ -250,7 +250,7 @@ void mode(Server *server, int socket, Commands command)
 	std::string flags;
 	if(command.params.size() > 1)
 		flags = command.params[1];
-	if (checkChannelName(name))
+	if (isChannelName(name))
 	{
 		channel = server->getChannelByName(name);
 		if (!channel)
@@ -315,7 +315,7 @@ void names(Server *server, int socket, Commands command)
 {
 	if(!command.params.size())
 		return server->sendAllUsers(socket);
-	std::vector<std::string> channelNames = splitComma(command.params[0]);
+	std::vector<std::string> channelNames = splitBy(command.params[0], ",");
 	std::vector<std::string>::const_iterator cit;
 	for (cit = channelNames.begin(); cit != channelNames.end(); cit++)
 	{
@@ -335,16 +335,9 @@ void names(Server *server, int socket, Commands command)
  */
 void list(Server *server, int socket, Commands command)
 {
-	std::cout << "Empty :" << command.params.empty() << std::endl;
-	std::cout << "Size :" << command.params.size() << std::endl;
-	if(!command.params.empty()) {
-		std::cout << "Params[0] :" << command.params[0] << std::endl;
-		std::cout << "Params[0] :" << command.params[0].empty() << std::endl;
-	}
-
 	if(command.params.empty())
 		return server->sendAllChannels(socket);
-	std::vector<std::string> channelNames = splitComma(command.params[0]);
+	std::vector<std::string> channelNames = splitBy(command.params[0], ",");
 	std::vector<std::string>::const_iterator cit;
 	for (cit = channelNames.begin(); cit != channelNames.end(); cit++)
 	{
@@ -373,15 +366,17 @@ void invite(Server *server, const int socket, Commands command)
 	if (!channel)
 		return server->sendMsg(ERR_NOSUCHNICK(channelName), socket);
 	Client *client = server->getClientByFd(socket);
+	std::string clientNickname = client->getNickname();
 	if (!channel->getClientByNickname(client->getNickname()))
 		return server->sendMsg(ERR_NOTONCHANNEL(channelName), socket);
 	if (channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_USERONCHANNEL(nickname, channelName), socket);
-	if ((channel->getMode() & INVITATION) && !channel->checkOperatorByNickname(nickname))
+	if ((channel->getMode() & INVITATION) && !channel->checkOperatorByNickname(clientNickname))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channelName), socket);
 	if (invitedClient->getMode() & AWAY)
-		return server->sendMsg(RPL_AWAY(nickname, invitedClient->getAwayMessage()), socket);
+		server->sendMsg(RPL_AWAY(nickname, invitedClient->getAwayMessage()), socket);
 	server->sendMsg(RPL_INVITING(nickname, channelName), invitedClient->getFd());
+	channel->modClientMask('I', true, nickname);
 }
 
 /**
@@ -397,10 +392,11 @@ void kick(Server *server, int socket, Commands command)
 	// Should an operator be able to kick another operator ? I supposed so
 	if(command.params.size() < 2)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::vector<std::string> channels = splitComma(command.params[0]);
-	std::vector<std::string> users = splitComma(command.params[1]);
+	std::vector<std::string> channels = splitBy(command.params[0], ",");
+	std::vector<std::string> users = splitBy(command.params[1], ",");
 	Client *currentClient = server->getClientByFd(socket);
 	std::string nickname = currentClient->getNickname();
+	std::string fullIdentifier = currentClient->getFullIdentifier();
 	std::string kickMessage;
 	if (channels.size() == 1 && users.size() == 1)
 	{
@@ -433,7 +429,7 @@ void kick(Server *server, int socket, Commands command)
 				server->sendMsg(ERR_USERNOTINCHANNEL(clientName, channelName), socket);
 				continue;
 			}
-			channel->sendMsg("KICK " + channelName + " " + clientName + " :" + kickMessage + "\r\n");
+			channel->sendMsg(":" + fullIdentifier + " KICK " + channelName + " " + clientName + " :" + kickMessage + "\r\n");
 			channel->remClient(clientName);
 		}
 	}
@@ -455,8 +451,9 @@ void privmsg(Server *server, int socket, Commands command)
 		return server->sendMsg(ERR_NORECIPIENT(command.command), socket);
 	if(command.params.size() == 1)
 		return server->sendMsg(ERR_NOTEXTTOSEND, socket);
-	std::vector<std::string> recipients = splitComma(command.params[0]);
+	std::vector<std::string> recipients = splitBy(command.params[0], ",");
 	Client *client = server->getClientByFd(socket);
+	std::string nickname = client->getNickname();
 	std::vector<std::string>::iterator it;
 	for (it = recipients.begin(); it != recipients.end(); it++)
 	{

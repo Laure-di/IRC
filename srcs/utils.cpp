@@ -126,7 +126,7 @@ unsigned hasher(const char *s)
  * chanstring =/ %x2D-39 / %x3B-FF; any octet except NUL, BELL, CR, LF, " ", "," and ":"
  */
 bool checkChanstring(std::string name) {
-	std::string forbiddenCharacters = "\0\a\n\r ,:";
+	std::string forbiddenCharacters = "\a\n\r ,:";
 	for (size_t i = 0; i < forbiddenCharacters.size(); i++) {
 		if (name.find(forbiddenCharacters[i]) != std::string::npos)
 			return false;
@@ -148,7 +148,7 @@ bool checkChannelid(std::string channelid) {
 };
 
 /**
- * @brief Check channel name
+ * @brief Check if channel name is correct
  *
  * channel =  ( "#" / "+" / ( "!" channelid ) / "&" ) chanstring [ ":" chanstring ]
  */
@@ -169,6 +169,15 @@ bool checkChannelName(std::string name) {
 	return checkChanstring(name);
 };
 
+/**
+ * @brief Check if the string is a channel name (starting by a channel character)
+ */
+bool isChannelName(std::string name) {
+	char firstChar = name[0];
+	if (firstChar != '#' && firstChar != '+' && firstChar != '!' && firstChar != '&')
+		return false;
+	return true;
+}
 
 void	addElementsVector(std::vector<std::string> *list, std::vector<std::string> toAdd)
 {
@@ -200,23 +209,6 @@ std::vector<std::string> splitBy(std::string string, std::string delimiter)
 	return (result);
 }
 
-std::vector<std::string> splitComma(std::string string)
-{
-	std::vector<std::string>	result;
-	size_t	start = 0;
-	size_t	end;
-
-	while (true)
-	{
-		end = string.find(",", start);
-		if (end == std::string::npos)
-			break;
-		result.push_back(string.substr(start, end));
-		start = end + 1;
-	}
-	result.push_back(string.substr(start, string.length()));
-	return (result);
-}
 /**
  * @brief Wildcard pattern matching algorithm
  *

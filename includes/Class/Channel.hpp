@@ -53,6 +53,7 @@ class Channel
 		std::string getModeStr(void) const;
 		Client *getClientByNickname(std::string nickname);
 		bool checkOperatorByNickname(std::string nickname);
+		bool checkVoiceByNickname(std::string nickname);
 		void addClient(int socket);
 		void remClient(std::string nickname);
 		void sendMsg(std::string message);

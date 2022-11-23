@@ -70,6 +70,15 @@ bool Channel::checkOperatorByNickname(std::string nickname)
 	return _clientsMode[nickname] & OPERATOR || _clientsMode[nickname] & CREATOR;
 }
 
+bool Channel::checkVoiceByNickname(std::string nickname)
+{
+	std::map<std::string, Client*>::const_iterator cit;
+	cit = _clients.find(nickname);
+	if (cit == _clients.end())
+		return false;
+	return _clientsMode[nickname] & OPERATOR || _clientsMode[nickname] & CREATOR || _clientsMode[nickname] & VOICE;
+}
+
 void Channel::addClient(int socket)
 {
 	Client *client = _server->getClientByFd(socket);
@@ -99,7 +108,7 @@ void Channel::sendMsg(std::string message, Client *sender)
 {
 	std::string nickname = sender->getNickname();
 	int fd = sender->getFd();
-	if ((_mode & OUTSIDE) && !(getClientByNickname(nickname)))
+	if (((_mode & OUTSIDE) && !(getClientByNickname(nickname))) || ((_mode & MODERATED) && !(checkVoiceByNickname(nickname))))
 		return _server->sendMsg(ERR_CANNOTSENDTOCHAN(nickname), fd);
 	sendMsg(message, fd);
 }
@@ -177,6 +186,8 @@ std::string		Channel::getModeStr(void) const
 		res += "s";
 	if (_mode & TOPIC)
 		res += "t";
+	if (_mode & LIMIT)
+		res += "l";
 	return res;
 }
 
@@ -246,7 +257,7 @@ unsigned Channel::getMode(int socket)
 
 void Channel::modClientMode(const int socket, std::string nickname, unsigned mask, bool add)
 {
-	if (!_clients[nickname])
+	if (!getClientByNickname(nickname))
 		return _server->sendMsg(ERR_USERNOTINCHANNEL(nickname, _name), socket);
 	if (add)
 		_clientsMode[nickname] |= mask;
@@ -269,9 +280,11 @@ void Channel::modClientMask(unsigned type, bool add, std::string mask)
 		masksList = &_banExceptionMasks;
 		break;
 	case 'I':
-		maskName = "invite";
+		maskName = "invitation";
 		masksList = &_inviteMasks;
 		break;
+	default:
+		return;
 	}
 	if (add)
 		masksList->push_back(mask);
@@ -282,7 +295,7 @@ void Channel::modClientMask(unsigned type, bool add, std::string mask)
 	std::copy(masksList->begin(), masksList->end(), std::ostream_iterator<std::string>(joinedMasksStream, delim.c_str()));
 	std::string joinedMasks = joinedMasksStream.str();
 	joinedMasks = joinedMasks.substr(0, joinedMasks.size()-1);
-	sendMsg("The " + maskName + " are now " + joinedMasks + "\r\n");
+	sendMsg("The " + maskName + " mask is now : " + joinedMasks + "\r\n");
 }
 
 

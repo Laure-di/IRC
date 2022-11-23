@@ -52,8 +52,8 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #include "execution_utils.hpp"
 #include "commandsUtils.hpp"
 
-#define CLIENT_MODE "-/+airo"
-#define CHANNEL_MODE "-/+imnptkl"
+#define CLIENT_MODE "-/+airow"
+#define CHANNEL_MODE "-/+ikmnpstl"
 
 static bool is_running=true;
 
