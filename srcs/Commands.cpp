@@ -166,15 +166,16 @@ void	quit(Server *server, int socket, Commands command)
 void	squit(Server *server, int socket, Commands command)
 {
 	Client *client = server->getClientByFd(socket);
-	if (!(client->getMode() & SERVEROPERATOR))
-		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
+//	if (!(client->getMode() & SERVEROPERATOR))
+//		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
 	if (command.params.size() != 2)
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
-	if ((server->getHostname()).compare(command.params[0]) != 0)
+	std::cout << "Hostname " << server->getHostname() << std::endl;
+	if (server->getHostname().compare(command.params[0]) != 0)
 		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
 	std::string msg = command.params[1];
 	server->broadcast(msg, socket);
-	// is_running = false;
+	throw Server::serverError(client->getNickname(), " close the server because of :" + msg);
 }
 
 

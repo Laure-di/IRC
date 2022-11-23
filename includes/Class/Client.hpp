@@ -10,6 +10,7 @@ enum ClientModes
     INVISIBLE = 2,
     RESTRICTED = 4,
     SERVEROPERATOR = 8,
+	WALLOPS	= 16,
 };
 
 enum ClientStatus
@@ -80,6 +81,7 @@ class Client
 		void					addChannel(Channel* channel, std::string channelName);
 		void					append(std::string buffer);
 		void					clearBuffer(void);
+		void					removeChannel(std::string channelName);
 		void					removeFromAllChannels(void);
 };
 

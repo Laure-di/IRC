@@ -1,6 +1,7 @@
 #include "../includes/include.hpp"
 
-static bool is_running=true;
+#define DEBUG
+
 
 /****************************************************************************/
 /***					Constructor && Destructor						 ***/
@@ -694,6 +695,7 @@ void	Server::checkAndLeaveChannel(int socket, std::string channelName, std::stri
 		return sendMsg(ERR_NOTONCHANNEL(channelName), socket);
 	channel->sendPart(client, leaveMessage);
 	channel->remClient(client->getNickname());
+	client->removeChannel(channel->getName());
 }
 
 bool	Server::isInChannel(const std::string nickname) const

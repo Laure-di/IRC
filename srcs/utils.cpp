@@ -269,6 +269,9 @@ void applyModeChangesClient(Server *server, int socket, std::string flags, Clien
 			case 'r':
 				client->modMode(RESTRICTED, add);
 				break;
+			case 'w':
+				client->modMode(WALLOPS, add);
+				break;
 			case 'o':
 				// Only for removing for client
 				if (add)

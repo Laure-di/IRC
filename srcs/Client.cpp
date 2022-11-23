@@ -196,7 +196,15 @@ std::string		Client::getModeStr(void) const
 		res += "r";
 	if (_mode & SERVEROPERATOR)
 		res += "o";
+	if (_mode & WALLOPS)
+		res += "w";
 	return res;
+}
+
+void	Client::removeChannel(std::string channelName)
+{
+	if (_channels.find(channelName) != _channels.end())
+		_channels.erase(channelName);
 }
 
 void	Client::removeFromAllChannels(void)
