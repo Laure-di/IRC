@@ -377,7 +377,7 @@ int		Server::_handleMessage(epoll_event ep_event)
 	currentClient->clearBuffer();
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
 #ifdef DEBUG
-	std::cout << "Received from fd " << ep_event.data.fd << " :\n---------------\n" << buffer << "---------------\n\n";
+	std::cout << "Received from fd " << std::hex << ep_event.data.fd << " :\n---------------\n" << buffer << "---------------\n\n";
 #endif
 	if (numbytes <= 0)
 		return (-1);
@@ -492,7 +492,7 @@ void	Server::createCmdDict(void)
 	 _cmdDict["PING"] = &ping;
 	 _cmdDict["PONG"] = &pong;
 	// _cmdDict["ERROR"] = &error;
-	// _cmdDict["AWAY"] = &away;
+	_cmdDict["AWAY"] = &away;
 	// _cmdDict["REHASH"] = &rehash;
 	// _cmdDict["DIE"] = &die;
 	// _cmdDict["RESTART"] = &restart;

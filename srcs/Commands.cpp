@@ -275,7 +275,7 @@ void mode(Server *server, int socket, Commands command)
  */
 void topic(Server *server, int socket, Commands command)
 {
-	if(command.params.size() < 1)
+	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string channelName = command.params[0];
 	Channel* channel = server->getChannelByName(channelName);
@@ -283,7 +283,7 @@ void topic(Server *server, int socket, Commands command)
 		return;
 	Client *currentUser = server->getClientByFd(socket);
 	std::string nickname = currentUser->getNickname();
-	if (channel->getClientByNickname(nickname))
+	if (!channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_NOTONCHANNEL(channel->getName()), socket);
 	if (command.params.size() == 1 && !command.colon) {
 		if (channel->getTopic().empty())
@@ -292,11 +292,14 @@ void topic(Server *server, int socket, Commands command)
 	}
 	if ((channel->getMode() & TOPIC) && !(channel->checkOperatorByNickname(nickname)))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-	// Add check for ERR_NOCHANMODES
-	std::string topic = command.params[1];
-	if (command.params.size() == 1 && command.colon)
-		return channel->clearTopic();
-	channel->setTopic(topic);
+	// TODO Add check for ERR_NOCHANMODES
+	if (command.params.size() == 1)
+		channel->clearTopic();
+	else
+		channel->setTopic(command.params[1]);
+	if (channel->getTopic().empty())
+		return server->sendMsg(RPL_NOTOPIC(channel->getName()), socket);
+	server->sendMsg(RPL_TOPIC(channel->getName(), channel->getTopic()), socket);
 }
 
 /**
@@ -329,7 +332,14 @@ void names(Server *server, int socket, Commands command)
  */
 void list(Server *server, int socket, Commands command)
 {
-	if(!command.params.size())
+	std::cout << "Empty :" << command.params.empty() << std::endl;
+	std::cout << "Size :" << command.params.size() << std::endl;
+	if(!command.params.empty()) {
+		std::cout << "Params[0] :" << command.params[0] << std::endl;
+		std::cout << "Params[0] :" << command.params[0].empty() << std::endl;
+	}
+
+	if(command.params.empty())
 		return server->sendAllChannels(socket);
 	std::vector<std::string> channelNames = splitComma(command.params[0]);
 	std::vector<std::string>::const_iterator cit;
@@ -339,6 +349,7 @@ void list(Server *server, int socket, Commands command)
 		if (channel && !(channel->getMode() & SECRET))
 			channel->sendInfo(socket);
 	}
+	server->sendMsg(RPL_LISTEND, socket);
 }
 
 /**
@@ -623,11 +634,11 @@ void away(Server *server, int socket, Commands command)
 	if(command.params.size() == 0)
 	{
 		client->remMode(AWAY);
-		return server->sendMsg(RPL_NOWAWAY, socket);
+		return server->sendMsg(RPL_UNAWAY, socket);
 	}
 	client->addMode(AWAY);
 	client->setAwayMessage(command.params[0]);
-	server->sendMsg(RPL_UNAWAY, socket);
+	server->sendMsg(RPL_NOWAWAY, socket);
 }
 
 cmd_func rehash;
