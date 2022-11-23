@@ -55,3 +55,11 @@ void	stringToUpper(std::string *string)
 {
 	std::transform(string->begin(), string->end(), string->begin(), ::toupper);
 }
+
+bool	isCmdFull(std::string string)
+{
+	if (string.find("\n") != std::string::npos)
+		return true;
+	return false;
+}
+

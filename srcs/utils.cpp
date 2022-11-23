@@ -37,6 +37,21 @@ bool isDigit(const char c) {
 	return '0' <= c && c <= '9';
 }
 
+bool isNumber(char *str)
+{
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		if (!isDigit(str[i]))
+		{
+			std::cerr << "The port argument must be a positive number" << std::endl;
+			return (false);
+		}
+		i++;
+	}
+	return (true);
+}
+
 /**
  * @brief Check if a character is a hexadecimal digit letters
  */

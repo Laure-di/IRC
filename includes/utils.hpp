@@ -19,6 +19,7 @@ bool							isHyphen(const char c);
 bool							isSpecial(const char c);
 std::string						toString(const int nb);
 int								toInt(std::string string);
+bool							isNumber(char *str);
 bool							checkUsername(std::string username);
 bool							checkNickname(std::string nickname);
 unsigned						hasher(const char *s);
