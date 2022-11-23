@@ -173,9 +173,12 @@ void	squit(Server *server, int socket, Commands command)
 	std::cout << "Hostname " << server->getHostname() << std::endl;
 	if (server->getHostname().compare(command.params[0]) != 0)
 		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
-	std::string msg = command.params[1];
-	server->broadcast(msg, socket);
-	throw Server::serverError(client->getNickname(), " close the server because of :" + msg);
+	std::vector<std::string> msg;
+	msg.push_back(" to terminate the connection with the comment :  " + command.params[1]);
+	Commands cmd("WALLOPS", "", msg, false);
+	wallops(server, socket, cmd);
+	//server->broadcast(msg, socket);
+	throw Server::serverError(client->getNickname(), " close the server because of :" + command.params[1]);
 }
 
 
@@ -639,3 +642,21 @@ cmd_func users;
 cmd_func wallops;
 cmd_func userhost;
 cmd_func ison;
+
+/*
+ * 4.7 Operwall message
+ */
+
+void	wallops(Server *server, int socket, Commands command)
+{
+	if (command.params.empty())
+		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
+	std::vector<Client*> vec = server->getAllClients();
+	std::vector<Client*>::iterator	it= vec.begin();
+	for(; it != vec.end(); it++)
+	{
+		if ((*it)->getMode() & WALLOPS)
+			server->sendMsg(WALLOPS(server->getHostname(), server->getClientByFd(socket)->getNickname(), command.params[0]), (*it)->getFd());
+	}
+
+}

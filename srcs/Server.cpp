@@ -211,6 +211,7 @@ void	Server::broadcast(std::string msg, int expediteur)
 		sendMsg(finalMsg, it->second->getFd());
 }
 
+
 bool	Server::checkPassword(const std::string password) const
 {
 	return hasher(password.c_str()) == _passwordHash;

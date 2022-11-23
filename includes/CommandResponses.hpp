@@ -278,8 +278,11 @@ struct NumericReplies
 #define ERR_CLIENT(line) \
 	NumericReplies(0, line + "\r\n")
 #define	PONG(expediteur) \
-	NumericReplies(0, "Pong message from " + expediteur + "\r\n")
+	NumericReplies(0, "PONG: " + expediteur + "\r\n")
 #define	PING(expediteur)\
 	NumericReplies(0, "Ping message from " + expediteur + "\r\n")
+#define WALLOPS(serverName, expediteur, msg) \
+	NumericReplies(0, "Command from " + expediteur + " to " + msg + " " + " to/from " + serverName + "\r\n")
+
 
 #endif
