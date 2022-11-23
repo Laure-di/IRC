@@ -4,7 +4,7 @@ Channel::Channel(Server *server, std::string name, Client* creator): _server(ser
 {
 	std::string nickname = creator->getNickname();
 	_clients[nickname] = creator;
-	_clientsMode[nickname] = 4;
+	_clientsMode[nickname] = CREATOR;
 }
 
 std::string Channel::getName(void) {
@@ -150,8 +150,6 @@ void Channel::sendTopic(int socket)
 
 void Channel::sendListOfNames(const int socket)
 {
-	// Add Channel Status
-	// Add Nickname prefix for client mode
 	std::vector<std::string> clientNicknames;
 	std::map<std::string, Client*>::iterator clientIterator;
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)

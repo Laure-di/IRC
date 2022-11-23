@@ -552,15 +552,15 @@ void who(Server *server, int socket, Commands command)
 {
 	if(command.params.size() == 0)
 		return printWho(server, socket, server->getAllClients());
-	std::string params = command.params[0];
-	if(checkChannelName(params))
+	std::string channelName = command.params[0];
+	if(checkChannelName(channelName))
 	{
-		Channel *channel = server->getChannelByName(params);
+		Channel *channel = server->getChannelByName(channelName);
 		if (channel)
 			return printWho(server, socket, channel->getAllClients());
 		return;
 	}
-	return printWho(server, socket, server->getAllClientsMatching(params));
+	return printWho(server, socket, server->getAllClientsMatching(channelName));
 }
 
 cmd_func whois;
@@ -569,7 +569,6 @@ cmd_func whowas;
 /*
  * 3.7 Miscellaneous messages
  */
-cmd_func kill;
 
 /*
  * 3.7.1 Kill message

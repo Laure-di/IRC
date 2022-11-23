@@ -66,17 +66,6 @@ bool Client::getPwd(void)const
 	return (this->_pwd);
 }
 
-
-Client*	Client::getLastExpediteur(void)const
-{
-	return (this->_lastExpediteur);
-}
-
-Client*	Client::getLastRecipient(void)const
-{
-	return (this->_lastRecipient);
-}
-
 std::vector<Channel*>	Client::getAllChannels(void)const
 {
 	std::vector<Channel*>							list;
@@ -86,11 +75,6 @@ std::vector<Channel*>	Client::getAllChannels(void)const
 		list.push_back(it->second);
 	}
 	return (list);
-}
-
-Channel*	Client::getActiveChannel(void)const
-{
-	return (this->_activeChannel);
 }
 
 std::string		Client::getBuffer(void)const
@@ -148,21 +132,6 @@ void	Client::modMode(unsigned mask, bool add)
 	if (add)
 		return addMode(mask);
 	remMode(mask);
-}
-
-void	Client::setLastExpediteur(Client* expediteur)
-{
-	this->_lastExpediteur = expediteur;
-}
-
-void	Client::setLastRecipient(Client* recipient)
-{
-	this->_lastRecipient = recipient;
-}
-
-void	Client::setActiveChannel(Channel* active)
-{
-	this->_activeChannel = active;
 }
 
 void	Client::setAwayMessage(std::string awayMessage)
