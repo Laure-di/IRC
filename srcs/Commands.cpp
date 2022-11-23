@@ -650,7 +650,7 @@ void	wallops(Server *server, int socket, Commands command)
 {
 	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::vector<std::string> vec = server->getAllClients();
+	std::vector<Client*> vec = server->getAllClients();
 	std::vector<Client*>::iterator	it= vec.begin();
 	for(; it != vec.end(); it++)
 	{

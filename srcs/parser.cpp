@@ -107,7 +107,8 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 		if (rslt.size() > 1)
 		{
 			pop_front<std::string>(rslt);
-			params = rslt;
+			if (!rslt.empty())
+				params = rslt;
 		}
 	}
 #ifdef DEBUG
