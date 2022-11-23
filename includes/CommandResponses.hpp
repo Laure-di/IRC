@@ -34,8 +34,8 @@ struct NumericReplies
 ///////////////////////////////////////CMD
 ///REPLIES//////////////////////////////////////////
 // INVITE
-#define RPL_AWAY(pseudo, message) \
-    NumericReplies(301, pseudo + " " + message + "\r\n")
+#define RPL_AWAY(nickname, awayMessage) \
+    NumericReplies(301, nickname + " :" + awayMessage + "\r\n")
 #define RPL_INVITING(channel, nickname) \
     NumericReplies(341, channel + " " + nickname + "\r\n")
 // AWAY

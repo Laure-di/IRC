@@ -30,7 +30,6 @@ class Channel
 		std::string _topic;
 		unsigned _mode;
 		std::map<std::string, Client*>	_clients;
-		std::map<std::string, Client*>	_clientsBanned;
 		std::map<std::string, unsigned>	_clientsMode;
 		std::vector<std::string> _banMasks;
 		std::vector<std::string> _banExceptionMasks;
@@ -52,12 +51,13 @@ class Channel
 		size_t getMaxLimitOfUsers(void);
 		void setMode(Commands command);
 		std::string getModeStr(void) const;
-		Client *findClientByNickname(std::string nickname);
+		Client *getClientByNickname(std::string nickname);
 		bool checkOperatorByNickname(std::string nickname);
-		Client *findBannedUserByNickname(std::string nickname);
 		void addClient(int socket);
 		void remClient(std::string nickname);
 		void sendMsg(std::string message);
+		void sendMsg(std::string message, Client*sender);
+		void sendMsg(std::string message, int fd);
 		void sendJoin(Client *client);
 		void sendPart(Client *Client, std::string leaveMessage);
 		void sendTopic(int socket);

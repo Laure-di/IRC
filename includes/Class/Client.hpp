@@ -10,6 +10,7 @@ enum ClientModes
     INVISIBLE = 2,
     RESTRICTED = 4,
     SERVEROPERATOR = 8,
+	WALLOPS	= 16,
 };
 
 enum ClientStatus
@@ -36,6 +37,7 @@ class Client
 		Client*							_lastRecipient;
 		Channel*						_activeChannel;
 		std::map<std::string, Channel*>	_channels;
+		std::string						_awayMessage;
 		//TODO last ping (time)
 		//TODO last activity (time)
 		//TODO add channels
@@ -60,6 +62,7 @@ class Client
 		Client					*getLastRecipient(void)const;
 		Channel					*getActiveChannel(void)const;
 		std::string				getBuffer(void)const;
+		std::string				getAwayMessage(void) const;
 		void					setNickname(std::string nickname);
 		void					setUsername(std::string username);
 		void					setFullName(std::string fullName);
@@ -74,6 +77,7 @@ class Client
 		void					setLastExpediteur(Client* expediteur);
 		void					setLastRecipient(Client* recipient);
 		void					setActiveChannel(Channel* active);
+		void					setAwayMessage(std::string awayMessage);
 		void					addChannel(Channel* channel, std::string channelName);
 		void					append(std::string buffer);
 		void					clearBuffer(void);

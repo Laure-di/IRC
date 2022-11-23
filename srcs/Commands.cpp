@@ -191,7 +191,6 @@ void	squit(Server *server, int socket, Commands command)
  */
 void join(Server *server, int socket, Commands command)
 {
-	// TODO Add Join 0
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> names = splitComma(command.params[0]);
@@ -284,14 +283,15 @@ void topic(Server *server, int socket, Commands command)
 	if (!channel)
 		return;
 	Client *currentUser = server->getClientByFd(socket);
-	if (channel->findClientByNickname(currentUser->getNickname()))
+	std::string nickname = currentUser->getNickname();
+	if (channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_NOTONCHANNEL(channel->getName()), socket);
 	if (command.params.size() == 1 && !command.colon) {
 		if (channel->getTopic().empty())
 			return server->sendMsg(RPL_NOTOPIC(channel->getName()), socket);
 		return server->sendMsg(RPL_TOPIC(channel->getName(), channel->getTopic()), socket);
 	}
-	if ((channel->getMode() & TOPIC) && !(channel->checkOperatorByNickname(currentUser->getNickname())))
+	if ((channel->getMode() & TOPIC) && !(channel->checkOperatorByNickname(nickname)))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
 	// Add check for ERR_NOCHANMODES
 	std::string topic = command.params[1];
@@ -353,21 +353,22 @@ void invite(Server *server, const int socket, Commands command)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string nickname = command.params[0];
 	std::string channelName = command.params[1];
-
-	Client *invitedUser = server->getClientByNickname(nickname);
-	if (!invitedUser)
+	Client *invitedClient = server->getClientByNickname(nickname);
+	if (!invitedClient)
 		return server->sendMsg(ERR_NOSUCHNICK(nickname), socket);
 	Channel *channel = server->getChannelByName(channelName);
 	if (!channel)
 		return server->sendMsg(ERR_NOSUCHNICK(channelName), socket);
-	Client *currentUser = server->getClientByFd(socket);
-	if (!channel->findClientByNickname(currentUser->getNickname()))
+	Client *client = server->getClientByFd(socket);
+	if (!channel->getClientByNickname(client->getNickname()))
 		return server->sendMsg(ERR_NOTONCHANNEL(channelName), socket);
-	if (channel->findClientByNickname(nickname))
+	if (channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_USERONCHANNEL(nickname, channelName), socket);
-	// Add check for ERR_CHANOPRIVSNEEDED (channel is invite only and currentUser is not an operator)
-	// Add check for RPL_AWAY (Check that invitedUser is away and notify currentUser ? Not defined)
-	server->sendMsg(RPL_INVITING(nickname, channelName), invitedUser->getFd());
+	if ((channel->getMode() & INVITATION) && !channel->checkOperatorByNickname(nickname))
+		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channelName), socket);
+	if (invitedClient->getMode() & AWAY)
+		return server->sendMsg(RPL_AWAY(nickname, invitedClient->getAwayMessage()), socket);
+	server->sendMsg(RPL_INVITING(nickname, channelName), invitedClient->getFd());
 }
 
 /**
@@ -385,14 +386,15 @@ void kick(Server *server, int socket, Commands command)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> channels = splitComma(command.params[0]);
 	std::vector<std::string> users = splitComma(command.params[1]);
-	Client *currentUser = server->getClientByFd(socket);
+	Client *currentClient = server->getClientByFd(socket);
+	std::string nickname = currentClient->getNickname();
 	std::string kickMessage;
 	if (channels.size() == 1 && users.size() == 1)
 	{
 		if (command.params.size() > 2)
-			kickMessage = command.params[0];
+			kickMessage = command.params[2];
 		else
-			kickMessage = currentUser->getNickname();
+			kickMessage = nickname;
 	}
 	std::vector<std::string>::iterator channelsIterator;
 	for (channelsIterator = channels.begin(); channelsIterator != channels.end(); channelsIterator++)
@@ -404,23 +406,22 @@ void kick(Server *server, int socket, Commands command)
 			server->sendMsg(ERR_NOSUCHCHANNEL(channelName), socket);
 			continue;
 		}
-		if (!channel->checkOperatorByNickname(currentUser->getUsername()))
+		if (!channel->checkOperatorByNickname(nickname))
 		{
 			server->sendMsg(ERR_CHANOPRIVSNEEDED(channelName), socket);
 			continue;
 		}
-		std::vector<std::string>::iterator usersIterator;
-		for (usersIterator = users.begin(); usersIterator != users.end(); usersIterator++)
+		std::vector<std::string>::const_iterator cit;
+		for (cit = users.begin(); cit != users.end(); cit++)
 		{
-			std::string userName = *usersIterator;
-			Client *user = server->getClientByNickname(userName);
-			if (!user) {
-				server->sendMsg(ERR_USERNOTINCHANNEL(userName, channelName), socket);
+			std::string clientName = *cit;
+			Client *client = server->getClientByNickname(clientName);
+			if (!client) {
+				server->sendMsg(ERR_USERNOTINCHANNEL(clientName, channelName), socket);
 				continue;
 			}
-			if (!kickMessage.empty())
-				server->sendMsg("KICK " + channelName + " " + userName + " :" + kickMessage, socket);
-			channel->remClient(userName);
+			channel->sendMsg("KICK " + channelName + " " + clientName + " :" + kickMessage + "\r\n");
+			channel->remClient(clientName);
 		}
 	}
 }
@@ -437,41 +438,45 @@ void kick(Server *server, int socket, Commands command)
  */
 void privmsg(Server *server, int socket, Commands command)
 {
-	// TODO Add special targets for irssi "*", ",", "." ?
+	if(command.params.size() == 0)
+		return server->sendMsg(ERR_NORECIPIENT(command.command), socket);
+	if(command.params.size() == 1)
+		return server->sendMsg(ERR_NOTEXTTOSEND, socket);
+	std::vector<std::string> recipients = splitComma(command.params[0]);
+	Client *client = server->getClientByFd(socket);
+	std::vector<std::string>::iterator it;
+	for (it = recipients.begin(); it != recipients.end(); it++)
+	{
+		std::string name = *it;
+		std::string msg = ":" + client->getFullIdentifier() + " " + command.command + " " + name + " :" + command.params[1] + "\r\n";
+		if (checkChannelName(name))
+		{
+			Channel *channel = server->getChannelByName(name);
+			if (channel)
+				channel->sendMsg(msg, client);
+		}
+		else
+		{
+			Client *recipient = server->getClientByNickname(name);
+			if (recipient)
+			{
+				if (recipient->getMode() & AWAY)
+					server->sendMsg(RPL_AWAY(name, recipient->getAwayMessage()), socket);
+				server->sendMsg(msg, recipient);
+			}
+		}
+	}
 	return;
 }
 
 /**
  * 3.3.2 Notice
  *
- * @brief The NOTICE command is used similarly to PRIVMSG.
+ * @brief "The NOTICE command is used similarly to PRIVMSG."
  */
 void notice(Server *server, int socket, Commands command)
 {
-	if(command.params.size() == 0)
-		return server->sendMsg(ERR_NORECIPIENT(command.command), socket);
-	if(command.params.size() == 1)
-		return server->sendMsg(ERR_NOTEXTTOSEND, socket);
-	std::vector<std::string> recipients = splitComma(command.params[0]);
-	std::string msg = command.params[1];
-	std::vector<std::string>::iterator it;
-	for (it = recipients.begin(); it != recipients.end(); it++)
-	{
-		std::string name = *it;
-		if (checkChannelName(name))
-		{
-			Channel *channel = server->getChannelByName(name);
-			if (channel)
-				channel->sendMsg(msg);
-		}
-		else
-		{
-			Client *client = server->getClientByNickname(name);
-			if (client)
-				server->sendMsg(msg, client);
-		}
-	}
-	return;
+	privmsg(server, socket, command);
 }
 
 /*
@@ -488,6 +493,7 @@ void notice(Server *server, int socket, Commands command)
 
 void motd(Server *server, int socket, Commands command)
 {
+	(void) command;
 	try
 	{
 		server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
@@ -501,18 +507,6 @@ void motd(Server *server, int socket, Commands command)
 
 }
 
-/**
- * 3.4.2 Lusers message
- *
- * @brief The LUSERS command is used to get statistics about the size of the
- * IRC network.
- */
-void lusers(Server *server, int socket, Commands command)
-{
-	return;
-}
-
-
 cmd_func lusers;
 cmd_func version;
 cmd_func stats;
@@ -520,6 +514,7 @@ cmd_func links;
 
 void	time(Server *server, int socket, Commands command)
 {
+	(void) command;
 	server->printCurrentLocaltime(socket);
 }
 
@@ -565,10 +560,6 @@ cmd_func whowas;
  * 3.7 Miscellaneous messages
  */
 cmd_func kill;
-void	kill(Server *server, int socket, Commands command)
-{
-	return;
-}
 
 /*
  * 3.7.2 Ping message
@@ -626,7 +617,20 @@ cmd_func error;
 /*
  * 4.1 Optional features
  */
-cmd_func away;
+void away(Server *server, int socket, Commands command)
+{
+	Client *client = server->getClientByFd(socket);
+	std::string nickname = client->getNickname();
+	if(command.params.size() == 0)
+	{
+		client->remMode(AWAY);
+		return server->sendMsg(RPL_NOWAWAY, socket);
+	}
+	client->addMode(AWAY);
+	client->setAwayMessage(command.params[0]);
+	server->sendMsg(RPL_UNAWAY, socket);
+}
+
 cmd_func rehash;
 cmd_func die;
 cmd_func restart;

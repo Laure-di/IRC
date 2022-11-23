@@ -181,7 +181,9 @@ void	Server::sendMsg(NumericReplies reply, const int fd)
 
 void	Server::sendMsg(const std::string msg, const int fd)
 {
-	std::cout << "Sent :\n---------------\n" << msg << "---------------\n\n";
+#ifdef DEBUG
+	std::cout << "Sent in fd " << fd << " :\n---------------\n" << msg << "---------------\n\n";
+#endif
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
@@ -376,7 +378,7 @@ int		Server::_handleMessage(epoll_event ep_event)
 	currentClient->clearBuffer();
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
 #ifdef DEBUG
-	std::cout << "Received :\n---------------\n" << buffer << "---------------\n\n";
+	std::cout << "Received from fd " << ep_event.data.fd << " :\n---------------\n" << buffer << "---------------\n\n";
 #endif
 	if (numbytes <= 0)
 		return (-1);
@@ -465,12 +467,12 @@ void	Server::createCmdDict(void)
 	_cmdDict["SQUIT"] = &squit;
 	_cmdDict["JOIN"] = &join;
 	_cmdDict["PART"] = &part;
-	// _cmdDict["TOPIC"] = &topic;
-	// _cmdDict["NAMES"] = &names;
-	// _cmdDict["LIST"] = &list;
+	_cmdDict["TOPIC"] = &topic;
+	_cmdDict["NAMES"] = &names;
+	_cmdDict["LIST"] = &list;
 	// _cmdDict["INVITE"] = &invite;
-	// _cmdDict["KICK"] = &kick;
-	// _cmdDict["PRIVMSG"] = &privmsg;
+	_cmdDict["KICK"] = &kick;
+	_cmdDict["PRIVMSG"] = &privmsg;
 	_cmdDict["NOTICE"] = &notice;
 	_cmdDict["MOTD"] = &motd;
 	// _cmdDict["LUSERS"] = &lusers;
@@ -484,7 +486,7 @@ void	Server::createCmdDict(void)
 	// _cmdDict["INFO"] = &info;
 	// _cmdDict["SERVLIST"] = &servlist;
 	// _cmdDict["SQUERY"] = &squery;
-	// _cmdDict["WHO"] = &who;
+	_cmdDict["WHO"] = &who;
 	// _cmdDict["WHOIS"] = &whois;
 	// _cmdDict["WHOWAS"] = &whowas;
 	// _cmdDict["KILL"] = &kill;
@@ -544,10 +546,11 @@ void		Server::createAndBind(char *port)
  **	Quit && Exit method
  **/
 
-void Server::addChannel(std::string name, Client* creator)
+Channel  *Server::addChannel(std::string name, Client* creator)
 {
 	Channel *newChannel = new Channel(this, name, creator);
 	_channels[name] = newChannel;
+	return newChannel;
 }
 
 void	Server::deleteAllChannels(void)
@@ -600,7 +603,7 @@ void	Server::clearServer(void) //TODO link with signal??!!
 {
 	struct epoll_event	ev;
 
-	memset(&ev, 0, sizeof(ev));	
+	memset(&ev, 0, sizeof(ev));
 	std::map<int, Client*>::iterator it;
 	std::map<int, Client*>::iterator ite = this->_clients.end();
 	for (it = this->_clients.begin(); it != ite;)
@@ -655,20 +658,26 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 	Client *client = getClientByFd(socket);
 	std::string nickname = client->getNickname();
 	if (!channel)
-		return addChannel(channelName, client);
-	if ((channel->getMode() & INVITATION) && !(channel->isInvited(nickname)))
-		return sendMsg(ERR_INVITEONLYCHAN(channelName), socket);
-	if (channel->isBanned(nickname) && !(channel->isExcepted(nickname)))
-		return sendMsg(ERR_BANNEDFROMCHAN(channelName), socket);
-	if ((channel->getMode() & LIMIT) && channel->getNumberOfUsers() == channel->getMaxLimitOfUsers())
-		return sendMsg(ERR_CHANNELISFULL(channelName), socket);
-	if ((channel->getMode() & PRIVATE) && !channel->checkPassword(key))
-		return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
-	channel->addClient(socket);
+		channel = addChannel(channelName, client);
+	else
+	{
+		if ((channel->getMode() & INVITATION) && !(channel->isInvited(nickname)))
+			return sendMsg(ERR_INVITEONLYCHAN(channelName), socket);
+		if (channel->isBanned(nickname) && !(channel->isExcepted(nickname)))
+			return sendMsg(ERR_BANNEDFROMCHAN(channelName), socket);
+		if ((channel->getMode() & LIMIT) && channel->getNumberOfUsers() == channel->getMaxLimitOfUsers())
+			return sendMsg(ERR_CHANNELISFULL(channelName), socket);
+		if ((channel->getMode() & KEY) && !channel->checkPassword(key))
+			return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
+		channel->addClient(socket);
+
+	}
 	channel->sendJoin(client);
+	channel->sendListOfNames(socket);
 	if (!channel->getTopic().empty())
 		channel->sendTopic(socket);
-	channel->sendListOfNames(socket);
+	else
+		sendMsg(RPL_NOTOPIC(channelName), socket);
 	client->addChannel(channel, channelName);
 }
 
@@ -682,7 +691,7 @@ void	Server::checkAndLeaveChannel(int socket, std::string channelName, std::stri
 	if (!channel)
 		return sendMsg(ERR_NOSUCHCHANNEL(channelName), socket);
 	Client *client = getClientByFd(socket);
-	if (!channel->findClientByNickname(client->getNickname()))
+	if (!channel->getClientByNickname(client->getNickname()))
 		return sendMsg(ERR_NOTONCHANNEL(channelName), socket);
 	channel->sendPart(client, leaveMessage);
 	channel->remClient(client->getNickname());
@@ -695,7 +704,7 @@ bool	Server::isInChannel(const std::string nickname) const
 	for (cit = _channels.begin(); cit != _channels.end(); cit++)
 	{
 		Channel *channel = cit->second;
-		if (channel->findClientByNickname(nickname))
+		if (channel->getClientByNickname(nickname))
 			return true;
 	}
 	return false;

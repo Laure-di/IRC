@@ -4,8 +4,7 @@ Channel::Channel(Server *server, std::string name, Client* creator): _server(ser
 {
 	std::string nickname = creator->getNickname();
 	_clients[nickname] = creator;
-	_clientsMode[nickname] = CREATOR;
-	sendJoin(creator);
+	_clientsMode[nickname] = 4;
 }
 
 std::string Channel::getName(void) {
@@ -53,7 +52,7 @@ void Channel::clearTopic(void) {
 	_topic.clear();
 }
 
-Client *Channel::findClientByNickname(const std::string nickname)
+Client *Channel::getClientByNickname(const std::string nickname)
 {
 	return _clients[nickname];
 }
@@ -61,11 +60,6 @@ Client *Channel::findClientByNickname(const std::string nickname)
 bool Channel::checkOperatorByNickname(std::string nickname)
 {
 	return _clientsMode[nickname] & OPERATOR || _clientsMode[nickname] & CREATOR;
-}
-
-Client *Channel::findBannedUserByNickname(const std::string nickname)
-{
-	return _clientsBanned[nickname];
 }
 
 void Channel::addClient(int socket)
@@ -93,18 +87,42 @@ void Channel::sendMsg(std::string message)
 	}
 }
 
+void Channel::sendMsg(std::string message, Client *sender)
+{
+	std::string nickname = sender->getNickname();
+	int fd = sender->getFd();
+	if ((_mode & OUTSIDE) && !(getClientByNickname(nickname)))
+		return _server->sendMsg(ERR_CANNOTSENDTOCHAN(nickname), fd);
+	sendMsg(message, fd);
+}
+
+void Channel::sendMsg(std::string message, int sender)
+{
+	std::map<std::string, Client*>::iterator clientIterator;
+	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
+	{
+		Client *client = clientIterator->second;
+		if (client)
+		{
+			int recipient = client->getFd();
+			if (recipient != sender)
+				_server->sendMsg(message, recipient);
+		}
+	}
+}
+
 void Channel::sendJoin(Client *client)
 {
-	sendMsg(client->getFullIdentifier() + " JOIN " + _name + "\r\n");
+	sendMsg(":" + client->getFullIdentifier() + " JOIN " + _name + "\r\n");
 }
 
 void Channel::sendPart(Client *client, std::string leaveMessage)
 {
 	std::string msg;
 	if (!leaveMessage.empty())
-		msg = client->getFullIdentifier() + " PART " + _name + " :" + leaveMessage + "\r\n";
+		msg = ":" + client->getFullIdentifier() + " PART " + _name + " :" + leaveMessage + "\r\n";
 	else
-		msg = client->getFullIdentifier() + " PART " + _name + " :" + client->getNickname() + "\r\n";
+		msg = ":" + client->getFullIdentifier() + " PART " + _name + " :" + client->getNickname() + "\r\n";
 	sendMsg(msg);
 }
 
@@ -167,11 +185,11 @@ void Channel::changeNickname(std::string oldNickname, std::string newNickname)
 		std::swap(_clients[newNickname], it->second);
 		_clients.erase(it);
 	}
-	it = _clientsBanned.find(oldNickname);
-	if (it != _clientsBanned.end())
+	std::map<std::string, unsigned>::iterator it2 = _clientsMode.find(oldNickname);
+	if (it2 != _clientsMode.end())
 	{
-		std::swap(_clientsBanned[newNickname], it->second);
-		_clientsBanned.erase(it);
+		std::swap(_clientsMode[newNickname], it2->second);
+		_clientsMode.erase(it2);
 	}
 }
 
@@ -306,8 +324,9 @@ void Channel::sendInfo(const int socket)
 std::string Channel::getClientPrefix(const Client *client)
 {
 	std::string nickname = client->getNickname();
+	// IRSSI do not treat correctly "~" for creator
 	if (_clientsMode[nickname] & CREATOR)
-		return "~";
+		return "@";
 	if (_clientsMode[nickname] & OPERATOR)
 		return "@";
 	if (_clientsMode[nickname] & VOICE)

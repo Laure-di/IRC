@@ -62,7 +62,7 @@ class Server
 		void									sendAllChannels(int socket);
 		bool									checkPassword(const std::string password) const;
 		bool									checkAdmin(const std::string login, const std::string password) const;
-		void									addChannel(std::string name, Client* client);
+		Channel *								addChannel(std::string name, Client* client);
 		void									shapeMessageOftheDay(std::string fileName, int socket);
 		void									executeCommands(char *buffer, Client* currentClient);
 		void									changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname);

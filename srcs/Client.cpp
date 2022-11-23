@@ -98,6 +98,11 @@ std::string		Client::getBuffer(void)const
 	return _buffer;
 }
 
+std::string		Client::getAwayMessage(void)const
+{
+	return _awayMessage;
+}
+
 void	Client::setNickname(std::string nickname)
 {
 	this->_nickname = nickname;
@@ -160,6 +165,11 @@ void	Client::setActiveChannel(Channel* active)
 	this->_activeChannel = active;
 }
 
+void	Client::setAwayMessage(std::string awayMessage)
+{
+	_awayMessage = awayMessage;
+}
+
 void	Client::addChannel(Channel* channel, std::string channelName)
 {
 	_channels.insert(std::make_pair(channelName, channel));
@@ -186,6 +196,8 @@ std::string		Client::getModeStr(void) const
 		res += "r";
 	if (_mode & SERVEROPERATOR)
 		res += "o";
+	if (_mode & WALLOPS)
+		res += "w";
 	return res;
 }
 
