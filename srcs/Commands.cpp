@@ -564,6 +564,29 @@ cmd_func whowas;
 cmd_func kill;
 
 /*
+ * 3.7.1 Kill message
+ *	@Brief  The KILL command is used to cause a client-server connection to be
+ *			closed by the server which has the actual connection.
+ */
+
+void	kill(Server *server, int socket, Commands command)
+{
+	Client *killer = server->getClientByFd(socket);
+	if (!(killer->getMode() & SERVEROPERATOR))
+		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
+	if (command.params.size() < 2)
+		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
+	std::string	nickname = command.params[0];
+	if (server->getHostname().compare(nickname) == 0)
+		return (server->sendMsg(ERR_CANTKILLSERVER, socket));
+	Client *victim = server->getClientByNickname(nickname);
+	if (server->getClientByNickname(nickname) == NULL)
+		return (server->sendMsg(ERR_NOSUCHNICK(nickname), socket));
+	server->deleteClient(victim->getFd());
+	server->addNicknameUnavailable(nickname);
+}
+
+/*
  * 3.7.2 Ping message
  *	@Brief The PING command is used to test the presence of an active client or
  *		   server at the other end of the connection.
@@ -638,7 +661,6 @@ cmd_func die;
 cmd_func restart;
 cmd_func summon;
 cmd_func users;
-cmd_func wallops;
 cmd_func userhost;
 cmd_func ison;
 

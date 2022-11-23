@@ -49,6 +49,7 @@ class Server
 		std::vector<Client*>					getAllClientsMatching(std::string pattern) const;
 		std::vector<Client*>					getAllClients(void)const;
 		const std::map<std::string, time_t>&	getNicknameUnavailable(void)const;
+		void									addNicknameUnavailable(std::string nickname);
 
 
 		void									createNewChannel(int creator, std::string name);

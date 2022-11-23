@@ -55,6 +55,8 @@ const std::map<std::string, time_t>&	Server::getNicknameUnavailable(void)const
 	return (this->_nicknameUnavailable);
 }
 
+
+
 std::vector<Client*>	Server::getAllClients(void)const
 {
 	std::vector<Client*> allClients;
@@ -122,6 +124,11 @@ void Server::createNewChannel(int creator, std::string name)
 	//Add creation of channel
 	(void)creator;
 	(void)name;
+}
+
+void									Server::addNicknameUnavailable(std::string nickname)
+{
+	_nicknameUnavailable[nickname] = time(NULL);
 }
 
 /**
@@ -233,14 +240,6 @@ void	Server::printCurrentLocaltime(int socket)
 /**
  ** Execution Commands method
  **/
-
-/*void	deleteAllCmds(std::vector<Commands> cmd)
-{
-	std::vector<Commands>::iterator	it;
-	for (it = cmd.begin(); it != cmd.begin(); it++)
-		delete &(*it);
-}*/
-
 
 void	Server::executeCommands(std::string buffer, Client *client)
 {
@@ -418,7 +417,7 @@ void	Server::execute(void)
 	while (is_running)
 	{
 		if ((nfds = epoll_wait(_pollFd, _ep_event, MAX_EVENTS, TIME_OUT)) == -1)
-			std::cerr << "QUID MESSAGE OU NON" << std::endl;//this->clearServer ??
+			return ;
 		for (int i = 0; i < nfds; i++)
 		{
 			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN)
@@ -481,7 +480,7 @@ void	Server::createCmdDict(void)
 	_cmdDict["WHO"] = &who;
 	// _cmdDict["WHOIS"] = &whois;
 	// _cmdDict["WHOWAS"] = &whowas;
-	// _cmdDict["KILL"] = &kill;
+	_cmdDict["KILL"] = &kill;
 	_cmdDict["PING"] = &ping;
 	_cmdDict["PONG"] = &pong;
 	// _cmdDict["ERROR"] = &error;
