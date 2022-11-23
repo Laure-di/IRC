@@ -7,5 +7,6 @@ bool		isRegistrationCmd(std::string command);
 void		stringToUpper(std::string *string);
 void		transformCmdsToUpper(std::vector<Commands> *commandsList);
 bool		checkCmdLength(std::vector<std::string> listOfCommands);
+bool		isCmdFull(std::string string);
 
 #endif
