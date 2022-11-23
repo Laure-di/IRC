@@ -55,6 +55,8 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #define CLIENT_MODE "-/+airo"
 #define CHANNEL_MODE "-/+imnptkl"
 
+static bool is_running=true;
+
 struct	Commands
 {
 	std::string					command;

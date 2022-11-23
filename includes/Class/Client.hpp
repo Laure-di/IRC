@@ -77,6 +77,7 @@ class Client
 		void					addChannel(Channel* channel, std::string channelName);
 		void					append(std::string buffer);
 		void					clearBuffer(void);
+		void					removeChannel(std::string channelName);
 		void					removeFromAllChannels(void);
 };
 

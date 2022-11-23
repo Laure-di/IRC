@@ -10,11 +10,17 @@ int		main(int argc, char **argv)
 	int			port;
 	std::string	pwd(argv[2]);
 	port = std::atoi(argv[1]); // TODO ajouter un check sur le port
-
+	Server IRCServer(port, pwd, argv[1]);
 	try
 	{
-		Server IRCServer(port, pwd, argv[1]);
 		IRCServer.execute();
+	}
+	catch (Server::serverError &e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
+	try
+	{
 		IRCServer.clearServer();
 	}
 	catch (Server::serverError &e)

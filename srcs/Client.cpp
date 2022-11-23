@@ -189,6 +189,12 @@ std::string		Client::getModeStr(void) const
 	return res;
 }
 
+void	Client::removeChannel(std::string channelName)
+{
+	if (_channels.find(channelName) != _channels.end())
+		_channels.erase(channelName);
+}
+
 void	Client::removeFromAllChannels(void)
 {
 	std::map<std::string, Channel*>::const_iterator	it = _channels.begin();
