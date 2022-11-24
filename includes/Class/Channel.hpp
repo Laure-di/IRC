@@ -57,6 +57,7 @@ class Channel
 		void addClient(int socket);
 		void remClient(std::string nickname);
 		void sendMsg(std::string message);
+		void sendMsg(NumericReplies reply);
 		void sendMsg(std::string message, Client*sender);
 		void sendMsg(std::string message, int fd);
 		void sendJoin(Client *client);

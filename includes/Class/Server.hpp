@@ -7,7 +7,7 @@
 #define BUFFER_SIZE 500000
 #define	CMD_MAX_LGHT	510
 #define	MAX_PARAMS	15
-#define HOSTNAME "mumurdelamachine.42.fr"
+#define HOSTNAME "murmurdelamachine.42.fr"
 #define	VERSION	"1.0"
 #define MOTD_FILE "conf/motd.txt"
 
@@ -44,7 +44,6 @@ class Server
 		std::map<std::string, Channel*>			getAllChannels(void);
 		Channel*								getChannelByName(const std::string name);
 		Client*									getClientByFd(size_t fd);
-		//struct epoll_event						getEventFd(Client *client);
 		Client*									getClientByNickname(const std::string nickname) const;
 		std::vector<Client*>					getAllClientsMatching(std::string pattern) const;
 		std::vector<Client*>					getAllClients(void)const;
@@ -57,7 +56,7 @@ class Server
 		void									sendMsg(const std::string msg, const int fd);
 		void									sendMsg(NumericReplies reply, const int fd);
 		void									sendMsg(const std::string msg, Client *client);
-		void									sendMsg(const std::string msg, std::vector<Channel*> channels);
+		void									sendMsg(std::string msg, std::vector<Channel*> channels);
 		void									broadcast(std::string msg, int expediteur);
 		void									sendAllUsers(int socket);
 		void									sendAllChannels(int socket);

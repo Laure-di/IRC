@@ -1,6 +1,121 @@
 #include "../includes/include.hpp"
 
-//TODO change all split by this one
+/**
+  * @Brief when a client is first fully register this function is call.
+  */
+void	welcomeClient(Server *server, int socket, Client *currentClient)
+{
+	if (isClientFullyRegister(currentClient))
+	{
+		std::vector<std::string> params;
+		Commands modtCmd("MOTD", "", params, false);
+		server->sendMsg(RPL_WELCOME(currentClient->getFullIdentifier()), socket);
+		server->sendMsg(RPL_YOURHOST(server->getHostname(), server->getVersion()), socket);
+		server->sendMsg(RPL_CREATED(server->getLaunchingDate()), socket);
+		server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), CLIENT_MODE, CHANNEL_MODE), socket);
+		motd(server, socket, modtCmd);
+	}
+	return ;
+}
+/*
+ * @Brief if a client as been kill by an operator, nobody can connect within a delay of 60 sec.
+ *		  https://stackoverflow.com/questions/12121091/diffrence-of-two-time-in-c
+*/
+bool	isUnavailableNickname(Server* server, std::string nick)
+{
+	std::map<std::string, time_t>::const_iterator it = server->getNicknameUnavailable().end();
+	if (server->getNicknameUnavailable().find(nick) != it)
+	{
+		double killTime = difftime(time(0), server->getNicknameUnavailable().find(nick)->second);
+		if (killTime < 60)
+			return (true);
+		return (false);
+	}
+	return (false);
+}
+
+/**
+ * @Brief check if a string is a number. Check for main argument.
+ */
+bool isNumber(std::string nb) {
+	for (unsigned int i = 0; i < nb.size(); i++) {
+		if (isdigit(nb[i]) == 0)
+			return false;
+	}
+	return true;
+}
+
+
+/**
+ * @Brief command user check if the parameter are valid
+ */
+int	areParamsValid(std::vector<std::string> params)
+{
+	int mode;
+	if (params.empty())
+		return (mode = -1);
+	if (isNumber(params[1]))
+		return (mode = toInt(params[1]));
+	else if (params[1] != params[0])
+		return (mode = -1);
+	return (mode = 0);
+}
+
+
+
+/**
+ * @Brief check if client is fully register and can execute other commands
+ */
+bool	isClientFullyRegister(Client* user)
+{
+	if (!(user->getNickname()).empty() && !(user->getUsername()).empty())
+		return (true);
+	return (false);
+}
+
+/**
+ * @Brief check if command is a registration one
+ */
+bool	isRegistrationCmd(std::string command)
+{
+	if (command == "NICK" || command == "CAP" || command == "USER" || command == "PASS" || command == "QUIT" || command == "SERVICE")
+		return (true);
+	return (false);
+}
+
+/**
+ *@ Brief take all the std::string command of the vector of Commands struct and transform to uppercase
+ */
+void	transformCmdsToUpper(std::vector<Commands> *commandsList)
+{
+	std::vector<Commands>::iterator it;
+	for (it = commandsList->begin(); it != commandsList->end(); it++)
+		stringToUpper(&it->command);
+}
+
+/**
+ * @Brief transform string to uppercase
+ */
+void	stringToUpper(std::string *string)
+{
+	std::transform(string->begin(), string->end(), string->begin(), ::toupper);
+}
+
+/**
+ * @Brief check if in the client buffer there is "\n" which mean the command is complere and can be executed
+ */
+
+bool	isCmdFull(std::string string)
+{
+	if (string.find("\n") != std::string::npos)
+		return true;
+	return false;
+}
+
+
+/**
+ * @Brief split a string into different cmd string (delimiter = "\r\n")
+ */
 std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 {
 	std::vector<std::string>	result;

@@ -27,23 +27,6 @@ void	printAllCmds(std::vector<Commands> print)
 		printCmd(*it);
 }
 
-/*bool	checkCommandLenght(std::vector<std::string> listOfCommands)
-  {
-  std::vector<std::string>::iterator	it;
-  for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
-  {
-  if (MAX_CMD_LGTH < it->size())
-  return (false);
-  }
-  return (true);
-  }*/
-
-bool	checkMaxParam(Commands commands)
-{
-	if (MAX_PARAMS < commands.params.size())
-		return (false);
-	return (true);
-}
 
 std::string		handlePrefix(std::string *cmd)
 {
@@ -63,7 +46,7 @@ std::string		handlePrefix(std::string *cmd)
 }
 
 
-void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return type to Commands
+void	parseCmd(std::string cmd, std::vector<Commands> *command)
 {
 	std::vector<std::string>	rslt;
 	std::string					cd;
@@ -87,7 +70,6 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command) //change return t
 			{
 				pop_front<std::string>(first);
 				addElementsVector(&params, first);
-				//params = first;
 				addElementsVector(&params, rslt);
 			}
 		}

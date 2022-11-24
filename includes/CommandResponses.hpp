@@ -283,6 +283,8 @@ struct NumericReplies
 	NumericReplies(0, "Ping message from " + expediteur + "\r\n")
 #define WALLOPS(serverName, expediteur, msg) \
 	NumericReplies(0, "Command from " + expediteur + " to " + msg + " " + " to/from " + serverName + "\r\n")
+#define QUIT(line)\
+	NumericReplies(0, line)
 
 
 #endif

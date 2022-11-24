@@ -1,23 +1,5 @@
 #include "../includes/include.hpp"
 
-/**
- * Check command length
- *
- * @brief check if the length if max 512 (include the \r\n) if one of the commands if > 512 none will be executed and an error message will be display */
-
-bool	checkCmdLength(std::vector<std::string> listOfCommands)
-{
-	std::vector<std::string>::iterator	it;
-	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
-	{
-		if (510 < it->size())
-		{
-			std::cerr << *it << " : command too long to be executed" << std::endl;
-			return (false);
-		}
-	}
-	return (true);
-}
 
 bool	canRegisterPass(Client* user)
 {

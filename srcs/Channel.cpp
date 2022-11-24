@@ -104,6 +104,7 @@ void Channel::sendMsg(std::string message)
 	}
 }
 
+
 void Channel::sendMsg(std::string message, Client *sender)
 {
 	std::string nickname = sender->getNickname();
@@ -112,6 +113,8 @@ void Channel::sendMsg(std::string message, Client *sender)
 		return _server->sendMsg(ERR_CANNOTSENDTOCHAN(nickname), fd);
 	sendMsg(message, fd);
 }
+
+
 
 void Channel::sendMsg(std::string message, int sender)
 {
