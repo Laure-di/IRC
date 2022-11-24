@@ -44,12 +44,11 @@ struct NumericReplies
 #define RPL_NOWAWAY \
     NumericReplies(306, ":You have been marked as being away\r\n")
 // WHO
-#define RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status,   \
-		     real_name)                                               \
+#define RPL_WHOREPLY(chan, usr, host, server, nickname, presence, real_name)                                             \
     NumericReplies(352, chan + " " + usr + " " + host + " " + server + " " +  \
-				nickname + " " + presence + role + status ":0 " + \
+				nickname + " " + presence + ":0 " + \
 				real_name + "\r\n")
-#define RPL_ENDOFWHO(name) NumericReplies(315, name + " :End of WHO list\r\n");
+#define RPL_ENDOFWHO(name) NumericReplies(315, name + " :End of WHO list\r\n")
 // WHOIS
 #define RPL_WHOISUSER(nickname, user, host, realname)                            \
     NumericReplies(311, nickname + " " + user + " " + host + " * :" + realname + \

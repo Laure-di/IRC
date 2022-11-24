@@ -46,6 +46,7 @@ class Client
 		std::string				getPrefix(void)const;
 		std::string				getNicknameWithPrefix(Channel *channel)const;
 		std::string				getUsername(void)const;
+		std::string				getFullName(void)const;
 		int						getFd(void)const;
 		std::string				getHostname(void)const;
 		std::string 			getFullIdentifier(void) const;
@@ -59,6 +60,9 @@ class Client
 		Client					*getLastRecipient(void)const;
 		std::string				getBuffer(void)const;
 		std::string				getAwayMessage(void) const;
+		bool isInSameChannel(Client *client) const;
+		std::string				getPresence(void) const;
+		NumericReplies			getWhoMessage(void) const;
 		void					setNickname(std::string nickname);
 		void					setUsername(std::string username);
 		void					setFullName(std::string fullName);

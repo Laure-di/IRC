@@ -36,6 +36,11 @@ std::string	Client::getUsername(void)const
 	return (this->_username);
 }
 
+std::string	Client::getFullName(void)const
+{
+	return _fullName;
+}
+
 int	Client::getFd(void)const
 {
 	return (this->_fd);
@@ -85,6 +90,35 @@ std::string		Client::getBuffer(void)const
 std::string		Client::getAwayMessage(void)const
 {
 	return _awayMessage;
+}
+
+bool Client::isInSameChannel(Client *client) const
+{
+	std::string nickname = client->getNickname();
+	std::map<std::string, Channel*>::const_iterator cit;
+	for (cit = _channels.begin(); cit != _channels.end(); cit++)
+	{
+		if (cit->second->getClientByNickname(nickname))
+			return true;
+	}
+	return false;
+}
+
+std::string			Client::getPresence(void) const
+{
+	if (_mode & AWAY)
+		return "G";
+	return "H";
+}
+
+NumericReplies			Client::getWhoMessage(void) const
+{
+	std::string channel;
+	if (_channels.empty())
+		channel = "*";
+	else
+		channel = _channels.begin()->second->getName();
+	return RPL_WHOREPLY(channel, getUsername(), getHostname(), HOSTNAME, getNickname(), getPresence(), getFullName());
 }
 
 void	Client::setNickname(std::string nickname)

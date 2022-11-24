@@ -69,19 +69,34 @@ std::vector<Client*>	Server::getAllClients(void)const
 	return (allClients);
 }
 
-std::vector<Client*>	Server::getAllClientsMatching(std::string pattern) const
+std::vector<Client*>	Server::getAllClientsMatching(std::string pattern, std::vector<Client*>listOfClients) const
 {
 	std::vector<Client*> allClients;
-
-	for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it!= this->_clients.end(); it++)
+	std::vector<Client*>::iterator it;
+	for (it = listOfClients.begin(); it!= listOfClients.end(); it++)
 	{
-		if (strmatch(it->second->getNickname(), pattern)
-				|| strmatch(it->second->getHostname(), pattern)
-				|| strmatch(it->second->getUsername(), pattern))
-			allClients.push_back(it->second);
+		Client *target = *it;
+		std::string nickname = target->getNickname();
+		if (strmatch(nickname, pattern)
+				|| strmatch(nickname, pattern)
+				|| strmatch(nickname, pattern))
+			allClients.push_back(target);
 	}
-
 	return (allClients);
+}
+
+std::vector<Client *>		Server::getAllClientsVisibleForClient(Client *client)const
+{
+	std::vector<Client *> listOfVisibles;
+	std::map<const int, Client*>::const_iterator cit;
+	for (cit = _clients.begin(); cit != _clients.end(); cit++)
+	{
+		Client *target = cit->second;
+		int targetMode = target->getMode();
+		if (!(targetMode & INVISIBLE) && !client->isInSameChannel(target))
+			listOfVisibles.push_back(target);
+	}
+	return listOfVisibles;
 }
 
 Client* Server::getClientByNickname(const std::string nickname) const
@@ -203,6 +218,18 @@ void	Server::sendMsg(const std::string msg, std::vector<Channel*> channels)
 		(*it)->sendMsg(msg);
 	}
 }
+
+void	Server::sendWho(int socket, std::vector<Client *>listOfClients)
+{
+	std::vector<Client *>::iterator it;
+	for (it = listOfClients.begin(); it < listOfClients.end(); it++)
+	{
+		Client *target = *it;
+		sendMsg(target->getWhoMessage(), socket);
+	}
+	sendMsg(RPL_ENDOFWHO(getClientByFd(socket)->getNickname()), socket);
+}
+
 
 void	Server::broadcast(std::string msg, int expediteur)
 {

@@ -551,16 +551,18 @@ cmd_func squery;
 void who(Server *server, int socket, Commands command)
 {
 	if(command.params.size() == 0)
-		return printWho(server, socket, server->getAllClients());
-	std::string channelName = command.params[0];
-	if(checkChannelName(channelName))
+		return server->sendWho(socket, server->getAllClients());
+	std::string params = command.params[0];
+	if(checkChannelName(params))
 	{
-		Channel *channel = server->getChannelByName(channelName);
+		Channel *channel = server->getChannelByName(params);
 		if (channel)
-			return printWho(server, socket, channel->getAllClients());
+			return server->sendWho(socket, channel->getAllClients());
 		return;
 	}
-	return printWho(server, socket, server->getAllClientsMatching(channelName));
+	Client *client = server->getClientByFd(socket);
+	std::vector<Client *> listOfVisibles = server->getAllClientsVisibleForClient(client);
+	return server->sendWho(socket, server->getAllClientsMatching(params, listOfVisibles));
 }
 
 cmd_func whois;

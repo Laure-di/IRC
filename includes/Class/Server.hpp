@@ -46,7 +46,8 @@ class Server
 		Client*									getClientByFd(size_t fd);
 		//struct epoll_event						getEventFd(Client *client);
 		Client*									getClientByNickname(const std::string nickname) const;
-		std::vector<Client*>					getAllClientsMatching(std::string pattern) const;
+		std::vector<Client*>					getAllClientsMatching(std::string pattern, std::vector<Client*>listOfClients)  const;
+		std::vector<Client *>					getAllClientsVisibleForClient(Client *client)const;
 		std::vector<Client*>					getAllClients(void)const;
 		const std::map<std::string, time_t>&	getNicknameUnavailable(void)const;
 		void									addNicknameUnavailable(std::string nickname);
@@ -61,6 +62,7 @@ class Server
 		void									broadcast(std::string msg, int expediteur);
 		void									sendAllUsers(int socket);
 		void									sendAllChannels(int socket);
+		void									sendWho(int socket, std::vector<Client *>listOfClients);
 		bool									checkPassword(const std::string password) const;
 		bool									checkAdmin(const std::string login, const std::string password) const;
 		Channel *								addChannel(std::string name, Client* client);

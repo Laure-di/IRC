@@ -403,24 +403,6 @@ void applyModeChangesChannel(Server *server, int socket, std::string flags, std:
 	server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n", socket);
 }
 
-/**
- * @brief Print info on list of clients
- */
-void printWho(Server *server, int socket, std::vector<Client *>listOfClients)
-{
-	if (listOfClients.empty())
-		return;
-	/*	std::vector<Client *>::iterator listOfClientsIterator;
-		for (listOfClientsIterator = listOfClients.begin(); listOfClientsIterator < listOfClients.end(); listOfClientsIterator++)
-		{
-	// Get all params values
-	// chan == activeChannel ?
-	// server->sendMsgToFd(RPL_WHOREPLY(chan, usr, host, server, nickname, presence, role, status, real_name), socket);
-	}*/
-	NumericReplies msg = RPL_ENDOFWHO(server->getClientByFd(socket)->getNickname());
-	server->sendMsg(msg, socket);
-}
-
 std::vector<std::string>		split(std::string string, std::string delimiter)
 {
 	std::vector<std::string>	result;
