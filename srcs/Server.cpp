@@ -366,6 +366,8 @@ int		Server::_handleMessage(epoll_event ep_event)
 	ssize_t				numbytes;
 	Client* currentClient = this->getClientByFd(ep_event.data.fd);
 
+	if (isCmdFull(currentClient->getBuffer()))
+		currentClient->clearBuffer();
 	memset(buffer, 0, BUFFER_SIZE);
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
 #ifdef DEBUG
@@ -383,7 +385,6 @@ int		Server::_handleMessage(epoll_event ep_event)
 		if (isCmdFull(currentClient->getBuffer()))
 		{
 			this->executeCommands(currentClient->getBuffer(), currentClient);
-			currentClient->clearBuffer();
 		}
 	}
 	return (1);
