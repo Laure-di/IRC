@@ -31,7 +31,6 @@ void applyModeChangesChannel(Server *server, int socket, std::string flags, std:
 void applyModeChangesClient(Server *server, int socket, std::string flags, Client *client);
 void							printWho(Server *server, int socket, std::vector<Client *>listOfClients);
 std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter);
-std::vector<std::string>		split(std::string string, std::string delimiter);
 std::vector<std::string> splitBy(std::string string, std::string delimiter);
 void							checkAndJoinChannel(Server *server, int socket, std::string channelName, std::string key);
 bool		isClientFullyRegister(Client* user);

@@ -1,7 +1,7 @@
 #include "../includes/include.hpp"
 
 /**
-  * @Brief when a client is first fully register this function is call.
+  * @brief when a client is first fully register this function is call.
   */
 void	welcomeClient(Server *server, int socket, Client *currentClient)
 {
@@ -17,9 +17,10 @@ void	welcomeClient(Server *server, int socket, Client *currentClient)
 	}
 	return ;
 }
-/*
- * @Brief if a client as been kill by an operator, nobody can connect within a delay of 60 sec.
- *		  https://stackoverflow.com/questions/12121091/diffrence-of-two-time-in-c
+
+/**
+ * @brief if a client as been kill by an operator, nobody can connect within a delay of 60 sec.
+ * https://stackoverflow.com/questions/12121091/diffrence-of-two-time-in-c
 */
 bool	isUnavailableNickname(Server* server, std::string nick)
 {
@@ -35,7 +36,7 @@ bool	isUnavailableNickname(Server* server, std::string nick)
 }
 
 /**
- * @Brief check if a string is a number. Check for main argument.
+ * @brief check if a string is a number. Check for main argument.
  */
 bool isNumber(std::string nb) {
 	for (unsigned int i = 0; i < nb.size(); i++) {
@@ -45,9 +46,8 @@ bool isNumber(std::string nb) {
 	return true;
 }
 
-
 /**
- * @Brief command user check if the parameter are valid
+ * @brief command user check if the parameter are valid
  */
 int	areParamsValid(std::vector<std::string> params)
 {
@@ -61,10 +61,8 @@ int	areParamsValid(std::vector<std::string> params)
 	return (mode = 0);
 }
 
-
-
 /**
- * @Brief check if client is fully register and can execute other commands
+ * @brief check if client is fully register and can execute other commands
  */
 bool	isClientFullyRegister(Client* user)
 {
@@ -74,7 +72,7 @@ bool	isClientFullyRegister(Client* user)
 }
 
 /**
- * @Brief check if command is a registration one
+ * @brief check if command is a registration one
  */
 bool	isRegistrationCmd(std::string command)
 {
@@ -84,7 +82,7 @@ bool	isRegistrationCmd(std::string command)
 }
 
 /**
- *@ Brief take all the std::string command of the vector of Commands struct and transform to uppercase
+ * @brief take all the std::string command of the vector of Commands struct and transform to uppercase
  */
 void	transformCmdsToUpper(std::vector<Commands> *commandsList)
 {
@@ -94,7 +92,7 @@ void	transformCmdsToUpper(std::vector<Commands> *commandsList)
 }
 
 /**
- * @Brief transform string to uppercase
+ * @brief transform string to uppercase
  */
 void	stringToUpper(std::string *string)
 {
@@ -102,9 +100,8 @@ void	stringToUpper(std::string *string)
 }
 
 /**
- * @Brief check if in the client buffer there is "\n" which mean the command is complere and can be executed
+ * @brief check if in the client buffer there is "\n" which mean the command is complere and can be executed
  */
-
 bool	isCmdFull(std::string string)
 {
 	if (string.find("\n") != std::string::npos)
@@ -112,9 +109,8 @@ bool	isCmdFull(std::string string)
 	return false;
 }
 
-
 /**
- * @Brief split a string into different cmd string (delimiter = "\r\n")
+ * @brief split a string into different cmd string (delimiter = "\r\n")
  */
 std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter)
 {
@@ -152,6 +148,9 @@ bool isDigit(const char c) {
 	return '0' <= c && c <= '9';
 }
 
+/**
+ * @brief Check if a character is a number
+ */
 bool isNumber(char *str)
 {
 	int i = 0;
@@ -309,6 +308,9 @@ bool isChannelName(std::string name) {
 	return true;
 }
 
+/**
+ * @brief Append a string vector to a string vector
+*/
 void	addElementsVector(std::vector<std::string> *list, std::vector<std::string> toAdd)
 {
 	std::vector<std::string>::iterator	it;
@@ -319,6 +321,9 @@ void	addElementsVector(std::vector<std::string> *list, std::vector<std::string> 
 	}
 }
 
+/**
+ * @brief Split a string by a delimiter
+*/
 std::vector<std::string> splitBy(std::string string, std::string delimiter)
 {
 	std::vector<std::string>	result;
@@ -516,22 +521,4 @@ void applyModeChangesChannel(Server *server, int socket, std::string flags, std:
 		}
 	}
 	server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n", socket);
-}
-
-std::vector<std::string>		split(std::string string, std::string delimiter)
-{
-	std::vector<std::string>	result;
-	size_t	start = 0;
-	size_t	end;
-
-	while (true)
-	{
-		end = string.find(delimiter, start);
-		if (end == std::string::npos)
-			break;
-		result.push_back(string.substr(start, end));
-		start = end + 1;
-	}
-	result.push_back(string.substr(start, string.length()));
-	return (result);
 }
