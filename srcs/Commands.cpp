@@ -17,7 +17,7 @@ void pass(Server *server, int socket, Commands command) {
 	Client *client = server->getClientByFd(socket);
 	if (client != NULL)
 	{
-		if (!canRegisterPass(client) || client->getPwd())
+		if (client->getPwd())
 			return (server->sendMsg(ERR_ALREADYREGISTRED, socket));
 		if (server->checkPassword(command.params[0]))
 		{
@@ -39,7 +39,7 @@ void nick(Server *server, int socket, Commands command) {
 
 	Client *client = server->getClientByFd(socket);
 	if (client->getPwd() == false)
-		return server->sendMsg(ERR_CLIENT(std::string("NICK: You must connect with a password first\r\n")), socket);
+		return server->sendMsg(ERR_CLIENT(std::string("NICK: You must connect with a password first")), socket);
 	if(command.params.empty() || command.params[0].empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
@@ -75,7 +75,7 @@ void user(Server *server, int socket, Commands command)
 
 	Client *currentUser = server->getClientByFd(socket);
 	if (currentUser->getPwd() == false)
-		return server->sendMsg(ERR_CLIENT(std::string("USER: You must connect with a password first\r\n")), socket);
+		return server->sendMsg(ERR_CLIENT(std::string("USER: You must connect with a password first")), socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
 	if(command.params.size() < 4)
@@ -145,21 +145,19 @@ void	quit(Server *server, int socket, Commands command)
 	Client					*clientQuitting = server->getClientByFd(socket);
 	std::vector<Channel*>	channelsToInform = clientQuitting->getAllChannels();
 	std::string				msgChannel;
+	std::string				nickname = clientQuitting->getNickname();
 
 	if (command.params.empty())
-		server->sendMsg("QUIT\r\n", socket);
+		server->sendMsg(QUIT("QUIT\r\n"), socket);
 	else if (!command.params[0].empty())
-		server->sendMsg("QUIT : " + command.params[0] + "\r\n", socket);
-	server->deleteClient(clientQuitting->getFd());
+		server->sendMsg(QUIT("QUIT : " + command.params[0] + "\r\n"), socket);
 	if (!command.params.empty())
-		msgChannel = "QUIT : " + command.params[0] + "\r\n\r\n";
+		msgChannel = ":" + clientQuitting->getFullIdentifier() + " QUIT the server with the comment : " + command.params[0] + "\r\n";
 	else
-		msgChannel = "QUIT\r\n";
+		msgChannel = ":" +  clientQuitting->getFullIdentifier() +  " QUIT\r\n";
+	server->deleteClient(clientQuitting->getFd());
 	if (!channelsToInform.empty())
-	{
-		std::cout << msgChannel << std::endl;
 		server->sendMsg(msgChannel, channelsToInform);
-	}
 }
 
 void	squit(Server *server, int socket, Commands command)
@@ -176,7 +174,6 @@ void	squit(Server *server, int socket, Commands command)
 	msg.push_back("terminate the connection with the comment :" + command.params[1]);
 	Commands cmd("WALLOPS", "", msg, false);
 	wallops(server, socket, cmd);
-	//server->broadcast(msg, socket);
 	throw Server::serverError(client->getNickname(), " close the server because of :" + command.params[1]);
 }
 
@@ -517,10 +514,29 @@ void motd(Server *server, int socket, Commands command)
 
 }
 
-cmd_func lusers;
-cmd_func version;
-cmd_func stats;
-cmd_func links;
+void	lusers(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	version(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	stats(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	links(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
 
 void	time(Server *server, int socket, Commands command)
 {
@@ -528,16 +544,46 @@ void	time(Server *server, int socket, Commands command)
 	server->printCurrentLocaltime(socket);
 }
 
-cmd_func connect;
-cmd_func trace;
-cmd_func admin;
-cmd_func info;
+void	connect(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	trace(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	admin(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	info(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
 
 /*
  * 3.5 Service Query and Commands
  */
-cmd_func servlist;
-cmd_func squery;
+
+void	servlist(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	squery(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
 
 /*
  * 3.6 User based queries
@@ -574,6 +620,19 @@ void who(Server *server, int socket, Commands command)
 // {
 
 // }
+
+void	whois(Server *server, int socket, Commands command)
+{
+	(void)command;
+	(void)socket;
+	(void)server;
+}
+
+void	whowas(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
 
 /*
  * 3.7 Miscellaneous messages
@@ -655,6 +714,12 @@ void	pong(Server *server, int socket, Commands command)
 
 cmd_func error;
 
+void	error(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
 /*
  * 4.1 Optional features
  */
@@ -672,13 +737,47 @@ void away(Server *server, int socket, Commands command)
 	server->sendMsg(RPL_NOWAWAY, socket);
 }
 
-cmd_func rehash;
-cmd_func die;
-cmd_func restart;
-cmd_func summon;
-cmd_func users;
-cmd_func userhost;
-cmd_func ison;
+void	rehash(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	die(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	summon(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	users(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	userhost(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	ison(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+void	restart(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
 
 /*
  * 4.7 Operwall message

@@ -219,6 +219,7 @@ void	Server::sendMsg(const std::string msg, std::vector<Channel*> channels)
 	}
 }
 
+
 void	Server::sendWho(int socket, std::vector<Client *>listOfClients)
 {
 	std::vector<Client *>::iterator it;
@@ -229,7 +230,6 @@ void	Server::sendWho(int socket, std::vector<Client *>listOfClients)
 	}
 	sendMsg(RPL_ENDOFWHO(getClientByFd(socket)->getNickname()), socket);
 }
-
 
 void	Server::broadcast(std::string msg, int expediteur)
 {
@@ -393,6 +393,8 @@ int		Server::_handleMessage(epoll_event ep_event)
 	ssize_t				numbytes;
 	Client* currentClient = this->getClientByFd(ep_event.data.fd);
 
+	if (isCmdFull(currentClient->getBuffer()))
+		currentClient->clearBuffer();
 	memset(buffer, 0, BUFFER_SIZE);
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
 #ifdef DEBUG
@@ -410,7 +412,6 @@ int		Server::_handleMessage(epoll_event ep_event)
 		if (isCmdFull(currentClient->getBuffer()))
 		{
 			this->executeCommands(currentClient->getBuffer(), currentClient);
-			currentClient->clearBuffer();
 		}
 	}
 	return (1);
@@ -487,7 +488,7 @@ void	Server::createCmdDict(void)
 	_cmdDict["CAP"] = &cap;
 	_cmdDict["OPER"] = &oper;
 	_cmdDict["MODE"] = &mode;
-	// _cmdDict["SERVICE"] = &service;
+	_cmdDict["SERVICE"] = &service;
 	_cmdDict["QUIT"] = &quit;
 	_cmdDict["SQUIT"] = &squit;
 	_cmdDict["JOIN"] = &join;
@@ -500,33 +501,33 @@ void	Server::createCmdDict(void)
 	_cmdDict["PRIVMSG"] = &privmsg;
 	_cmdDict["NOTICE"] = &notice;
 	_cmdDict["MOTD"] = &motd;
-	// _cmdDict["LUSERS"] = &lusers;
-	// _cmdDict["VERSION"] = &version;
-	// _cmdDict["STATS"] = &stats;
-	// _cmdDict["LINKS"] = &links;
+	_cmdDict["LUSERS"] = &lusers;
+	_cmdDict["VERSION"] = &version;
+	_cmdDict["STATS"] = &stats;
+	_cmdDict["LINKS"] = &links;
 	_cmdDict["TIME"] = &time;
-	// _cmdDict["CONNECT"] = &connect;
-	// _cmdDict["TRACE"] = &trace;
-	// _cmdDict["ADMIN"] = &admin;
-	// _cmdDict["INFO"] = &info;
-	// _cmdDict["SERVLIST"] = &servlist;
-	// _cmdDict["SQUERY"] = &squery;
+	_cmdDict["CONNECT"] = &connect;
+	_cmdDict["TRACE"] = &trace;
+	_cmdDict["ADMIN"] = &admin;
+	_cmdDict["INFO"] = &info;
+	_cmdDict["SERVLIST"] = &servlist;
+	_cmdDict["SQUERY"] = &squery;
 	_cmdDict["WHO"] = &who;
-	// _cmdDict["WHOIS"] = &whois;
-	// _cmdDict["WHOWAS"] = &whowas;
+	_cmdDict["WHOIS"] = &whois;
+	_cmdDict["WHOWAS"] = &whowas;
 	_cmdDict["KILL"] = &kill;
 	_cmdDict["PING"] = &ping;
 	_cmdDict["PONG"] = &pong;
-	// _cmdDict["ERROR"] = &error;
+	_cmdDict["ERROR"] = &error;
 	_cmdDict["AWAY"] = &away;
-	// _cmdDict["REHASH"] = &rehash;
-	// _cmdDict["DIE"] = &die;
-	// _cmdDict["RESTART"] = &restart;
-	// _cmdDict["SUMMON"] = &summon;
-	// _cmdDict["USERS"] = &users;
-	// _cmdDict["WALLOPS"] = &wallops;
-	// _cmdDict["USERHOST"] = &userhost;
-	// _cmdDict["ISON"] = &ison;
+	_cmdDict["REHASH"] = &rehash;
+	_cmdDict["DIE"] = &die;
+	_cmdDict["RESTART"] = &restart;
+	_cmdDict["SUMMON"] = &summon;
+	_cmdDict["USERS"] = &users;
+	_cmdDict["WALLOPS"] = &wallops;
+	_cmdDict["USERHOST"] = &userhost;
+	_cmdDict["ISON"] = &ison;
 }
 
 void		Server::createAndBind(char *port)
@@ -540,16 +541,6 @@ void		Server::createAndBind(char *port)
 	hints.ai_flags = AI_PASSIVE;
 	if (getaddrinfo(NULL, port, &hints, &result) == -1)
 		throw serverError("getaddrinfo", strerror(errno));
-	//for (p = result; p != NULL; p = p->ai_next)
-	//	{
-#ifdef DEBUG
-	std::cout << "Method createAndBind srcs/Server.cpp" << std::endl;
-	std::cout << "Value of result function getaddrinfo" << std::endl;
-	std::cout << "ai_family : " << result->ai_family << std::endl;
-	std::cout << "ai_protocol : " << result->ai_protocol << std::endl;
-	std::cout << "ai_addr : " << result->ai_addr << std::endl;
-	std::cout << "ai_addrlen : " << result->ai_addrlen << std::endl;
-#endif
 	if ((_listenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1)
 		throw serverError("socket creation:", strerror(errno));
 	setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval));
@@ -589,10 +580,8 @@ void	Server::deleteAllChannels(void)
 	}
 }
 
-void	Server::clearServer(void) //TODO link with signal??!!
+void	Server::clearServer(void)
 {
-	//TODO delete channels before user bc channels are links to users
-	//Close connection and fd and delete users
 	struct epoll_event	ev;
 
 	deleteAllChannels();
@@ -624,31 +613,6 @@ void	Server::clearServer(void) //TODO link with signal??!!
 	if (close(this->_pollFd) == -1)
 		std::cerr << "close issue" << std::endl;
 }
-
-/*void	Server::deleteClientbis(Client* user, epoll_event ep_event)
-  {
-  struct epoll_event	ev;
-
-  memset(&ev, 0, sizeof(ev));
-  std::map<int, Client*>::iterator it;
-  std::map<int, Client*>::iterator ite = this->_clients.end();
-  for (it = this->_clients.begin(); it != ite;)
-  {
-  if (user == it->second)
-  {
-//close (it->second->getFd());
-delete it->second;
-this->_clients.erase(it++);
-}
-else
-it++;
-}
-if (epoll_ctl(this->_pollFd, EPOLL_CTL_DEL, ep_event.data.fd, &ev) == -1)
-throw serverError("epoll_ctl", strerror(errno));
-if (close(ep_event.data.fd) == -1)
-throw serverError("close", strerror(errno));
-std::cout << "Connection close by client" << std::endl;
-}*/
 
 
 void	Server::deleteClient(int socket)

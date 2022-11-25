@@ -25,7 +25,6 @@
 #include <sstream>
 #include <algorithm>
 #include <signal.h>
-//#include <bits/signum.h>
 #include <bits/types/sig_atomic_t.h>
 #include <bits/types/siginfo_t.h>
 #include <bits/stdc++.h>
@@ -49,8 +48,6 @@ typedef std::map<std::string, cmd_func_ptr> cmd_dict;
 #include "Commands.hpp"
 #include "Exceptions.hpp"
 #include "parser.hpp"
-#include "execution_utils.hpp"
-#include "commandsUtils.hpp"
 
 #define CLIENT_MODE "-/+airow"
 #define CHANNEL_MODE "-/+ikmnpstl"

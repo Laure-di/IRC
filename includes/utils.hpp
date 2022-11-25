@@ -34,5 +34,14 @@ std::vector<std::string>		splitCmd(std::string toSplit, std::string delimiter);
 std::vector<std::string>		split(std::string string, std::string delimiter);
 std::vector<std::string> splitBy(std::string string, std::string delimiter);
 void							checkAndJoinChannel(Server *server, int socket, std::string channelName, std::string key);
+bool		isClientFullyRegister(Client* user);
+bool		isRegistrationCmd(std::string command);
+void		stringToUpper(std::string *string);
+void		transformCmdsToUpper(std::vector<Commands> *commandsList);
+bool		isCmdFull(std::string string);
+void	welcomeClient(Server *server, int socket, Client *currentUser);
+bool	isUnavailableNickname(Server* server, std::string nick);
+bool	isNumber(std::string nb);
+int		areParamsValid(std::vector<std::string> params);
 
 #endif

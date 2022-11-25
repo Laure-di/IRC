@@ -14,13 +14,21 @@ void	welcomeClient(Server *server, int socket, Client *currentUser)
 	}
 	return ;
 }
-
+/*
+ * @Brief if a client as been kill by an operator, nobody can connect within a delay of 60 sec.
+ *		  https://stackoverflow.com/questions/12121091/diffrence-of-two-time-in-c
+*/
 bool	isUnavailableNickname(Server* server, std::string nick)
 {
 	std::map<std::string, time_t>::const_iterator it = server->getNicknameUnavailable().end();
-	if (server->getNicknameUnavailable().find(nick) == it)
+	if (server->getNicknameUnavailable().find(nick) != it)
+	{
+		double killTime = difftime(time(0), server->getNicknameUnavailable().find(nick)->second);
+		if (killTime < 60)
+			return (true);
 		return (false);
-	return (true);
+	}
+	return (false);
 }
 
 bool isNumber(std::string nb) {
@@ -40,5 +48,5 @@ int	areParamsValid(std::vector<std::string> params)
 		return (mode = toInt(params[1]));
 	else if (params[1] != params[0])
 		return (mode = -1);
-	return (mode = 0); //TODO change
+	return (mode = 0);
 }
