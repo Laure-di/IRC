@@ -496,8 +496,6 @@ void notice(Server *server, int socket, Commands command)
  * @brief The MOTD command is used to get the "Message Of The Day" of the given
  *  server, or current server if <target> is omitted.
  */
-
-
 void motd(Server *server, int socket, Commands command)
 {
 	(void) command;
@@ -616,16 +614,20 @@ void who(Server *server, int socket, Commands command)
  *
  * @brief This command is used to query information about a particular user.
 */
-// void whois(Server *server, int socket, Commands command)
-// {
-
-// }
-
-void	whois(Server *server, int socket, Commands command)
+void whois(Server *server, int socket, Commands command)
 {
-	(void)command;
-	(void)socket;
-	(void)server;
+	if(command.params.empty())
+		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
+	std::string nicknameMasks = splitBy(command.params[0], ",");
+	std::vector<Client *> listOfClients = server->getAllClientsMatching(nicknameMasks);
+	if (listOfClients.empty())
+		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
+	std::vector<Client *> it;
+	for (it = listOfClients.begin(); it != listOfClients.end(); it++)
+	{
+		Client *client = *it;
+		
+	}
 }
 
 void	whowas(Server *server, int socket, Commands command)

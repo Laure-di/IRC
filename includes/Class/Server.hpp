@@ -46,6 +46,7 @@ class Server
 		Client*									getClientByFd(size_t fd);
 		Client*									getClientByNickname(const std::string nickname) const;
 		std::vector<Client*>					getAllClientsMatching(std::string pattern, std::vector<Client*>listOfClients)  const;
+		std::vector<Client *>					getAllClientsMatching(std::vector<std::string> nicknameMasks)const;
 		std::vector<Client *>					getAllClientsVisibleForClient(Client *client)const;
 		std::vector<Client*>					getAllClients(void)const;
 		const std::map<std::string, time_t>&	getNicknameUnavailable(void)const;

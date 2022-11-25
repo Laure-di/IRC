@@ -121,6 +121,11 @@ NumericReplies			Client::getWhoMessage(void) const
 	return RPL_WHOREPLY(channel, getUsername(), getHostname(), HOSTNAME, getNickname(), getPresence(), getFullName());
 }
 
+NumericReplies			Client::getWhoIsMessage(void) const
+{
+	return RPL_WHOISUSER(getNickname(), getUsername(), HOSTNAME, getFullName());
+}
+
 void	Client::setNickname(std::string nickname)
 {
 	this->_nickname = nickname;

@@ -85,6 +85,32 @@ std::vector<Client*>	Server::getAllClientsMatching(std::string pattern, std::vec
 	return (allClients);
 }
 
+std::vector<Client*>	Server::getAllClientsMatching(std::string nicknameMask) const
+{
+	std::vector<Client*> allClients;
+	std::vector<Client*>::const_iterator it;
+	for (it = _clients.begin(); it!= _clients.end(); it++)
+	{
+		Client *target = *it;
+		std::string nickname = target->getNickname();
+		if (strmatch(nickname, nicknameMask))
+			allClients.push_back(target);
+	}
+	return (allClients);
+}
+
+std::vector<Client*>	Server::getAllClientsMatching(std::vector<std::string> nicknameMasks) const
+{
+	std::vector<Client*> allClients;
+	std::vector<std::string>::iterator it;
+	for (it = nicknameMasks.begin(); it!= nicknameMasks.end(); it++)
+	{
+		std::string nicknameMask = *it;
+		allClients.push_back(getAllClientsMatching(nicknameMask));
+	}
+	return (allClients);
+}
+
 std::vector<Client *>		Server::getAllClientsVisibleForClient(Client *client)const
 {
 	std::vector<Client *> listOfVisibles;

@@ -63,6 +63,7 @@ class Client
 		bool isInSameChannel(Client *client) const;
 		std::string				getPresence(void) const;
 		NumericReplies			getWhoMessage(void) const;
+		NumericReplies			getWhoIsMessage(void) const;
 		void					setNickname(std::string nickname);
 		void					setUsername(std::string username);
 		void					setFullName(std::string fullName);
