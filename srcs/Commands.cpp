@@ -152,9 +152,9 @@ void	quit(Server *server, int socket, Commands command)
 	else if (!command.params[0].empty())
 		server->sendMsg(QUIT("QUIT : " + command.params[0] + "\r\n"), socket);
 	if (!command.params.empty())
-		msgChannel = nickname + " has quit the server with the comment : " + command.params[0] + "\r\n";
+		msgChannel = ":" + clientQuitting->getFullIdentifier() + " QUIT the server with the comment : " + command.params[0] + "\r\n";
 	else
-		msgChannel = nickname +  " has quit the server\r\n";
+		msgChannel = ":" +  clientQuitting->getFullIdentifier() +  " QUIT\r\n";
 	server->deleteClient(clientQuitting->getFd());
 	if (!channelsToInform.empty())
 		server->sendMsg(msgChannel, channelsToInform);
