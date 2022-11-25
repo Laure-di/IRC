@@ -1,6 +1,5 @@
 #include "../includes/include.hpp"
 
-
 /*
  * 3.1 Connection Registration
  */
@@ -125,7 +124,6 @@ void service(Server *server, int socket, Commands command)
 
 }
 
-
 /**
  * 3.1.7 Negociation message
  *
@@ -139,7 +137,11 @@ void cap(Server *server, int socket, Commands command)
 	return ;
 }
 
-
+/**
+ * 3.1.7 Quit
+ *
+ * @brief A client session is terminated with a quit message.
+*/
 void	quit(Server *server, int socket, Commands command)
 {
 	Client					*clientQuitting = server->getClientByFd(socket);
@@ -160,6 +162,11 @@ void	quit(Server *server, int socket, Commands command)
 		server->sendMsg(msgChannel, channelsToInform);
 }
 
+/**
+ * 3.1.8 Squit
+ *
+ * @brief The SQUIT command is available only to operators.
+*/
 void	squit(Server *server, int socket, Commands command)
 {
 	Client *client = server->getClientByFd(socket);
@@ -176,7 +183,6 @@ void	squit(Server *server, int socket, Commands command)
 	wallops(server, socket, cmd);
 	throw Server::serverError(client->getNickname(), " close the server because of :" + command.params[1]);
 }
-
 
 /*
  * 3.2 Channel operations
@@ -512,54 +518,107 @@ void motd(Server *server, int socket, Commands command)
 
 }
 
+/**
+ * 3.4.2 Lusers message
+ *
+ * @brief The LUSERS command is used to get statistics about the size of the
+ * IRC network.
+*/
 void	lusers(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.4.3 Version message
+ *
+ * @brief The VERSION command is used to query the version of the server
+ * program.
+*/
 void	version(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.4.4 Stats message
+ *
+ * @brief The stats command is used to query statistics of certain server.
+*/
 void	stats(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.4.5 Links message
+ *
+ * @brief With LINKS, a user can list all servernames, which are known by the
+ * server answering the query.
+*/
 void	links(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.4.6 Time message
+ *
+ * @brief The time command is used to query local time from the specified
+ * server.
+*/
 void	time(Server *server, int socket, Commands command)
 {
 	(void) command;
 	server->printCurrentLocaltime(socket);
 }
 
+/**
+ * 3.4.7 Connect message
+ *
+ * @brief The CONNECT command can be used to request a server to try to
+ * establish a new connection to another server immediately.
+*/
 void	connect(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.4.8 Trace message
+ *
+ * @brief TRACE command is used to find the route to specific server and
+ * information about its peers.
+*/
 void	trace(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.4.9 Admin command
+ *
+ * @brief  The admin command is used to find information about the administrator
+ * of the given server
+*/
 void	admin(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.4.10 Info command
+ *
+ * @brief The INFO command is REQUIRED to return information describing the
+ * server.
+*/
 void	info(Server *server, int socket, Commands command)
 {
 	(void)command;
@@ -570,18 +629,29 @@ void	info(Server *server, int socket, Commands command)
  * 3.5 Service Query and Commands
  */
 
+/**
+ * 3.5.1 Servlist message
+ *
+ * @brief The SERVLIST command is used to list services currently connected to
+ * the network and visible to the user issuing the command.
+*/
 void	servlist(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 3.5.2 Squery
+ *
+ * @brief The SQUERY command is used similarly to PRIVMSG.  The only difference
+ * is that the recipient MUST be a service.
+*/
 void	squery(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
-
 
 /*
  * 3.6 User based queries
@@ -630,6 +700,11 @@ void whois(Server *server, int socket, Commands command)
 	}
 }
 
+/**
+ * 3.6.3 Whowas
+ *
+ * @brief Whowas asks for information about a nickname which no longer exists.
+*/
 void	whowas(Server *server, int socket, Commands command)
 {
 	(void)command;
@@ -640,10 +715,11 @@ void	whowas(Server *server, int socket, Commands command)
  * 3.7 Miscellaneous messages
  */
 
-/*
+/**
  * 3.7.1 Kill message
- *	@Brief  The KILL command is used to cause a client-server connection to be
- *			closed by the server which has the actual connection.
+ *
+ * @brief The KILL command is used to cause a client-server connection to be
+ * closed by the server which has the actual connection.
  */
 
 void	kill(Server *server, int socket, Commands command)
@@ -663,13 +739,13 @@ void	kill(Server *server, int socket, Commands command)
 	server->addNicknameUnavailable(nickname);
 }
 
-/*
+/**
  * 3.7.2 Ping message
- *	@Brief The PING command is used to test the presence of an active client or
- *		   server at the other end of the connection.
- *		   https://www.digitalocean.com/community/tutorials/compare-strings-in-c-plus-plus
+ *
+ * @brief The PING command is used to test the presence of an active client or
+ * server at the other end of the connection.
+ * https://www.digitalocean.com/community/tutorials/compare-strings-in-c-plus-plus
  */
-
 void	ping(Server *server, int socket, Commands command)
 {
 	if (command.params.size() == 0)
@@ -689,9 +765,10 @@ void	ping(Server *server, int socket, Commands command)
 
 }
 
-/*
+/**
  * 3.7.3 Pong message
- *	@Brief PONG message is a reply to ping message.
+ *
+ * @brief PONG message is a reply to ping message.
  */
 void	pong(Server *server, int socket, Commands command)
 {
@@ -714,8 +791,12 @@ void	pong(Server *server, int socket, Commands command)
 
 }
 
-cmd_func error;
-
+/**
+ * 3.7.4 Error
+ *
+ * @brief The ERROR command is for use by servers when reporting a serious or
+ * fatal error to its peers.
+*/
 void	error(Server *server, int socket, Commands command)
 {
 	(void)command;
@@ -723,8 +804,15 @@ void	error(Server *server, int socket, Commands command)
 }
 
 /*
- * 4.1 Optional features
+ * 4.Optional features
  */
+
+/**
+ * 4.1 Away
+ *
+ * @brief  With the AWAY command, clients can set an automatic reply string for
+ * any PRIVMSG commands directed at them (not to a channel they are on).
+*/
 void away(Server *server, int socket, Commands command)
 {
 	Client *client = server->getClientByFd(socket);
@@ -739,52 +827,73 @@ void away(Server *server, int socket, Commands command)
 	server->sendMsg(RPL_NOWAWAY, socket);
 }
 
+/**
+ * 4.2 Rehash message
+ *
+ * @brief The rehash command is an administrative command which can be used by
+ * an operator to force the server to re-read and process its configuration
+ * file.
+*/
 void	rehash(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
+/**
+ * 4.3 Die message
+ *
+ * @brief An operator can use the DIE command to shutdown the server.
+*/
 void	die(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
-void	summon(Server *server, int socket, Commands command)
-{
-	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
-}
-
-void	users(Server *server, int socket, Commands command)
-{
-	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
-}
-
-void	userhost(Server *server, int socket, Commands command)
-{
-	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
-}
-
-void	ison(Server *server, int socket, Commands command)
-{
-	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
-}
-
+/**
+ * 4.4 Restart message
+ *
+ * @brief  An operator can use the restart command to force the server to
+ * restart itself.
+*/
 void	restart(Server *server, int socket, Commands command)
 {
 	(void)command;
 	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
 
-/*
- * 4.7 Operwall message
- */
 
+/**
+ * 4.5 Summon message
+ *
+ * @brief The SUMMON command can be used to give users who are on a host
+ * running an IRC server a message asking them to please join IRC.
+*/
+void	summon(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+/**
+ * 4.6 Users
+ *
+ * @brief The USERS command returns a list of users logged into the server in a
+ * format similar to the UNIX commands who(1), rusers(1) and finger(1).
+*/
+void	users(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+/**
+ * 4.7 Operwall message
+ *
+ * @brief The WALLOPS command is used to send a message to all currently
+ * connected users who have set the 'w' user mode for themselves.
+*/
 void	wallops(Server *server, int socket, Commands command)
 {
 	if (command.params.empty())
@@ -796,5 +905,29 @@ void	wallops(Server *server, int socket, Commands command)
 		if ((*it)->getMode() & WALLOPS)
 			server->sendMsg(WALLOPS(server->getHostname(), server->getClientByFd(socket)->getNickname(), command.params[0]), (*it)->getFd());
 	}
+}
 
+/**
+ * 4.8 Userhost message
+ *
+ * @brief he USERHOST command takes a list of up to 5 nicknames, each
+ * separated by a space character and returns a list of information
+ * about each nickname that it found.
+*/
+void	userhost(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+}
+
+/**
+ * 4.9 Ison message
+ * @brief The ISON command was implemented to provide a quick and efficient
+ * means to get a response about whether a given nickname was currently
+ * on IRC.
+*/
+void	ison(Server *server, int socket, Commands command)
+{
+	(void)command;
+	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
 }
