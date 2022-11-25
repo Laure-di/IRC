@@ -618,15 +618,15 @@ void whois(Server *server, int socket, Commands command)
 {
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::string nicknameMasks = splitBy(command.params[0], ",");
+	std::vector<std::string> nicknameMasks = splitBy(command.params[0], ",");
 	std::vector<Client *> listOfClients = server->getAllClientsMatching(nicknameMasks);
 	if (listOfClients.empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
-	std::vector<Client *> it;
-	for (it = listOfClients.begin(); it != listOfClients.end(); it++)
+	std::vector<Client *>::const_iterator cit;
+	for (cit = listOfClients.begin(); cit != listOfClients.end(); cit++)
 	{
-		Client *client = *it;
-		
+		Client *client = *cit;
+		server->sendMsg(client->getWhoIsMessage(), socket);
 	}
 }
 
