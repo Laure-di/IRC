@@ -32,7 +32,6 @@ private:
 	unsigned                         _mode;
 	int                              _status;
 	bool                             _pwd;
-	bool                             _isAuthenticated;
 	std::map<std::string, Channel *> _channels;
 	std::string                      _awayMessage;
 
@@ -51,7 +50,6 @@ public:
 	int                    getMode(void) const;
 	std::string            getModeStr(void) const;
 	bool                   getPwd(void) const;
-	bool                   getIsAuthenticated(void) const;
 	std::vector<Channel *> getAllChannels(void) const;
 	std::string            getBuffer(void) const;
 	std::string            getAwayMessage(void) const;
@@ -69,7 +67,6 @@ public:
 	void                   setMode(Commands command);
 	void                   setStatus(int status);
 	void                   setPwd(bool pwd);
-	void                   setIsAuthenticated(bool authenticate);
 	void                   setAwayMessage(std::string awayMessage);
 	void                   addChannel(Channel *channel, std::string channelName);
 	void                   append(std::string buffer);

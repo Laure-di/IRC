@@ -1,7 +1,5 @@
 #include "../includes/include.hpp"
 
-#define DEBUG
-
 /****************************************************************************/
 /***					Constructor && Destructor						 ***/
 /***																	***/
@@ -74,7 +72,8 @@ std::vector<Client *> Server::getAllClientsMatching(std::string pattern, std::ve
 	{
 		Client     *target = *it;
 		std::string nickname = target->getNickname();
-		if (strmatch(nickname, pattern) || strmatch(nickname, pattern) || strmatch(nickname, pattern))
+		std::string username = target->getFullName();
+		if (strmatch(nickname, pattern) || strmatch(HOSTNAME, pattern) || strmatch(username, pattern))
 			allClients.push_back(target);
 	}
 	return (allClients);
@@ -359,7 +358,7 @@ void Server::_acceptNewClient(int listenSocket, int pollfd)
 	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &ev) == -1)
 		throw serverError("epoll_ctl", strerror(errno));
 #ifdef DEBUG
-	std::cout << "nouvelle connexion" << std::endl;
+	std::cout << "Nouvelle connexion on fd " + client_fd << std::endl;
 #endif
 }
 

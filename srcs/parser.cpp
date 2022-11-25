@@ -50,10 +50,33 @@ void parseCmd(std::string cmd, std::vector<Commands> *command)
 	std::string              cd;
 	std::string              prefix;
 	std::vector<std::string> params;
-	bool                     colon;
+	bool                     colon = false;
 
 	prefix = handlePrefix(&cmd);
-	if (cmd.find(":") != std::string::npos)
+	if (cmd.substr(0, 5) == "JOIN ")
+	{
+		cd = "JOIN";
+		std::string tmp = cmd.substr(5, cmd.length());
+		if (!tmp.empty())
+			params.push_back(tmp);
+	}
+	else if (cmd.substr(0, 8) == "PRIVMSG ")
+	{
+		cd = "PRIVMSG";
+		std::string tmp = cmd.substr(8, cmd.length());
+		size_t n = tmp.find(" ");
+		if (n != std::string::npos)
+		{
+			std::string tmp2 = tmp.substr(0, n);
+			std::string tmp3 = tmp.substr(n + 1, tmp.length());
+			params.push_back(tmp2);
+			params.push_back(tmp3);
+		}
+		else if (!tmp.empty())
+			params.push_back(tmp);
+
+	}
+	else if (cmd.find(":") != std::string::npos)
 	{
 		colon = true;
 		std::vector<std::string> first;
@@ -82,7 +105,6 @@ void parseCmd(std::string cmd, std::vector<Commands> *command)
 		colon = false;
 		rslt = splitBy(cmd, " ");
 		cd = *(rslt.begin());
-		std::cout << rslt.size() << std::endl;
 		if (rslt.size() > 1)
 		{
 			pop_front<std::string>(rslt);

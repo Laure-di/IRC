@@ -292,14 +292,17 @@ void Channel::modClientMask(unsigned type, bool add, std::string mask)
 	default:
 		return;
 	}
-	if (add)
-		masksList->push_back(mask);
-	else
-		masksList->erase(std::remove(masksList->begin(), masksList->end(), mask), masksList->end());
+	if (!mask.empty())
+	{
+		if (add)
+			masksList->push_back(mask);
+		else
+			masksList->erase(std::remove(masksList->begin(), masksList->end(), mask), masksList->end());
+	}
 	std::string        delim = ",";
 	std::ostringstream joinedMasksStream;
 	std::copy(masksList->begin(), masksList->end(),
-			  std::ostream_iterator<std::string>(joinedMasksStream, delim.c_str()));
+			std::ostream_iterator<std::string>(joinedMasksStream, delim.c_str()));
 	std::string joinedMasks = joinedMasksStream.str();
 	joinedMasks = joinedMasks.substr(0, joinedMasks.size() - 1);
 	sendMsg("The " + maskName + " mask is now : " + joinedMasks + "\r\n");

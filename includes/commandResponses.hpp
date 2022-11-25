@@ -58,7 +58,7 @@ struct NumericReplies
 #define RPL_LISTEND NumericReplies(323, ":End of LIST\r\n")
 // MODE
 #define RPL_UNIQOPIS(channel, nickname) NumericReplies(325, channel + " " + nickname + "\r\n")
-#define RPL_CHANNELMODEIS(channel, mode, params) NumericReplies(324, channel + " " + mode + " " + params + "\r\n")
+#define RPL_CHANNELMODEIS(msg) NumericReplies(324, msg + "\r\n")
 #define RPL_INVITELIST(channel, invitemask) NumericReplies(346, channel + " " + invitemask + "\r\n")
 #define RPL_ENDOFINVITELIST(channel) NumericReplies(347, channel + " :End of channel invite list\r\n")
 #define RPL_EXCEPTLIST(channel, exceptionmask) NumericReplies(348, channel + " " + exceptionmask + "\r\n")

@@ -1,6 +1,11 @@
 #include "../includes/include.hpp"
 
 /*
+ * List of commands with their reference in the RFC 2812
+ * https://datatracker.ietf.org/doc/html/rfc2812
+ */
+
+/*
  * 3.1 Connection Registration
  */
 
@@ -68,7 +73,7 @@ void nick(Server *server, int socket, Commands command)
 	else
 	{
 		client->setNickname(nickname);
-		return server->sendMsg("NICK " + nickname + "\r\n", socket);
+		server->sendMsg("NICK " + nickname + "\r\n", socket);
 	}
 };
 
@@ -80,10 +85,10 @@ void nick(Server *server, int socket, Commands command)
  */
 void user(Server *server, int socket, Commands command)
 {
-	Client *currentUser = server->getClientByFd(socket);
-	if (currentUser->getPwd() == false)
+	Client *client = server->getClientByFd(socket);
+	if (client->getPwd() == false)
 		return server->sendMsg(ERR_CLIENT(std::string("USER: You must connect with a password first")), socket);
-	if (!currentUser->getUsername().empty())
+	if (!client->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
 	if (command.params.size() < 4)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
@@ -94,11 +99,11 @@ void user(Server *server, int socket, Commands command)
 	std::string fullName = command.params[3];
 	if (!checkUsername(userName))
 		return;
-	currentUser->setUsername(userName);
-	currentUser->setFullName(fullName);
+	client->setUsername(userName);
+	client->setFullName(fullName);
 	if (-1 < mode)
-		currentUser->setMode(mode & 0b110);
-	welcomeClient(server, socket, currentUser);
+		client->setMode(mode & 0b110);
+	welcomeClient(server, socket, client);
 };
 
 /**
@@ -204,6 +209,9 @@ void join(Server *server, int socket, Commands command)
 {
 	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
+	Client *client = server->getClientByFd(socket);
+	if (command.params[0] == "0")
+		return client->leaveChannels(server);
 	std::vector<std::string> names = splitBy(command.params[0], ",");
 	std::vector<std::string> keys;
 	if (command.params.size() > 1)
@@ -465,7 +473,7 @@ void privmsg(Server *server, int socket, Commands command)
 	if (command.params.size() == 1)
 		return server->sendMsg(ERR_NOTEXTTOSEND, socket);
 	std::vector<std::string>           recipients = splitBy(command.params[0], ",");
-	Client							*client = server->getClientByFd(socket);
+	Client                            *client = server->getClientByFd(socket);
 	std::string                        nickname = client->getNickname();
 	std::vector<std::string>::iterator it;
 	for (it = recipients.begin(); it != recipients.end(); it++)
@@ -478,6 +486,8 @@ void privmsg(Server *server, int socket, Commands command)
 			Channel *channel = server->getChannelByName(name);
 			if (channel)
 				channel->sendMsg(msg, client);
+			else
+				server->sendMsg(ERR_NOSUCHNICK(nickname), socket);
 		}
 		else
 		{
@@ -488,9 +498,10 @@ void privmsg(Server *server, int socket, Commands command)
 					server->sendMsg(RPL_AWAY(name, recipient->getAwayMessage()), socket);
 				server->sendMsg(msg, recipient);
 			}
+			else
+				server->sendMsg(ERR_NOSUCHNICK(nickname), socket);
 		}
 	}
-	return;
 }
 
 /**
@@ -684,9 +695,9 @@ void who(Server *server, int socket, Commands command)
 			return server->sendWho(socket, channel->getAllClients());
 		return;
 	}
-	Client			   *client = server->getClientByFd(socket);
+	Client               *client = server->getClientByFd(socket);
 	std::vector<Client *> listOfVisibles = server->getAllClientsVisibleForClient(client);
-	return server->sendWho(socket, server->getAllClientsMatching(params, listOfVisibles));
+	server->sendWho(socket, server->getAllClientsMatching(params, listOfVisibles));
 }
 
 /**
@@ -696,6 +707,8 @@ void who(Server *server, int socket, Commands command)
  */
 void whois(Server *server, int socket, Commands command)
 {
+	Client *client = server->getClientByFd(socket);
+	std::string nickname = client->getNickname();
 	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> nicknameMasks = splitBy(command.params[0], ",");
@@ -708,6 +721,7 @@ void whois(Server *server, int socket, Commands command)
 		Client *client = *cit;
 		server->sendMsg(client->getWhoIsMessage(), socket);
 	}
+	server->sendMsg(RPL_ENDOFWHO(), socket);
 }
 
 /**
@@ -788,7 +802,6 @@ void pong(Server *server, int socket, Commands command)
 		if (command.params.size() == 2)
 		{
 			std::string serverRecipient = command.params[1];
-			std::cout << server->getHostname() << std::endl;
 			if (server->getHostname().compare(serverRecipient) != 0 && serverRecipient != "127.0.0.1")
 				return server->sendMsg(ERR_NOSUCHSERVER(serverRecipient), socket);
 		}

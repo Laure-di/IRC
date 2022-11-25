@@ -15,7 +15,6 @@ void	welcomeClient(Server *server, int socket, Client *currentClient)
 		server->sendMsg(RPL_MYINFO(server->getHostname(), server->getVersion(), CLIENT_MODE, CHANNEL_MODE), socket);
 		motd(server, socket, modtCmd);
 	}
-	return ;
 }
 
 /**
@@ -440,11 +439,6 @@ void applyModeChangesChannel(Server *server, int socket, std::string flags, std:
 		switch (nChar)
 		{
 			case 'b':
-				if (param.empty())
-				{
-					server->sendMsg(ERR_NEEDMOREPARAMS(std::string("MODE")), socket);
-					break;
-				}
 				channel->modClientMask(nChar, add, param);
 				break;
 			case 'e':
