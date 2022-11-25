@@ -89,7 +89,7 @@ void user(Server *server, int socket, Commands command)
 	currentUser->setUsername(userName);
 	currentUser->setFullName(fullName);
 	if (-1 < mode)
-		currentUser->setMode(mode);
+		currentUser->setMode(mode & 0b110);
 	welcomeClient(server, socket, currentUser);
 };
 

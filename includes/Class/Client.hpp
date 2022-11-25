@@ -7,10 +7,10 @@ enum ClientModes
 {
     NONE = 0,
     AWAY = 1,
-    INVISIBLE = 2,
-    RESTRICTED = 4,
-    SERVEROPERATOR = 8,
-	WALLOPS	= 16,
+	WALLOPS	= 2,
+    INVISIBLE = 4,
+    RESTRICTED = 8,
+    SERVEROPERATOR = 16,
 };
 
 enum ClientStatus
