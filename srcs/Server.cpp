@@ -309,11 +309,12 @@ void	Server::executeCommands(std::string buffer, Client *client)
 	std::vector<Commands>				commandsList = manageMultipleCommands(listOfCommands);
 	std::vector<Commands>::iterator		it = commandsList.begin();
 	std::string							cmdFail;
+	int fd = client->getFd();
 
 	transformCmdsToUpper(&commandsList);
 	for (size_t i = 0; i < commandsList.size(); i++)
 	{
-		if (client)
+		if (isClientInList(fd))
 		{
 		if (!isClientFullyRegister(client) && !isRegistrationCmd(commandsList[i].command))
 			return this->sendMsg(ERR_NOTREGISTERED, client->getFd());
@@ -730,4 +731,9 @@ bool	Server::isInChannel(const std::string nickname) const
 			return true;
 	}
 	return false;
+}
+
+bool	Server::isClientInList(const int fd) const
+{
+	return _clients.count(fd);
 }
