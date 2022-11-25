@@ -565,8 +565,15 @@ void who(Server *server, int socket, Commands command)
 	return server->sendWho(socket, server->getAllClientsMatching(params, listOfVisibles));
 }
 
-cmd_func whois;
-cmd_func whowas;
+/**
+ * 3.6.2 Whois query
+ *
+ * @brief This command is used to query information about a particular user.
+*/
+// void whois(Server *server, int socket, Commands command)
+// {
+
+// }
 
 /*
  * 3.7 Miscellaneous messages
