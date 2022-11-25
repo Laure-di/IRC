@@ -51,7 +51,11 @@ void nick(Server *server, int socket, Commands command) {
 	if (!checkNickname(nickname) || command.colon == true)
 		return server->sendMsg(ERR_ERRONEUSNICKNAME(nickname), socket);
 	if (server->getClientByNickname(nickname))
-		return server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
+	{
+		server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
+		server->deleteClient(socket);
+		return ;
+	}
 	if (isUnavailableNickname(server, nickname))
 		return server->sendMsg(ERR_UNAVAILRESOURCE(nickname), socket);
 	if (client->getMode() == RESTRICTED)
