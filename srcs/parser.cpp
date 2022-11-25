@@ -1,18 +1,18 @@
 #include "../includes/include.hpp"
 
 #define MAX_CMD_LGTH 510
-#define	MAX_PARAMS	15
+#define MAX_PARAMS 15
 
-void	print_debug(std::vector<std::string> print)
+void print_debug(std::vector<std::string> print)
 {
 	std::cout << "params : " << std::endl;
-	std::vector<std::string>::iterator	it;
-	int	i = 1;
-	for (it = print.begin() ;it != print.end(); it++)
-		std::cout << i++ << " parameter " <<*it << std::endl;
+	std::vector<std::string>::iterator it;
+	int                                i = 1;
+	for (it = print.begin(); it != print.end(); it++)
+		std::cout << i++ << " parameter " << *it << std::endl;
 }
 
-void	printCmd(Commands commands)
+void printCmd(Commands commands)
 {
 	std::cout << "Prefix : " << commands.prefix << std::endl;
 	std::cout << "Command : " << commands.command << std::endl;
@@ -20,20 +20,19 @@ void	printCmd(Commands commands)
 	print_debug(commands.params);
 }
 
-void	printAllCmds(std::vector<Commands> print)
+void printAllCmds(std::vector<Commands> print)
 {
-	std::vector<Commands>::iterator	it;
-	for (it = print.begin() ;it != print.end(); it++)
+	std::vector<Commands>::iterator it;
+	for (it = print.begin(); it != print.end(); it++)
 		printCmd(*it);
 }
 
-
-std::string		handlePrefix(std::string *cmd)
+std::string handlePrefix(std::string *cmd)
 {
-	std::string	prefix;
+	std::string prefix;
 	if (cmd->find(":") == 0)
 	{
-		size_t	end;
+		size_t end;
 		end = cmd->find(" ");
 		prefix = cmd->substr(0, end + 1);
 		cmd->erase(0, end + 1);
@@ -45,27 +44,25 @@ std::string		handlePrefix(std::string *cmd)
 	return (prefix);
 }
 
-
-void	parseCmd(std::string cmd, std::vector<Commands> *command)
+void parseCmd(std::string cmd, std::vector<Commands> *command)
 {
-	std::vector<std::string>	rslt;
-	std::string					cd;
-	std::string					prefix;
-	std::vector<std::string>	params;
-	bool						colon;
-
+	std::vector<std::string> rslt;
+	std::string              cd;
+	std::string              prefix;
+	std::vector<std::string> params;
+	bool                     colon;
 
 	prefix = handlePrefix(&cmd);
 	if (cmd.find(":") != std::string::npos)
 	{
 		colon = true;
-		std::vector<std::string>first;
+		std::vector<std::string> first;
 		rslt = splitBy(cmd, ":");
 		if ((*rslt.begin()).find(" ") != std::string::npos)
 		{
 			first = splitBy(*rslt.begin(), " ");
 			pop_front<std::string>(rslt);
-			cd =*(first.begin());
+			cd = *(first.begin());
 			if (1 < first.size())
 			{
 				pop_front<std::string>(first);
@@ -77,7 +74,7 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command)
 		{
 			cd = *(rslt.begin());
 			pop_front<std::string>(rslt);
-			addElementsVector(&params,rslt);
+			addElementsVector(&params, rslt);
 		}
 	}
 	else
@@ -94,18 +91,18 @@ void	parseCmd(std::string cmd, std::vector<Commands> *command)
 		}
 	}
 #ifdef DEBUG
-		std::cout << "Command : " << cd << std::endl;
-		std::cout << "Params : ";
-		print_debug(params);
-		std::cout << std::endl;
+	std::cout << "Command : " << cd << std::endl;
+	std::cout << "Params : ";
+	print_debug(params);
+	std::cout << std::endl;
 #endif
 	command->push_back(Commands(cd, prefix, params, colon));
 }
 
-std::vector<Commands>	manageMultipleCommands(std::vector<std::string> listOfCommands)
+std::vector<Commands> manageMultipleCommands(std::vector<std::string> listOfCommands)
 {
-	std::vector<Commands>							commandsToExecute;
-	std::vector<std::string>::iterator				it;
+	std::vector<Commands>              commandsToExecute;
+	std::vector<std::string>::iterator it;
 	for (it = listOfCommands.begin(); it != listOfCommands.end(); it++)
 	{
 		if (it->size() < MAX_CMD_LGTH)

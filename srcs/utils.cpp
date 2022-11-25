@@ -416,6 +416,8 @@ void applyModeChangesClient(Server *server, int socket, std::string flags, Clien
 				server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 		}
 	}
+	if (client->getMode() == NONE)
+		return 	server->sendMsg("You do not have any mode set\r\n", socket);
 	server->sendMsg("Your user mode is " + client->getModeStr() + "\r\n", socket);
 }
 
@@ -424,7 +426,6 @@ void applyModeChangesClient(Server *server, int socket, std::string flags, Clien
  */
 void applyModeChangesChannel(Server *server, int socket, std::string flags, std::string param, Channel *channel)
 {
-	// TODO Add custom error message? From Modern IRC: The text used in the last param of this message may vary.
 	Client *client = server->getClientByFd(socket);
 	std::string nickname = client->getNickname();
 	if (!(channel->checkOperatorByNickname(nickname)))
@@ -520,5 +521,7 @@ void applyModeChangesChannel(Server *server, int socket, std::string flags, std:
 				server->sendMsg(ERR_UMODEUNKNOWNFLAG, socket);
 		}
 	}
+	if (channel->getMode() == NONE)
+		return 	server->sendMsg("No mode is set for " + channel->getName() + "\r\n", socket);
 	server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n", socket);
 }

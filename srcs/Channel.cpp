@@ -1,17 +1,19 @@
 #include "../includes/include.hpp"
 
-Channel::Channel(Server *server, std::string name, Client* creator): _server(server), _name(name), _mode(NONE)
+Channel::Channel(Server *server, std::string name, Client *creator) : _server(server), _name(name), _mode(NONE)
 {
 	std::string nickname = creator->getNickname();
 	_clients[nickname] = creator;
 	_clientsMode[nickname] = CREATOR;
 }
 
-std::string Channel::getName(void) {
+std::string Channel::getName(void)
+{
 	return _name;
 }
 
-std::string Channel::getChannelStatus(void) {
+std::string Channel::getChannelStatus(void)
+{
 	if (getMode() & SECRET)
 		return "@";
 	if (getMode() & PRIVATE)
@@ -19,10 +21,10 @@ std::string Channel::getChannelStatus(void) {
 	return "=";
 }
 
-std::vector<Client*>	Channel::getAllClients(void)const
+std::vector<Client *> Channel::getAllClients(void) const
 {
-	std::vector<Client*>						list;
-	std::map<std::string, Client*>::const_iterator	it;
+	std::vector<Client *>                           list;
+	std::map<std::string, Client *>::const_iterator it;
 
 	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
@@ -31,30 +33,34 @@ std::vector<Client*>	Channel::getAllClients(void)const
 	return (list);
 }
 
-void Channel::setName(std::string name) {
+void Channel::setName(std::string name)
+{
 	_name = name;
 }
 
-std::string Channel::getTopic(void) {
+std::string Channel::getTopic(void)
+{
 	return _topic;
 }
 
-std::map<std::string, Client*>	Channel::getClients(void)const
+std::map<std::string, Client *> Channel::getClients(void) const
 {
 	return _clients;
 }
 
-void Channel::setTopic(std::string topic) {
+void Channel::setTopic(std::string topic)
+{
 	_topic = topic;
 }
 
-void Channel::clearTopic(void) {
+void Channel::clearTopic(void)
+{
 	_topic.clear();
 }
 
 Client *Channel::getClientByNickname(const std::string nickname)
 {
-	std::map<std::string, Client*>::const_iterator cit;
+	std::map<std::string, Client *>::const_iterator cit;
 	cit = _clients.find(nickname);
 	if (cit != _clients.end())
 		return cit->second;
@@ -63,7 +69,7 @@ Client *Channel::getClientByNickname(const std::string nickname)
 
 bool Channel::checkOperatorByNickname(std::string nickname)
 {
-	std::map<std::string, Client*>::const_iterator cit;
+	std::map<std::string, Client *>::const_iterator cit;
 	cit = _clients.find(nickname);
 	if (cit == _clients.end())
 		return false;
@@ -72,7 +78,7 @@ bool Channel::checkOperatorByNickname(std::string nickname)
 
 bool Channel::checkVoiceByNickname(std::string nickname)
 {
-	std::map<std::string, Client*>::const_iterator cit;
+	std::map<std::string, Client *>::const_iterator cit;
 	cit = _clients.find(nickname);
 	if (cit == _clients.end())
 		return false;
@@ -81,7 +87,7 @@ bool Channel::checkVoiceByNickname(std::string nickname)
 
 void Channel::addClient(int socket)
 {
-	Client *client = _server->getClientByFd(socket);
+	Client     *client = _server->getClientByFd(socket);
 	std::string nickname = client->getNickname();
 	_clients[nickname] = client;
 	_clientsMode[nickname] = 0;
@@ -95,7 +101,7 @@ void Channel::remClient(std::string nickname)
 
 void Channel::sendMsg(std::string message)
 {
-	std::map<std::string, Client*>::iterator clientIterator;
+	std::map<std::string, Client *>::iterator clientIterator;
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
 	{
 		Client *client = clientIterator->second;
@@ -104,21 +110,19 @@ void Channel::sendMsg(std::string message)
 	}
 }
 
-
 void Channel::sendMsg(std::string message, Client *sender)
 {
 	std::string nickname = sender->getNickname();
-	int fd = sender->getFd();
-	if (((_mode & OUTSIDE) && !(getClientByNickname(nickname))) || ((_mode & MODERATED) && !(checkVoiceByNickname(nickname))))
+	int         fd = sender->getFd();
+	if (((_mode & OUTSIDE) && !(getClientByNickname(nickname))) ||
+		((_mode & MODERATED) && !(checkVoiceByNickname(nickname))))
 		return _server->sendMsg(ERR_CANNOTSENDTOCHAN(nickname), fd);
 	sendMsg(message, fd);
 }
 
-
-
 void Channel::sendMsg(std::string message, int sender)
 {
-	std::map<std::string, Client*>::iterator clientIterator;
+	std::map<std::string, Client *>::iterator clientIterator;
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
 	{
 		Client *client = clientIterator->second;
@@ -135,16 +139,6 @@ void Channel::sendJoin(Client *client)
 {
 	sendMsg(":" + client->getFullIdentifier() + " JOIN " + _name + "\r\n");
 }
-
-/*void Channel::sendPartOrQuit(Client *client, std::string leaveMessage, std::string cmd)
-{
-	std::string msg;
-	if (!leaveMessage.empty())
-		msg = ":" + client->getFullIdentifier() + " " + cmd + " " + _name + " :" + leaveMessage + "\r\n";
-	else
-		msg = ":" + client->getFullIdentifier() + "" + cmd + " " + _name + " :" + client->getNickname() + "\r\n";
-	sendMsg(msg);
-}*/
 
 void Channel::sendPart(Client *client, std::string leaveMessage)
 {
@@ -163,13 +157,14 @@ void Channel::sendTopic(int socket)
 
 void Channel::sendListOfNames(const int socket)
 {
-	std::vector<std::string> clientNicknames;
-	std::map<std::string, Client*>::iterator clientIterator;
+	std::vector<std::string>                  clientNicknames;
+	std::map<std::string, Client *>::iterator clientIterator;
 	for (clientIterator = _clients.begin(); clientIterator != _clients.end(); clientIterator++)
 		clientNicknames.push_back(clientIterator->second->getNicknameWithPrefix(this));
-	std::string delim = " ";
+	std::string        delim = " ";
 	std::ostringstream joinedClientNicknames;
-	std::copy(clientNicknames.begin(), clientNicknames.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
+	std::copy(clientNicknames.begin(), clientNicknames.end(),
+			  std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
 	std::string channelStatus = getChannelStatus();
 	_server->sendMsg(RPL_NAMREPLY(channelStatus, _name, joinedClientNicknames.str()), socket);
 	_server->sendMsg(RPL_ENDOFNAMES(_name), socket);
@@ -180,7 +175,7 @@ size_t Channel::getNumberOfUsers(void)
 	return _clients.size();
 }
 
-std::string		Channel::getModeStr(void) const
+std::string Channel::getModeStr(void) const
 {
 	std::string res = "+";
 	if (_mode & INVITATION)
@@ -209,7 +204,7 @@ size_t Channel::getMaxLimitOfUsers(void)
 
 void Channel::changeNickname(std::string oldNickname, std::string newNickname)
 {
-	std::map<std::string, Client*>::iterator it = _clients.find(oldNickname);
+	std::map<std::string, Client *>::iterator it = _clients.find(oldNickname);
 	if (it != _clients.end())
 	{
 		std::swap(_clients[newNickname], it->second);
@@ -223,17 +218,17 @@ void Channel::changeNickname(std::string oldNickname, std::string newNickname)
 	}
 }
 
-void	Channel::addMode(int mask)
+void Channel::addMode(int mask)
 {
 	_mode |= mask;
 }
 
-void	Channel::remMode(int mask)
+void Channel::remMode(int mask)
 {
 	_mode &= ~mask;
 }
 
-void	Channel::modMode(int mask, bool add)
+void Channel::modMode(int mask, bool add)
 {
 	if (add)
 		return addMode(mask);
@@ -262,7 +257,7 @@ unsigned Channel::getMode()
 unsigned Channel::getMode(int socket)
 {
 	Client *client = _server->getClientByFd(socket);
-	int mode = _clientsMode[client->getNickname()];
+	int     mode = _clientsMode[client->getNickname()];
 	return mode;
 }
 
@@ -279,7 +274,7 @@ void Channel::modClientMode(const int socket, std::string nickname, unsigned mas
 void Channel::modClientMask(unsigned type, bool add, std::string mask)
 {
 	std::vector<std::string> *masksList;
-	std::string maskName;
+	std::string               maskName;
 	switch (type)
 	{
 	case 'b':
@@ -301,14 +296,14 @@ void Channel::modClientMask(unsigned type, bool add, std::string mask)
 		masksList->push_back(mask);
 	else
 		masksList->erase(std::remove(masksList->begin(), masksList->end(), mask), masksList->end());
-	std::string delim = ",";
+	std::string        delim = ",";
 	std::ostringstream joinedMasksStream;
-	std::copy(masksList->begin(), masksList->end(), std::ostream_iterator<std::string>(joinedMasksStream, delim.c_str()));
+	std::copy(masksList->begin(), masksList->end(),
+			  std::ostream_iterator<std::string>(joinedMasksStream, delim.c_str()));
 	std::string joinedMasks = joinedMasksStream.str();
-	joinedMasks = joinedMasks.substr(0, joinedMasks.size()-1);
+	joinedMasks = joinedMasks.substr(0, joinedMasks.size() - 1);
 	sendMsg("The " + maskName + " mask is now : " + joinedMasks + "\r\n");
 }
-
 
 bool Channel::isInvited(std::string nickname)
 {
@@ -355,8 +350,8 @@ void Channel::sendInfo(const int socket)
 
 std::string Channel::getClientPrefix(const Client *client)
 {
-	std::string nickname = client->getNickname();
-	std::map<std::string, Client*>::const_iterator cit;
+	std::string                                     nickname = client->getNickname();
+	std::map<std::string, Client *>::const_iterator cit;
 	cit = _clients.find(nickname);
 	if (cit == _clients.end())
 		return ("");

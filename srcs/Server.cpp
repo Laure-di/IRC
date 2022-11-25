@@ -2,66 +2,63 @@
 
 #define DEBUG
 
-
 /****************************************************************************/
 /***					Constructor && Destructor						 ***/
 /***																	***/
 /*************************************************************************/
 
 /**
- ** @Brief : Socket creation with a domain IPV4 (AF_IFNET), a communication type TCP (SOCK_STREAM), and protocol IP (0).
- **			Set socket option to allow multi-connection and the reuse of socket.
- **			Bind the socket to the address and port number (with info from getaddrinfo)
- **/
-
-Server::Server(int port, std::string password, char *portStr): _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str())), _messageOftheDay(MOTD_FILE), _adminLogin("admin"), _adminPasswordHash(4141857313)
+ * @brief Socket creation with a domain IPV4 (AF_IFNET), a communication type TCP (SOCK_STREAM), and protocol IP (0).
+ * Set socket option to allow multi-connection and the reuse of socket.
+ * Bind the socket to the address and port number (with info from getaddrinfo)
+ */
+Server::Server(int port, std::string password, char *portStr)
+	: _port(port), _hostname(HOSTNAME), _version(VERSION), _passwordHash(hasher(password.c_str())),
+	  _messageOftheDay(MOTD_FILE), _adminLogin("admin"), _adminPasswordHash(4141857313)
 {
 	this->createAndBind(portStr);
 	memset(&_ep_event, 0, sizeof(epoll_event) * MAX_EVENTS);
 	this->createCmdDict();
 	if (listen(_listenSocket, BACKLOG) == -1)
 		throw serverError("listen", strerror(errno));
-	time_t      rawtime = time(NULL);
-	struct tm   *info;
+	time_t     rawtime = time(NULL);
+	struct tm *info;
 	info = localtime(&rawtime);
 	std::string launchingDate = std::string(asctime(info));
-	_launchingDate = launchingDate.substr(0, launchingDate.size()-1);;
+	_launchingDate = launchingDate.substr(0, launchingDate.size() - 1);
+	;
 }
-
-
 
 /****************************************************************************/
 /***					Getter && Setter								 ***/
 /***																	***/
 /*************************************************************************/
 
-std::string								Server::getHostname(void)const
+std::string Server::getHostname(void) const
 {
 	return _hostname;
 }
 
-std::string								Server::getLaunchingDate(void)const
+std::string Server::getLaunchingDate(void) const
 {
 	return _launchingDate;
 }
 
-std::string								Server::getVersion(void)const
+std::string Server::getVersion(void) const
 {
 	return _version;
 }
 
-const std::map<std::string, time_t>&	Server::getNicknameUnavailable(void)const
+const std::map<std::string, time_t> &Server::getNicknameUnavailable(void) const
 {
 	return (this->_nicknameUnavailable);
 }
 
-
-
-std::vector<Client*>	Server::getAllClients(void)const
+std::vector<Client *> Server::getAllClients(void) const
 {
-	std::vector<Client*> allClients;
+	std::vector<Client *> allClients;
 
-	for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it!= this->_clients.end(); it++)
+	for (std::map<int, Client *>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); it++)
 	{
 		allClients.push_back(it->second);
 	}
@@ -69,29 +66,27 @@ std::vector<Client*>	Server::getAllClients(void)const
 	return (allClients);
 }
 
-std::vector<Client*>	Server::getAllClientsMatching(std::string pattern, std::vector<Client*>listOfClients) const
+std::vector<Client *> Server::getAllClientsMatching(std::string pattern, std::vector<Client *> listOfClients) const
 {
-	std::vector<Client*> allClients;
-	std::vector<Client*>::iterator it;
-	for (it = listOfClients.begin(); it!= listOfClients.end(); it++)
+	std::vector<Client *>           allClients;
+	std::vector<Client *>::iterator it;
+	for (it = listOfClients.begin(); it != listOfClients.end(); it++)
 	{
-		Client *target = *it;
+		Client     *target = *it;
 		std::string nickname = target->getNickname();
-		if (strmatch(nickname, pattern)
-				|| strmatch(nickname, pattern)
-				|| strmatch(nickname, pattern))
+		if (strmatch(nickname, pattern) || strmatch(nickname, pattern) || strmatch(nickname, pattern))
 			allClients.push_back(target);
 	}
 	return (allClients);
 }
 
-std::vector<Client*>	Server::getAllClientsMatching(const std::string nicknameMask) const
+std::vector<Client *> Server::getAllClientsMatching(const std::string nicknameMask) const
 {
-	std::vector<Client*> allClients;
-	std::map<const int, Client*>::const_iterator cit;
+	std::vector<Client *>                         allClients;
+	std::map<const int, Client *>::const_iterator cit;
 	for (cit = _clients.begin(); cit != _clients.end(); cit++)
 	{
-		Client *target = cit->second;
+		Client     *target = cit->second;
 		std::string nickname = target->getNickname();
 		if (strmatch(nickname, nicknameMask))
 			allClients.push_back(target);
@@ -99,36 +94,36 @@ std::vector<Client*>	Server::getAllClientsMatching(const std::string nicknameMas
 	return (allClients);
 }
 
-std::vector<Client*>	Server::getAllClientsMatching(std::vector<std::string> nicknameMasks) const
+std::vector<Client *> Server::getAllClientsMatching(std::vector<std::string> nicknameMasks) const
 {
-	std::vector<Client*> allClients;
+	std::vector<Client *>              allClients;
 	std::vector<std::string>::iterator it;
-	for (it = nicknameMasks.begin(); it!= nicknameMasks.end(); it++)
+	for (it = nicknameMasks.begin(); it != nicknameMasks.end(); it++)
 	{
-		std::string nicknameMask = *it;
-		std::vector <Client *> clientsMatching = getAllClientsMatching(nicknameMask);
+		std::string           nicknameMask = *it;
+		std::vector<Client *> clientsMatching = getAllClientsMatching(nicknameMask);
 		allClients.insert(allClients.end(), clientsMatching.begin(), clientsMatching.end());
 	}
 	return (allClients);
 }
 
-std::vector<Client *>		Server::getAllClientsVisibleForClient(Client *client)const
+std::vector<Client *> Server::getAllClientsVisibleForClient(Client *client) const
 {
-	std::vector<Client *> listOfVisibles;
-	std::map<const int, Client*>::const_iterator cit;
+	std::vector<Client *>                         listOfVisibles;
+	std::map<const int, Client *>::const_iterator cit;
 	for (cit = _clients.begin(); cit != _clients.end(); cit++)
 	{
 		Client *target = cit->second;
-		int targetMode = target->getMode();
+		int     targetMode = target->getMode();
 		if (!(targetMode & INVISIBLE) && !client->isInSameChannel(target))
 			listOfVisibles.push_back(target);
 	}
 	return listOfVisibles;
 }
 
-Client* Server::getClientByNickname(const std::string nickname) const
+Client *Server::getClientByNickname(const std::string nickname) const
 {
-	std::map<const int, Client*>::const_iterator currentUser;
+	std::map<const int, Client *>::const_iterator currentUser;
 	for (currentUser = _clients.begin(); currentUser != _clients.end(); currentUser++)
 	{
 		if (currentUser->second->getNickname() == nickname)
@@ -137,75 +132,75 @@ Client* Server::getClientByNickname(const std::string nickname) const
 	return NULL;
 }
 
-Client* Server::getClientByFd(size_t fd)
+Client *Server::getClientByFd(size_t fd)
 {
-	std::map<const int, Client*>::const_iterator cit;
+	std::map<const int, Client *>::const_iterator cit;
 	cit = _clients.find(fd);
 	if (cit != _clients.end())
 		return cit->second;
 	return 0;
 }
 
-
-Channel* Server::getChannelByName(const std::string name)
+Channel *Server::getChannelByName(const std::string name)
 {
-	std::map<std::string, Channel*>::const_iterator cit;
+	std::map<std::string, Channel *>::const_iterator cit;
 	cit = _channels.find(name);
 	if (cit != _channels.end())
 		return cit->second;
 	return 0;
 }
 
-std::map<std::string, Channel*> Server::getAllChannels(void)
+std::map<std::string, Channel *> Server::getAllChannels(void)
 {
 	return _channels;
 }
 
-std::string		Server::getMessageOfTheDay(void)
+std::string Server::getMessageOfTheDay(void)
 {
 	return _messageOftheDay;
 }
-
 
 /* SETTER */
 
 void Server::createNewChannel(int creator, std::string name)
 {
-	//Add creation of channel
+	// Add creation of channel
 	(void)creator;
 	(void)name;
 }
 
-void									Server::addNicknameUnavailable(std::string nickname)
+void Server::addNicknameUnavailable(std::string nickname)
 {
 	_nicknameUnavailable[nickname] = time(NULL);
 }
 
 /**
- ** @Brief manage an ifstream and return a formated string to send to client
- **		https://cplusplus.com/reference/ios/ios/exceptions/
- **		https://gehrcke.de/2011/06/reading-files-in-c-using-ifstream-dealing-correctly-with-badit-failbit-eofbit-and-perror/
- **/
-void	Server::shapeMessageOftheDay(std::string fileName, int socket)
+ * @brief Manage an ifstream and return a formated string to send to client
+ * https://cplusplus.com/reference/ios/ios/exceptions/
+ * https://gehrcke.de/2011/06/reading-files-in-c-using-ifstream-dealing-correctly-with-badit-failbit-eofbit-and-perror/
+ */
+void Server::shapeMessageOftheDay(std::string fileName, int socket)
 {
-	std::string		msg;
-	std::ifstream	file;
-	file.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
+	std::string   msg;
+	std::ifstream file;
+	file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	try
 	{
 		file.open(fileName.c_str(), std::ifstream::in);
 	}
-	catch (std::ifstream::failure e) {
+	catch (std::ifstream::failure e)
+	{
 		throw numericRepliesError();
 	}
 	try
 	{
 		while (std::getline(file, msg))
 			this->sendMsg(RPL_MOTD(msg), socket);
-	}catch (std::istream::failure e){}
+	}
+	catch (std::istream::failure e)
+	{
+	}
 }
-
-
 
 /****************************************************************************/
 /***					Private Methods									 ***/
@@ -216,13 +211,14 @@ void	Server::shapeMessageOftheDay(std::string fileName, int socket)
  ** Utils method
  **/
 
-void	Server::sendMsg(NumericReplies reply, const int fd)
+void Server::sendMsg(NumericReplies reply, const int fd)
 {
-	std::string msg = ":" + _hostname + " " + toString(reply.num) + " " + getClientByFd(fd)->getNickname() + " " + reply.msg;
+	std::string msg =
+			":" + _hostname + " " + toString(reply.num) + " " + getClientByFd(fd)->getNickname() + " " + reply.msg;
 	sendMsg(msg, fd);
 }
 
-void	Server::sendMsg(const std::string msg, const int fd)
+void Server::sendMsg(const std::string msg, const int fd)
 {
 #ifdef DEBUG
 	std::cout << "Sent in fd " << fd << " :\n---------------\n" << msg << "---------------\n\n";
@@ -230,15 +226,15 @@ void	Server::sendMsg(const std::string msg, const int fd)
 	send(fd, msg.c_str(), msg.length(), MSG_DONTWAIT);
 }
 
-void	Server::sendMsg(const std::string msg, Client *client)
+void Server::sendMsg(const std::string msg, Client *client)
 {
 	if (client)
 		sendMsg(msg, client->getFd());
 }
 
-void	Server::sendMsg(const std::string msg, std::vector<Channel*> channels)
+void Server::sendMsg(const std::string msg, std::vector<Channel *> channels)
 {
-	std::vector<Channel*>::iterator	it;
+	std::vector<Channel *>::iterator it;
 
 	for (it = channels.begin(); it != channels.end(); it++)
 	{
@@ -246,8 +242,7 @@ void	Server::sendMsg(const std::string msg, std::vector<Channel*> channels)
 	}
 }
 
-
-void	Server::sendWho(int socket, std::vector<Client *>listOfClients)
+void Server::sendWho(int socket, std::vector<Client *> listOfClients)
 {
 	std::vector<Client *>::iterator it;
 	for (it = listOfClients.begin(); it < listOfClients.end(); it++)
@@ -258,115 +253,106 @@ void	Server::sendWho(int socket, std::vector<Client *>listOfClients)
 	sendMsg(RPL_ENDOFWHO(getClientByFd(socket)->getNickname()), socket);
 }
 
-void	Server::broadcast(std::string msg, int expediteur)
+void Server::broadcast(std::string msg, int expediteur)
 {
 	std::string finalMsg = "message from : " + getClientByFd(expediteur)->getNickname() + " " + msg;
-	std::map<const int, Client*>::iterator	it = _clients.begin();
+	std::map<const int, Client *>::iterator it = _clients.begin();
 	for (; it != _clients.end(); it++)
 		sendMsg(finalMsg, it->second->getFd());
 }
 
-
-bool	Server::checkPassword(const std::string password) const
+bool Server::checkPassword(const std::string password) const
 {
 	return hasher(password.c_str()) == _passwordHash;
 }
 
-bool	Server::checkAdmin(const std::string login, const std::string password) const
+bool Server::checkAdmin(const std::string login, const std::string password) const
 {
 	return (login == _adminLogin) & (hasher(password.c_str()) == _adminPasswordHash);
 }
 
 void Server::changeNicknameAsKeysInChannels(std::string oldNickname, std::string newNickname)
 {
-	std::map<std::string, Channel*>::iterator it;
+	std::map<std::string, Channel *>::iterator it;
 	for (it = _channels.end(); it != _channels.begin(); it++)
 	{
-		Channel* channel = it->second;
+		Channel *channel = it->second;
 		channel->changeNickname(oldNickname, newNickname);
 	}
 }
 
-void	Server::printCurrentLocaltime(int socket)
+void Server::printCurrentLocaltime(int socket)
 {
-	time_t		rawtime;
-	struct tm*	timeinfo;
+	time_t     rawtime;
+	struct tm *timeinfo;
 
-	time (&rawtime);
+	time(&rawtime);
 	timeinfo = localtime(&rawtime);
-	std::string localtime = (std::string)"Current localtime of the current server " + (std::string)asctime(timeinfo);
-	this->sendMsg(localtime , socket);
+	std::string localtime = (std::string) "Current localtime of the current server " + (std::string)asctime(timeinfo);
+	this->sendMsg(localtime, socket);
 }
-
 
 /**
  ** Execution Commands method
  **/
 
-void	Server::executeCommands(std::string buffer, Client *client)
+void Server::executeCommands(std::string buffer, Client *client)
 {
-	std::vector<std::string>			listOfCommands = splitCmd(buffer, "\r\n");
-	std::vector<Commands>				commandsList = manageMultipleCommands(listOfCommands);
-	std::vector<Commands>::iterator		it = commandsList.begin();
-	std::string							cmdFail;
-	int fd = client->getFd();
+	std::vector<std::string>        listOfCommands = splitCmd(buffer, "\r\n");
+	std::vector<Commands>           commandsList = manageMultipleCommands(listOfCommands);
+	std::vector<Commands>::iterator it = commandsList.begin();
+	std::string                     cmdFail;
+	int                             fd = client->getFd();
 
 	transformCmdsToUpper(&commandsList);
 	for (size_t i = 0; i < commandsList.size(); i++)
 	{
 		if (isClientInList(fd))
 		{
-		if (!isClientFullyRegister(client) && !isRegistrationCmd(commandsList[i].command))
-			return this->sendMsg(ERR_NOTREGISTERED, client->getFd());
-		if (_cmdDict.find(commandsList[i].command) != _cmdDict.end())
-		{
-			if (commandsList[i].params.size() <= MAX_PARAMS)
-				this->_cmdDict[commandsList[i].command](this, client->getFd(), commandsList[i]);
-			else
+			if (!isClientFullyRegister(client) && !isRegistrationCmd(commandsList[i].command))
+				return this->sendMsg(ERR_NOTREGISTERED, client->getFd());
+			if (_cmdDict.find(commandsList[i].command) != _cmdDict.end())
 			{
-				std::string error("You can't use more than 15 parameters");
-				this->sendMsg(ERR_CLIENT(error), client->getFd());
+				if (commandsList[i].params.size() <= MAX_PARAMS)
+					this->_cmdDict[commandsList[i].command](this, client->getFd(), commandsList[i]);
+				else
+				{
+					std::string error("You can't use more than 15 parameters");
+					this->sendMsg(ERR_CLIENT(error), client->getFd());
+				}
 			}
-		}
-		else
-			this->sendMsg(ERR_UNKNOWNCOMMAND(commandsList[i].command), client->getFd());
-		if (i == commandsList.size())
-			break;
-		it++;
+			else
+				this->sendMsg(ERR_UNKNOWNCOMMAND(commandsList[i].command), client->getFd());
+			if (i == commandsList.size())
+				break;
+			it++;
 		}
 	};
-#ifdef DEBUG
-	//	printAllCmds(commandsList);
-#endif
 }
-
-
 
 /**
  ** Communication with server methods
  **/
 
-
 /**
- ** @Brief https://support.sas.com/documentation/onlinedoc/ccompiler/doc750/html/lr2/zockname.htm
- **/
-
-void	Server::_acceptNewClient(int listenSocket, int pollfd)
+ * @brief https://support.sas.com/documentation/onlinedoc/ccompiler/doc750/html/lr2/zockname.htm
+ */
+void Server::_acceptNewClient(int listenSocket, int pollfd)
 {
-	socklen_t				addrlen;
-	struct sockaddr_in		client_addr;
-	int						client_fd;
-	struct epoll_event		ev;
+	socklen_t          addrlen;
+	struct sockaddr_in client_addr;
+	int                client_fd;
+	struct epoll_event ev;
 
 	addrlen = sizeof(sockaddr_in);
 	memset(&client_addr, 0, sizeof(sockaddr_in));
-	if ((client_fd = accept(listenSocket, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen)) == - 1)
-		std::cerr << std::strerror(errno) << std::endl; //QUID throw an exception or just a error?!
-	if (getsockname(client_fd, reinterpret_cast<struct sockaddr*>(&client_addr), &addrlen) == -1)
+	if ((client_fd = accept(listenSocket, reinterpret_cast<struct sockaddr *>(&client_addr), &addrlen)) == -1)
+		throw serverError("accept", strerror(errno));
+	if (getsockname(client_fd, reinterpret_cast<struct sockaddr *>(&client_addr), &addrlen) == -1)
 		throw serverError("getsockname", strerror(errno));
 	if (fcntl(client_fd, F_SETFL, O_NONBLOCK))
 		throw serverError("fctnl", strerror(errno));
-	this->_clients[client_fd] = new Client(client_fd, inet_ntoa(client_addr.sin_addr)); //TODO check hostname
+	this->_clients[client_fd] = new Client(client_fd, inet_ntoa(client_addr.sin_addr));
 	memset(&ev, 0, sizeof(ev));
 	ev.events = EPOLLIN;
 	ev.data.fd = client_fd;
@@ -377,16 +363,16 @@ void	Server::_acceptNewClient(int listenSocket, int pollfd)
 #endif
 }
 
-void	Server::sendAllUsers(int socket)
+void Server::sendAllUsers(int socket)
 {
-	std::map<std::string, Channel*>::const_iterator cit;
+	std::map<std::string, Channel *>::const_iterator cit;
 	for (cit = _channels.begin(); cit != _channels.end(); cit++)
 	{
 		Channel *channel = cit->second;
 		channel->sendListOfNames(socket);
 	}
-	std::vector<std::string> clientNotInChannels;
-	std::map<const int, Client*>::const_iterator cit2;
+	std::vector<std::string>                      clientNotInChannels;
+	std::map<const int, Client *>::const_iterator cit2;
 	for (cit2 = _clients.begin(); cit2 != _clients.end(); cit2++)
 	{
 		Client *client = cit2->second;
@@ -395,9 +381,10 @@ void	Server::sendAllUsers(int socket)
 	}
 	if (clientNotInChannels.size())
 	{
-		std::string delim = " ";
+		std::string        delim = " ";
 		std::ostringstream joinedClientNicknames;
-		std::copy(clientNotInChannels.begin(), clientNotInChannels.end(), std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
+		std::copy(clientNotInChannels.begin(), clientNotInChannels.end(),
+				  std::ostream_iterator<std::string>(joinedClientNicknames, delim.c_str()));
 		std::string channelStatus = "*";
 		std::string channelName = "channel";
 		sendMsg(RPL_NAMREPLY(channelStatus, channelName, joinedClientNicknames.str()), socket);
@@ -405,9 +392,9 @@ void	Server::sendAllUsers(int socket)
 	}
 }
 
-void	Server::sendAllChannels(int socket)
+void Server::sendAllChannels(int socket)
 {
-	std::map<std::string, Channel*>::const_iterator cit;
+	std::map<std::string, Channel *>::const_iterator cit;
 	for (cit = _channels.begin(); cit != _channels.end(); cit++)
 	{
 		Channel *channel = cit->second;
@@ -417,19 +404,19 @@ void	Server::sendAllChannels(int socket)
 	sendMsg(RPL_LISTEND, socket);
 }
 
-
-int		Server::_handleMessage(epoll_event ep_event)
+int Server::_handleMessage(epoll_event ep_event)
 {
-	char				buffer[BUFFER_SIZE];
-	ssize_t				numbytes;
-	Client* currentClient = this->getClientByFd(ep_event.data.fd);
+	char    buffer[BUFFER_SIZE];
+	ssize_t numbytes;
+	Client *currentClient = this->getClientByFd(ep_event.data.fd);
 
 	if (isCmdFull(currentClient->getBuffer()))
 		currentClient->clearBuffer();
 	memset(buffer, 0, BUFFER_SIZE);
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
 #ifdef DEBUG
-	std::cout << "Received from fd " << std::hex << ep_event.data.fd << " :\n---------------\n" << buffer << "---------------\n\n";
+	std::cout << "Received from fd " << std::hex << ep_event.data.fd << " :\n---------------\n"
+			  << buffer << "---------------\n\n";
 #endif
 	if (numbytes <= 0)
 		return (-1);
@@ -438,7 +425,8 @@ int		Server::_handleMessage(epoll_event ep_event)
 		buffer[numbytes] = '\0';
 		currentClient->append(buffer);
 #ifdef DEBUG
-		std::cout << "Client Buffer " << currentClient->getBuffer() << " :\n---------------\n" << "---------------\n\n";
+		std::cout << "Client Buffer " << currentClient->getBuffer() << " :\n---------------\n"
+				  << "---------------\n\n";
 #endif
 		if (isCmdFull(currentClient->getBuffer()))
 		{
@@ -448,18 +436,16 @@ int		Server::_handleMessage(epoll_event ep_event)
 	return (1);
 }
 
-
-void	stopServer(int signal)
+void stopServer(int signal)
 {
 	(void)signal;
 	std::cout << "\r";
 	is_running = false;
 }
 
-
-void	Server::_createPoll(void)
+void Server::_createPoll(void)
 {
-	struct epoll_event	ev;
+	struct epoll_event ev;
 
 	if ((this->_pollFd = epoll_create1(0)) == -1)
 		throw serverError("epoll_create1", strerror(errno));
@@ -474,16 +460,16 @@ void	Server::_createPoll(void)
 	}
 }
 
-void	Server::execute(void)
+void Server::execute(void)
 {
-	int	nfds = 0;
+	int nfds = 0;
 	this->_createPoll();
 	is_running = true;
 	signal(SIGINT, stopServer);
 	while (is_running)
 	{
 		if ((nfds = epoll_wait(_pollFd, _ep_event, MAX_EVENTS, TIME_OUT)) == -1)
-			return ;
+			return;
 		for (int i = 0; i < nfds; i++)
 		{
 			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN)
@@ -494,10 +480,9 @@ void	Server::execute(void)
 				{
 					if (this->_handleMessage(this->_ep_event[i]) == -1)
 					{
-						Client* userToDel = this->getClientByFd(this->_ep_event[i].data.fd);
+						Client *userToDel = this->getClientByFd(this->_ep_event[i].data.fd);
 						this->deleteClient(userToDel->getFd());
 						std::cerr << "Socket closed by client" << std::endl;
-
 					}
 				}
 			}
@@ -506,12 +491,11 @@ void	Server::execute(void)
 	signal(SIGINT, SIG_DFL);
 }
 
-
 /**
  ** Serveur initialization method
  **/
 
-void	Server::createCmdDict(void)
+void Server::createCmdDict(void)
 {
 	_cmdDict["PASS"] = &pass;
 	_cmdDict["NICK"] = &nick;
@@ -561,9 +545,9 @@ void	Server::createCmdDict(void)
 	_cmdDict["ISON"] = &ison;
 }
 
-void		Server::createAndBind(char *port)
+void Server::createAndBind(char *port)
 {
-	int		optval = 1;
+	int             optval = 1;
 	struct addrinfo hints, *result;
 
 	memset(&hints, 0, sizeof(hints));
@@ -593,33 +577,32 @@ void		Server::createAndBind(char *port)
  **	Quit && Exit method
  **/
 
-Channel  *Server::addChannel(std::string name, Client* creator)
+Channel *Server::addChannel(std::string name, Client *creator)
 {
 	Channel *newChannel = new Channel(this, name, creator);
 	_channels[name] = newChannel;
 	return newChannel;
 }
 
-void	Server::deleteAllChannels(void)
+void Server::deleteAllChannels(void)
 {
 	if (!_channels.empty())
 	{
-		std::map<std::string, Channel*>::iterator it = _channels.begin();
+		std::map<std::string, Channel *>::iterator it = _channels.begin();
 		for (; it != _channels.end(); it++)
 			delete it->second;
 		_channels.clear();
 	}
 }
 
-
-void	Server::clearServer(void)
+void Server::clearServer(void)
 {
-	struct epoll_event	ev;
+	struct epoll_event ev;
 
 	if (!this->_clients.empty())
 	{
-		std::map<int, Client*>::const_iterator it_end = this->_clients.end();
-		for (std::map<int, Client*>::const_iterator it_begin = this->_clients.begin(); it_begin != it_end; it_begin++)
+		std::map<int, Client *>::const_iterator it_end = this->_clients.end();
+		for (std::map<int, Client *>::const_iterator it_begin = this->_clients.begin(); it_begin != it_end; it_begin++)
 		{
 			it_begin->second->leaveChannels(this);
 			try
@@ -647,16 +630,15 @@ void	Server::clearServer(void)
 		std::cerr << "close issue" << std::endl;
 }
 
-
-void	Server::deleteClient(int socket)
+void Server::deleteClient(int socket)
 {
-	struct epoll_event	ev;
-	std::map<int, Client*>::iterator	it;
+	struct epoll_event                ev;
+	std::map<int, Client *>::iterator it;
 	it = this->_clients.find(socket);
 	if (it == _clients.end())
 	{
 		std::cerr << "Something went wrong, we can't find the client to delete" << std::endl;
-		return ;
+		return;
 	}
 	it->second->removeFromAllChannels();
 	delete it->second;
@@ -677,8 +659,8 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 {
 	if (!checkChannelName(channelName))
 		return sendMsg(ERR_BADCHANMASK(channelName), socket);
-	Channel *channel = getChannelByName(channelName);
-	Client *client = getClientByFd(socket);
+	Channel    *channel = getChannelByName(channelName);
+	Client     *client = getClientByFd(socket);
 	std::string nickname = client->getNickname();
 	if (!channel)
 		channel = addChannel(channelName, client);
@@ -693,7 +675,6 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
 		if ((channel->getMode() & KEY) && !channel->checkPassword(key))
 			return sendMsg(ERR_BADCHANNELKEY(channelName), socket);
 		channel->addClient(socket);
-
 	}
 	channel->sendJoin(client);
 	channel->sendListOfNames(socket);
@@ -708,7 +689,7 @@ void Server::checkAndJoinChannel(int socket, std::string channelName, std::strin
  * @brief Helper function to check wether the channel name is correct and the
  * client can leave it
  */
-void	Server::checkAndLeaveChannel(int socket, std::string channelName, std::string leaveMessage)
+void Server::checkAndLeaveChannel(int socket, std::string channelName, std::string leaveMessage)
 {
 	Channel *channel = getChannelByName(channelName);
 	if (!channel)
@@ -721,9 +702,9 @@ void	Server::checkAndLeaveChannel(int socket, std::string channelName, std::stri
 	client->removeChannel(channel->getName());
 }
 
-bool	Server::isInChannel(const std::string nickname) const
+bool Server::isInChannel(const std::string nickname) const
 {
-	std::map<std::string, Channel*>::const_iterator cit;
+	std::map<std::string, Channel *>::const_iterator cit;
 	for (cit = _channels.begin(); cit != _channels.end(); cit++)
 	{
 		Channel *channel = cit->second;
@@ -733,7 +714,7 @@ bool	Server::isInChannel(const std::string nickname) const
 	return false;
 }
 
-bool	Server::isClientInList(const int fd) const
+bool Server::isClientInList(const int fd) const
 {
 	return _clients.count(fd);
 }

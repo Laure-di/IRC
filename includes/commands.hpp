@@ -1,11 +1,11 @@
 #ifndef COMMANDS_HPP
-# define COMMANDS_HPP
+#define COMMANDS_HPP
 
 #include "include.hpp"
 
 /*
-* 3.1 Connection Registration
-*/
+ * 3.1 Connection Registration
+ */
 cmd_func pass;
 cmd_func nick;
 cmd_func user;
@@ -17,8 +17,8 @@ cmd_func quit;
 cmd_func squit;
 
 /*
-* 3.2 Channel operations
-*/
+ * 3.2 Channel operations
+ */
 cmd_func join;
 cmd_func part;
 cmd_func topic;
@@ -28,14 +28,14 @@ cmd_func invite;
 cmd_func kick;
 
 /*
-* 3.3 Sending messages
-*/
+ * 3.3 Sending messages
+ */
 cmd_func privmsg;
 cmd_func notice;
 
 /*
-* 3.4 Server queries and commands
-*/
+ * 3.4 Server queries and commands
+ */
 cmd_func motd;
 cmd_func lusers;
 cmd_func version;
@@ -48,29 +48,29 @@ cmd_func admin;
 cmd_func info;
 
 /*
-* 3.5 Service Query and Commands
-*/
+ * 3.5 Service Query and Commands
+ */
 cmd_func servlist;
 cmd_func squery;
 
 /*
-* 3.6 User based queries
-*/
+ * 3.6 User based queries
+ */
 cmd_func who;
 cmd_func whois;
 cmd_func whowas;
 
 /*
-* 3.7 Miscellaneous messages
-*/
+ * 3.7 Miscellaneous messages
+ */
 cmd_func kill;
 cmd_func ping;
 cmd_func pong;
 cmd_func error;
 
 /*
-* 4.1 Away
-*/
+ * 4.1 Away
+ */
 cmd_func away;
 cmd_func rehash;
 cmd_func die;

@@ -1,6 +1,6 @@
 #include "../includes/include.hpp"
 
-int		isArgValid(char **argv)
+int isArgValid(char **argv)
 {
 	if (!isNumber(argv[1]))
 		return 0;
@@ -13,7 +13,7 @@ int		isArgValid(char **argv)
 	return 1;
 }
 
-int		main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	if (argc != 3)
 	{
@@ -22,9 +22,9 @@ int		main(int argc, char **argv)
 	}
 	if (!isArgValid(argv))
 		return (1);
-	int			port;
-	std::string	pwd(argv[2]);
-	port = std::atoi(argv[1]); // TODO ajouter un check sur le port
+	int         port;
+	std::string pwd(argv[2]);
+	port = std::atoi(argv[1]);
 	try
 	{
 		Server IRCServer(port, pwd, argv[1]);

@@ -9,9 +9,9 @@
  *
  * @brief The PASS command is used to set a 'connection password'.
  */
-void pass(Server *server, int socket, Commands command) {
-
-	if(command.params.empty() || command.params[0].empty())
+void pass(Server *server, int socket, Commands command)
+{
+	if (command.params.empty() || command.params[0].empty())
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
 	Client *client = server->getClientByFd(socket);
 	if (client != NULL)
@@ -21,7 +21,7 @@ void pass(Server *server, int socket, Commands command) {
 		if (server->checkPassword(command.params[0]))
 		{
 			client->setPwd(true);
-			return ;
+			return;
 		}
 #ifdef DEBUG
 		server->sendMsg("The password doesn't match the server password\r\n", socket);
@@ -34,16 +34,16 @@ void pass(Server *server, int socket, Commands command) {
  *
  * @brief The NICK command is used to give user a nickname or change the existing one.
  */
-void nick(Server *server, int socket, Commands command) {
-
+void nick(Server *server, int socket, Commands command)
+{
 	Client *client = server->getClientByFd(socket);
 	if (client->getPwd() == false)
 	{
 		server->sendMsg(ERR_CLIENT(std::string("NICK: You must connect with a password first")), socket);
 		server->deleteClient(socket);
-		return ;
+		return;
 	}
-	if(command.params.empty() || command.params[0].empty())
+	if (command.params.empty() || command.params[0].empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
 	if (client->getNickname() == nickname)
@@ -54,7 +54,7 @@ void nick(Server *server, int socket, Commands command) {
 	{
 		server->sendMsg(ERR_NICKNAMEINUSE(nickname), socket);
 		server->deleteClient(socket);
-		return ;
+		return;
 	}
 	if (isUnavailableNickname(server, nickname))
 		return server->sendMsg(ERR_UNAVAILRESOURCE(nickname), socket);
@@ -75,21 +75,21 @@ void nick(Server *server, int socket, Commands command) {
 /**
  * 3.1.3 User message
  *
- * @brief The USER command is used at the beginning of connection to specify the username, hostname and realname of a new user.
+ * @brief The USER command is used at the beginning of connection to specify the username, hostname and realname of a
+ * new user.
  */
 void user(Server *server, int socket, Commands command)
 {
-
 	Client *currentUser = server->getClientByFd(socket);
 	if (currentUser->getPwd() == false)
 		return server->sendMsg(ERR_CLIENT(std::string("USER: You must connect with a password first")), socket);
 	if (!currentUser->getUsername().empty())
 		return server->sendMsg(ERR_ALREADYREGISTRED, socket);
-	if(command.params.size() < 4)
+	if (command.params.size() < 4)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	int mode;
 	if ((mode = areParamsValid(command.params)) == -1)
-		return server->sendMsg(ERR_CLIENT((std::string)"USER : you are not using the correct syntax"), socket);
+		return server->sendMsg(ERR_CLIENT((std::string) "USER : you are not using the correct syntax"), socket);
 	std::string userName = command.params[0];
 	std::string fullName = command.params[3];
 	if (!checkUsername(userName))
@@ -108,13 +108,12 @@ void user(Server *server, int socket, Commands command)
  */
 void oper(Server *server, int socket, Commands command)
 {
-	if(command.params.size() < 2)
+	if (command.params.size() < 2)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string name = command.params[0];
 	std::string password = command.params[1];
 	if (!server->checkAdmin(name, password))
 		return server->sendMsg(ERR_PASSWDMISMATCH, socket);
-	// TODO Add check for ERR_NOOPERHOST (client not allowed to be an operator)
 	Client *client = server->getClientByFd(socket);
 	client->addMode(SERVEROPERATOR);
 	server->sendMsg(RPL_YOUREOPER, socket);
@@ -127,9 +126,8 @@ void oper(Server *server, int socket, Commands command)
  */
 void service(Server *server, int socket, Commands command)
 {
-	if(command.params.size() < 2)
+	if (command.params.size() < 2)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-
 }
 
 /**
@@ -142,29 +140,30 @@ void cap(Server *server, int socket, Commands command)
 	(void)server;
 	(void)socket;
 	(void)command;
-	return ;
+	return;
 }
 
 /**
  * 3.1.7 Quit
  *
  * @brief A client session is terminated with a quit message.
-*/
-void	quit(Server *server, int socket, Commands command)
+ */
+void quit(Server *server, int socket, Commands command)
 {
-	Client					*clientQuitting = server->getClientByFd(socket);
-	std::vector<Channel*>	channelsToInform = clientQuitting->getAllChannels();
-	std::string				msgChannel;
-	std::string				nickname = clientQuitting->getNickname();
+	Client				*clientQuitting = server->getClientByFd(socket);
+	std::vector<Channel *> channelsToInform = clientQuitting->getAllChannels();
+	std::string            msgChannel;
+	std::string            nickname = clientQuitting->getNickname();
 
 	if (command.params.empty())
 		server->sendMsg(QUIT("QUIT\r\n"), socket);
 	else if (!command.params[0].empty())
 		server->sendMsg(QUIT("QUIT : " + command.params[0] + "\r\n"), socket);
 	if (!command.params.empty())
-		msgChannel = ":" + clientQuitting->getFullIdentifier() + " QUIT the server with the comment : " + command.params[0] + "\r\n";
+		msgChannel = ":" + clientQuitting->getFullIdentifier() +
+					 " QUIT the server with the comment : " + command.params[0] + "\r\n";
 	else
-		msgChannel = ":" +  clientQuitting->getFullIdentifier() +  " QUIT\r\n";
+		msgChannel = ":" + clientQuitting->getFullIdentifier() + " QUIT\r\n";
 	server->deleteClient(clientQuitting->getFd());
 	if (!channelsToInform.empty())
 		server->sendMsg(msgChannel, channelsToInform);
@@ -174,8 +173,8 @@ void	quit(Server *server, int socket, Commands command)
  * 3.1.8 Squit
  *
  * @brief The SQUIT command is available only to operators.
-*/
-void	squit(Server *server, int socket, Commands command)
+ */
+void squit(Server *server, int socket, Commands command)
 {
 	Client *client = server->getClientByFd(socket);
 	if (!(client->getMode() & SERVEROPERATOR))
@@ -203,13 +202,14 @@ void	squit(Server *server, int socket, Commands command)
  */
 void join(Server *server, int socket, Commands command)
 {
-	if(command.params.empty())
+	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> names = splitBy(command.params[0], ",");
 	std::vector<std::string> keys;
 	if (command.params.size() > 1)
 		keys = splitBy(command.params[1], ",");
-	for (size_t i = 0; i < names.size(); i++) {
+	for (size_t i = 0; i < names.size(); i++)
+	{
 		std::string key;
 		if (i < keys.size())
 			key = keys[i];
@@ -226,12 +226,12 @@ void join(Server *server, int socket, Commands command)
  */
 void part(Server *server, int socket, Commands command)
 {
-	if(command.params.empty())
+	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::vector<std::string> names = splitBy(command.params[0], ",");
+	std::vector<std::string>           names = splitBy(command.params[0], ",");
 	std::vector<std::string>::iterator name;
-	std::string leaveMessage;
-	if(command.params.size() > 1)
+	std::string                        leaveMessage;
+	if (command.params.size() > 1)
 		leaveMessage = command.params[1];
 	for (name = names.begin(); name != names.end(); name++)
 		server->checkAndLeaveChannel(socket, *name, leaveMessage);
@@ -252,13 +252,13 @@ void part(Server *server, int socket, Commands command)
  */
 void mode(Server *server, int socket, Commands command)
 {
-	Client *client = NULL;
+	Client  *client = NULL;
 	Channel *channel = NULL;
-	if(command.params.size() == 0)
+	if (command.params.size() == 0)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string name = command.params[0];
 	std::string flags;
-	if(command.params.size() > 1)
+	if (command.params.size() > 1)
 		flags = command.params[1];
 	if (isChannelName(name))
 	{
@@ -266,9 +266,10 @@ void mode(Server *server, int socket, Commands command)
 		if (!channel)
 			return server->sendMsg(ERR_NOSUCHCHANNEL(name), socket);
 		if (command.params.size() == 1)
-			return server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n", socket);
+			return server->sendMsg("The channel " + channel->getName() + " mode is " + channel->getModeStr() + "\r\n",
+								   socket);
 		std::string param;
-		if(command.params.size() > 2)
+		if (command.params.size() > 2)
 			param = command.params[2];
 
 		return applyModeChangesChannel(server, socket, flags, param, channel);
@@ -288,24 +289,24 @@ void mode(Server *server, int socket, Commands command)
  */
 void topic(Server *server, int socket, Commands command)
 {
-	if(command.params.empty())
+	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string channelName = command.params[0];
-	Channel* channel = server->getChannelByName(channelName);
+	Channel    *channel = server->getChannelByName(channelName);
 	if (!channel)
 		return;
-	Client *currentUser = server->getClientByFd(socket);
+	Client     *currentUser = server->getClientByFd(socket);
 	std::string nickname = currentUser->getNickname();
 	if (!channel->getClientByNickname(nickname))
 		return server->sendMsg(ERR_NOTONCHANNEL(channel->getName()), socket);
-	if (command.params.size() == 1 && !command.colon) {
+	if (command.params.size() == 1 && !command.colon)
+	{
 		if (channel->getTopic().empty())
 			return server->sendMsg(RPL_NOTOPIC(channel->getName()), socket);
 		return server->sendMsg(RPL_TOPIC(channel->getName(), channel->getTopic()), socket);
 	}
 	if ((channel->getMode() & TOPIC) && !(channel->checkOperatorByNickname(nickname)))
 		return server->sendMsg(ERR_CHANOPRIVSNEEDED(channel->getName()), socket);
-	// TODO Add check for ERR_NOCHANMODES
 	if (command.params.size() == 1)
 		channel->clearTopic();
 	else
@@ -323,14 +324,14 @@ void topic(Server *server, int socket, Commands command)
  */
 void names(Server *server, int socket, Commands command)
 {
-	if(!command.params.size())
+	if (!command.params.size())
 		return server->sendAllUsers(socket);
-	std::vector<std::string> channelNames = splitBy(command.params[0], ",");
+	std::vector<std::string>                 channelNames = splitBy(command.params[0], ",");
 	std::vector<std::string>::const_iterator cit;
 	for (cit = channelNames.begin(); cit != channelNames.end(); cit++)
 	{
 		std::string channelName = *cit;
-		Channel *channel = server->getChannelByName(channelName);
+		Channel    *channel = server->getChannelByName(channelName);
 		if (channel)
 			channel->sendListOfNames(socket);
 		else
@@ -345,9 +346,9 @@ void names(Server *server, int socket, Commands command)
  */
 void list(Server *server, int socket, Commands command)
 {
-	if(command.params.empty())
+	if (command.params.empty())
 		return server->sendAllChannels(socket);
-	std::vector<std::string> channelNames = splitBy(command.params[0], ",");
+	std::vector<std::string>                 channelNames = splitBy(command.params[0], ",");
 	std::vector<std::string>::const_iterator cit;
 	for (cit = channelNames.begin(); cit != channelNames.end(); cit++)
 	{
@@ -365,17 +366,17 @@ void list(Server *server, int socket, Commands command)
  */
 void invite(Server *server, const int socket, Commands command)
 {
-	if(command.params.size() < 2)
+	if (command.params.size() < 2)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::string nickname = command.params[0];
 	std::string channelName = command.params[1];
-	Client *invitedClient = server->getClientByNickname(nickname);
+	Client     *invitedClient = server->getClientByNickname(nickname);
 	if (!invitedClient)
 		return server->sendMsg(ERR_NOSUCHNICK(nickname), socket);
 	Channel *channel = server->getChannelByName(channelName);
 	if (!channel)
 		return server->sendMsg(ERR_NOSUCHNICK(channelName), socket);
-	Client *client = server->getClientByFd(socket);
+	Client     *client = server->getClientByFd(socket);
 	std::string clientNickname = client->getNickname();
 	if (!channel->getClientByNickname(client->getNickname()))
 		return server->sendMsg(ERR_NOTONCHANNEL(channelName), socket);
@@ -400,14 +401,14 @@ void kick(Server *server, int socket, Commands command)
 {
 	// Add check for ERR_BADCHANMASK ???
 	// Should an operator be able to kick another operator ? I supposed so
-	if(command.params.size() < 2)
+	if (command.params.size() < 2)
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> channels = splitBy(command.params[0], ",");
 	std::vector<std::string> users = splitBy(command.params[1], ",");
-	Client *currentClient = server->getClientByFd(socket);
-	std::string nickname = currentClient->getNickname();
-	std::string fullIdentifier = currentClient->getFullIdentifier();
-	std::string kickMessage;
+	Client				  *currentClient = server->getClientByFd(socket);
+	std::string              nickname = currentClient->getNickname();
+	std::string              fullIdentifier = currentClient->getFullIdentifier();
+	std::string              kickMessage;
 	if (channels.size() == 1 && users.size() == 1)
 	{
 		if (command.params.size() > 2)
@@ -419,7 +420,7 @@ void kick(Server *server, int socket, Commands command)
 	for (channelsIterator = channels.begin(); channelsIterator != channels.end(); channelsIterator++)
 	{
 		std::string channelName = *channelsIterator;
-		Channel *channel = server->getChannelByName(channelName);
+		Channel    *channel = server->getChannelByName(channelName);
 		if (!channel)
 		{
 			server->sendMsg(ERR_NOSUCHCHANNEL(channelName), socket);
@@ -434,12 +435,14 @@ void kick(Server *server, int socket, Commands command)
 		for (cit = users.begin(); cit != users.end(); cit++)
 		{
 			std::string clientName = *cit;
-			Client *client = server->getClientByNickname(clientName);
-			if (!client) {
+			Client     *client = server->getClientByNickname(clientName);
+			if (!client)
+			{
 				server->sendMsg(ERR_USERNOTINCHANNEL(clientName, channelName), socket);
 				continue;
 			}
-			channel->sendMsg(":" + fullIdentifier + " KICK " + channelName + " " + clientName + " :" + kickMessage + "\r\n");
+			channel->sendMsg(":" + fullIdentifier + " KICK " + channelName + " " + clientName + " :" + kickMessage +
+							 "\r\n");
 			channel->remClient(clientName);
 		}
 	}
@@ -457,18 +460,19 @@ void kick(Server *server, int socket, Commands command)
  */
 void privmsg(Server *server, int socket, Commands command)
 {
-	if(command.params.size() == 0)
+	if (command.params.size() == 0)
 		return server->sendMsg(ERR_NORECIPIENT(command.command), socket);
-	if(command.params.size() == 1)
+	if (command.params.size() == 1)
 		return server->sendMsg(ERR_NOTEXTTOSEND, socket);
-	std::vector<std::string> recipients = splitBy(command.params[0], ",");
-	Client *client = server->getClientByFd(socket);
-	std::string nickname = client->getNickname();
+	std::vector<std::string>           recipients = splitBy(command.params[0], ",");
+	Client							*client = server->getClientByFd(socket);
+	std::string                        nickname = client->getNickname();
 	std::vector<std::string>::iterator it;
 	for (it = recipients.begin(); it != recipients.end(); it++)
 	{
 		std::string name = *it;
-		std::string msg = ":" + client->getFullIdentifier() + " " + command.command + " " + name + " :" + command.params[1] + "\r\n";
+		std::string msg = ":" + client->getFullIdentifier() + " " + command.command + " " + name + " :" +
+						  command.params[1] + "\r\n";
 		if (checkChannelName(name))
 		{
 			Channel *channel = server->getChannelByName(name);
@@ -511,7 +515,7 @@ void notice(Server *server, int socket, Commands command)
  */
 void motd(Server *server, int socket, Commands command)
 {
-	(void) command;
+	(void)command;
 	try
 	{
 		server->sendMsg(RPL_MOTDSTART(server->getClientByFd(socket)->getHostname()), socket);
@@ -522,7 +526,6 @@ void motd(Server *server, int socket, Commands command)
 	{
 		return (e.sendReply(ERR_NOMOTD, socket, server));
 	}
-
 }
 
 /**
@@ -530,11 +533,11 @@ void motd(Server *server, int socket, Commands command)
  *
  * @brief The LUSERS command is used to get statistics about the size of the
  * IRC network.
-*/
-void	lusers(Server *server, int socket, Commands command)
+ */
+void lusers(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -542,22 +545,22 @@ void	lusers(Server *server, int socket, Commands command)
  *
  * @brief The VERSION command is used to query the version of the server
  * program.
-*/
-void	version(Server *server, int socket, Commands command)
+ */
+void version(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
  * 3.4.4 Stats message
  *
  * @brief The stats command is used to query statistics of certain server.
-*/
-void	stats(Server *server, int socket, Commands command)
+ */
+void stats(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -565,11 +568,11 @@ void	stats(Server *server, int socket, Commands command)
  *
  * @brief With LINKS, a user can list all servernames, which are known by the
  * server answering the query.
-*/
-void	links(Server *server, int socket, Commands command)
+ */
+void links(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -577,10 +580,10 @@ void	links(Server *server, int socket, Commands command)
  *
  * @brief The time command is used to query local time from the specified
  * server.
-*/
-void	time(Server *server, int socket, Commands command)
+ */
+void time(Server *server, int socket, Commands command)
 {
-	(void) command;
+	(void)command;
 	server->printCurrentLocaltime(socket);
 }
 
@@ -589,11 +592,11 @@ void	time(Server *server, int socket, Commands command)
  *
  * @brief The CONNECT command can be used to request a server to try to
  * establish a new connection to another server immediately.
-*/
-void	connect(Server *server, int socket, Commands command)
+ */
+void connect(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -601,11 +604,11 @@ void	connect(Server *server, int socket, Commands command)
  *
  * @brief TRACE command is used to find the route to specific server and
  * information about its peers.
-*/
-void	trace(Server *server, int socket, Commands command)
+ */
+void trace(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -613,11 +616,11 @@ void	trace(Server *server, int socket, Commands command)
  *
  * @brief  The admin command is used to find information about the administrator
  * of the given server
-*/
-void	admin(Server *server, int socket, Commands command)
+ */
+void admin(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -625,11 +628,11 @@ void	admin(Server *server, int socket, Commands command)
  *
  * @brief The INFO command is REQUIRED to return information describing the
  * server.
-*/
-void	info(Server *server, int socket, Commands command)
+ */
+void info(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /*
@@ -641,11 +644,11 @@ void	info(Server *server, int socket, Commands command)
  *
  * @brief The SERVLIST command is used to list services currently connected to
  * the network and visible to the user issuing the command.
-*/
-void	servlist(Server *server, int socket, Commands command)
+ */
+void servlist(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -653,11 +656,11 @@ void	servlist(Server *server, int socket, Commands command)
  *
  * @brief The SQUERY command is used similarly to PRIVMSG.  The only difference
  * is that the recipient MUST be a service.
-*/
-void	squery(Server *server, int socket, Commands command)
+ */
+void squery(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /*
@@ -671,17 +674,17 @@ void	squery(Server *server, int socket, Commands command)
  */
 void who(Server *server, int socket, Commands command)
 {
-	if(command.params.size() == 0)
+	if (command.params.size() == 0)
 		return server->sendWho(socket, server->getAllClients());
 	std::string params = command.params[0];
-	if(checkChannelName(params))
+	if (checkChannelName(params))
 	{
 		Channel *channel = server->getChannelByName(params);
 		if (channel)
 			return server->sendWho(socket, channel->getAllClients());
 		return;
 	}
-	Client *client = server->getClientByFd(socket);
+	Client			   *client = server->getClientByFd(socket);
 	std::vector<Client *> listOfVisibles = server->getAllClientsVisibleForClient(client);
 	return server->sendWho(socket, server->getAllClientsMatching(params, listOfVisibles));
 }
@@ -690,13 +693,13 @@ void who(Server *server, int socket, Commands command)
  * 3.6.2 Whois query
  *
  * @brief This command is used to query information about a particular user.
-*/
-void	whois(Server *server, int socket, Commands command)
+ */
+void whois(Server *server, int socket, Commands command)
 {
-	if(command.params.empty())
+	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
 	std::vector<std::string> nicknameMasks = splitBy(command.params[0], ",");
-	std::vector<Client *> listOfClients = server->getAllClientsMatching(nicknameMasks);
+	std::vector<Client *>    listOfClients = server->getAllClientsMatching(nicknameMasks);
 	if (listOfClients.empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::vector<Client *>::const_iterator cit;
@@ -711,11 +714,11 @@ void	whois(Server *server, int socket, Commands command)
  * 3.6.3 Whowas
  *
  * @brief Whowas asks for information about a nickname which no longer exists.
-*/
-void	whowas(Server *server, int socket, Commands command)
+ */
+void whowas(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /*
@@ -729,14 +732,14 @@ void	whowas(Server *server, int socket, Commands command)
  * closed by the server which has the actual connection.
  */
 
-void	kill(Server *server, int socket, Commands command)
+void kill(Server *server, int socket, Commands command)
 {
 	Client *killer = server->getClientByFd(socket);
 	if (!(killer->getMode() & SERVEROPERATOR))
 		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
 	if (command.params.size() < 2)
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
-	std::string	nickname = command.params[0];
+	std::string nickname = command.params[0];
 	if (server->getHostname().compare(nickname) == 0 && nickname != "127.0.0.1")
 		return (server->sendMsg(ERR_CANTKILLSERVER, socket));
 	Client *victim = server->getClientByNickname(nickname);
@@ -753,7 +756,7 @@ void	kill(Server *server, int socket, Commands command)
  * server at the other end of the connection.
  * https://www.digitalocean.com/community/tutorials/compare-strings-in-c-plus-plus
  */
-void	ping(Server *server, int socket, Commands command)
+void ping(Server *server, int socket, Commands command)
 {
 	if (command.params.size() == 0)
 		return server->sendMsg(ERR_NOORIGIN, socket);
@@ -768,7 +771,6 @@ void	ping(Server *server, int socket, Commands command)
 		}
 		return server->sendMsg(PONG(server->getHostname()), socket);
 	}
-
 }
 
 /**
@@ -776,7 +778,7 @@ void	ping(Server *server, int socket, Commands command)
  *
  * @brief PONG message is a reply to ping message.
  */
-void	pong(Server *server, int socket, Commands command)
+void pong(Server *server, int socket, Commands command)
 {
 	if (command.params.size() == 0)
 		return server->sendMsg(ERR_NOORIGIN, socket);
@@ -794,7 +796,6 @@ void	pong(Server *server, int socket, Commands command)
 		if (client)
 			client->setStatus(ALIVE);
 	}
-
 }
 
 /**
@@ -802,11 +803,11 @@ void	pong(Server *server, int socket, Commands command)
  *
  * @brief The ERROR command is for use by servers when reporting a serious or
  * fatal error to its peers.
-*/
-void	error(Server *server, int socket, Commands command)
+ */
+void error(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /*
@@ -818,12 +819,12 @@ void	error(Server *server, int socket, Commands command)
  *
  * @brief  With the AWAY command, clients can set an automatic reply string for
  * any PRIVMSG commands directed at them (not to a channel they are on).
-*/
+ */
 void away(Server *server, int socket, Commands command)
 {
-	Client *client = server->getClientByFd(socket);
+	Client     *client = server->getClientByFd(socket);
 	std::string nickname = client->getNickname();
-	if(command.params.size() == 0)
+	if (command.params.size() == 0)
 	{
 		client->remMode(AWAY);
 		return server->sendMsg(RPL_UNAWAY, socket);
@@ -839,22 +840,22 @@ void away(Server *server, int socket, Commands command)
  * @brief The rehash command is an administrative command which can be used by
  * an operator to force the server to re-read and process its configuration
  * file.
-*/
-void	rehash(Server *server, int socket, Commands command)
+ */
+void rehash(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
  * 4.3 Die message
  *
  * @brief An operator can use the DIE command to shutdown the server.
-*/
-void	die(Server *server, int socket, Commands command)
+ */
+void die(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -862,24 +863,23 @@ void	die(Server *server, int socket, Commands command)
  *
  * @brief  An operator can use the restart command to force the server to
  * restart itself.
-*/
-void	restart(Server *server, int socket, Commands command)
+ */
+void restart(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
-
 
 /**
  * 4.5 Summon message
  *
  * @brief The SUMMON command can be used to give users who are on a host
  * running an IRC server a message asking them to please join IRC.
-*/
-void	summon(Server *server, int socket, Commands command)
+ */
+void summon(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -887,11 +887,11 @@ void	summon(Server *server, int socket, Commands command)
  *
  * @brief The USERS command returns a list of users logged into the server in a
  * format similar to the UNIX commands who(1), rusers(1) and finger(1).
-*/
-void	users(Server *server, int socket, Commands command)
+ */
+void users(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -899,17 +899,19 @@ void	users(Server *server, int socket, Commands command)
  *
  * @brief The WALLOPS command is used to send a message to all currently
  * connected users who have set the 'w' user mode for themselves.
-*/
-void	wallops(Server *server, int socket, Commands command)
+ */
+void wallops(Server *server, int socket, Commands command)
 {
 	if (command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
-	std::vector<Client*> vec = server->getAllClients();
-	std::vector<Client*>::iterator	it= vec.begin();
-	for(; it != vec.end(); it++)
+	std::vector<Client *>           vec = server->getAllClients();
+	std::vector<Client *>::iterator it = vec.begin();
+	for (; it != vec.end(); it++)
 	{
 		if ((*it)->getMode() & WALLOPS)
-			server->sendMsg(WALLOPS(server->getHostname(), server->getClientByFd(socket)->getNickname(), command.params[0]), (*it)->getFd());
+			server->sendMsg(
+					WALLOPS(server->getHostname(), server->getClientByFd(socket)->getNickname(), command.params[0]),
+					(*it)->getFd());
 	}
 }
 
@@ -919,11 +921,11 @@ void	wallops(Server *server, int socket, Commands command)
  * @brief he USERHOST command takes a list of up to 5 nicknames, each
  * separated by a space character and returns a list of information
  * about each nickname that it found.
-*/
-void	userhost(Server *server, int socket, Commands command)
+ */
+void userhost(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
 
 /**
@@ -931,9 +933,9 @@ void	userhost(Server *server, int socket, Commands command)
  * @brief The ISON command was implemented to provide a quick and efficient
  * means to get a response about whether a given nickname was currently
  * on IRC.
-*/
-void	ison(Server *server, int socket, Commands command)
+ */
+void ison(Server *server, int socket, Commands command)
 {
 	(void)command;
-	server->sendMsg(RPL_CLIENT((std::string)"This feature will be realease next month! Be patient!"), socket);
+	server->sendMsg(RPL_CLIENT((std::string) "This feature will be realease next month! Be patient!"), socket);
 }
