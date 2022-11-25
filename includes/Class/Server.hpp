@@ -7,7 +7,7 @@
 #define BUFFER_SIZE 500000
 #define	CMD_MAX_LGHT	510
 #define	MAX_PARAMS	15
-#define HOSTNAME "murmurdelamachine.42.fr"
+#define HOSTNAME "localhost"
 #define	VERSION	"1.0"
 #define MOTD_FILE "conf/motd.txt"
 

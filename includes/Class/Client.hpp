@@ -33,9 +33,6 @@ class Client
 		int								_status;
 		bool							_pwd;
 		bool							_isAuthenticated;
-		Client*							_lastExpediteur;
-		Client*							_lastRecipient;
-		Channel*						_activeChannel;
 		std::map<std::string, Channel*>	_channels;
 		std::string						_awayMessage;
 		//TODO last ping (time)
@@ -58,9 +55,6 @@ class Client
 		bool					getPwd(void)const;
 		bool					getIsAuthenticated(void)const;
 		std::vector<Channel*>	getAllChannels(void)const;
-		Client					*getLastExpediteur(void)const;
-		Client					*getLastRecipient(void)const;
-		Channel					*getActiveChannel(void)const;
 		std::string				getBuffer(void)const;
 		std::string				getAwayMessage(void) const;
 		void					setNickname(std::string nickname);
@@ -74,15 +68,13 @@ class Client
 		void					setStatus(int status);
 		void					setPwd(bool pwd);
 		void					setIsAuthenticated(bool authenticate);
-		void					setLastExpediteur(Client* expediteur);
-		void					setLastRecipient(Client* recipient);
-		void					setActiveChannel(Channel* active);
 		void					setAwayMessage(std::string awayMessage);
 		void					addChannel(Channel* channel, std::string channelName);
 		void					append(std::string buffer);
 		void					clearBuffer(void);
 		void					removeChannel(std::string channelName);
 		void					removeFromAllChannels(void);
+		void					leaveChannels(Server *server);
 };
 
 #endif

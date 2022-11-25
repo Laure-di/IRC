@@ -136,6 +136,16 @@ void Channel::sendJoin(Client *client)
 	sendMsg(":" + client->getFullIdentifier() + " JOIN " + _name + "\r\n");
 }
 
+/*void Channel::sendPartOrQuit(Client *client, std::string leaveMessage, std::string cmd)
+{
+	std::string msg;
+	if (!leaveMessage.empty())
+		msg = ":" + client->getFullIdentifier() + " " + cmd + " " + _name + " :" + leaveMessage + "\r\n";
+	else
+		msg = ":" + client->getFullIdentifier() + "" + cmd + " " + _name + " :" + client->getNickname() + "\r\n";
+	sendMsg(msg);
+}*/
+
 void Channel::sendPart(Client *client, std::string leaveMessage)
 {
 	std::string msg;
