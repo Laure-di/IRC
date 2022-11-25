@@ -227,3 +227,10 @@ void	Client::removeFromAllChannels(void)
 	}
 }
 
+void	Client::leaveChannels(Server *server)
+{
+	std::vector<Channel*>	channels = getAllChannels();
+	std::vector<Channel*>::iterator	it = channels.begin();
+	for (; it != channels.end(); it++)
+		server->checkAndLeaveChannel(getFd(), (*it)->getName(), "server quit without notice");
+}

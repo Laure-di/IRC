@@ -38,7 +38,11 @@ void nick(Server *server, int socket, Commands command) {
 
 	Client *client = server->getClientByFd(socket);
 	if (client->getPwd() == false)
-		return server->sendMsg(ERR_CLIENT(std::string("NICK: You must connect with a password first")), socket);
+	{
+		server->sendMsg(ERR_CLIENT(std::string("NICK: You must connect with a password first")), socket);
+		server->deleteClient(socket);
+		return ;
+	}
 	if(command.params.empty() || command.params[0].empty())
 		return server->sendMsg(ERR_NONICKNAMEGIVEN, socket);
 	std::string nickname = command.params[0];
@@ -174,8 +178,7 @@ void	squit(Server *server, int socket, Commands command)
 		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
 	if (command.params.size() != 2)
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
-	std::cout << "Hostname " << server->getHostname() << std::endl;
-	if (server->getHostname().compare(command.params[0]) != 0)
+	if (server->getHostname().compare(command.params[0]) != 0 && server->getHostname().compare("127.0.0.1"))
 		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
 	std::vector<std::string> msg;
 	msg.push_back("terminate the connection with the comment :" + command.params[1]);
@@ -684,7 +687,7 @@ void who(Server *server, int socket, Commands command)
  *
  * @brief This command is used to query information about a particular user.
 */
-void whois(Server *server, int socket, Commands command)
+void	whois(Server *server, int socket, Commands command)
 {
 	if(command.params.empty())
 		return server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket);
@@ -730,7 +733,7 @@ void	kill(Server *server, int socket, Commands command)
 	if (command.params.size() < 2)
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
 	std::string	nickname = command.params[0];
-	if (server->getHostname().compare(nickname) == 0)
+	if (server->getHostname().compare(nickname) == 0 && nickname != "127.0.0.1")
 		return (server->sendMsg(ERR_CANTKILLSERVER, socket));
 	Client *victim = server->getClientByNickname(nickname);
 	if (server->getClientByNickname(nickname) == NULL)
@@ -756,8 +759,7 @@ void	ping(Server *server, int socket, Commands command)
 		if (command.params.size() == 2)
 		{
 			std::string serverRecipient = command.params[1];
-			std::cout << server->getHostname() << std::endl;
-			if (server->getHostname().compare(serverRecipient) != 0)
+			if (server->getHostname().compare(serverRecipient) != 0 && serverRecipient != "127.0.0.1")
 				return server->sendMsg(ERR_NOSUCHSERVER(serverRecipient), socket);
 		}
 		return server->sendMsg(PONG(server->getHostname()), socket);
@@ -781,7 +783,7 @@ void	pong(Server *server, int socket, Commands command)
 		{
 			std::string serverRecipient = command.params[1];
 			std::cout << server->getHostname() << std::endl;
-			if (server->getHostname().compare(serverRecipient) != 0)
+			if (server->getHostname().compare(serverRecipient) != 0 && serverRecipient != "127.0.0.1")
 				return server->sendMsg(ERR_NOSUCHSERVER(serverRecipient), socket);
 		}
 		Client *client = server->getClientByFd(socket);

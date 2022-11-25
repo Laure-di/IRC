@@ -56,8 +56,6 @@ class Client
 		bool					getPwd(void)const;
 		bool					getIsAuthenticated(void)const;
 		std::vector<Channel*>	getAllChannels(void)const;
-		Client					*getLastExpediteur(void)const;
-		Client					*getLastRecipient(void)const;
 		std::string				getBuffer(void)const;
 		std::string				getAwayMessage(void) const;
 		bool isInSameChannel(Client *client) const;
@@ -75,15 +73,13 @@ class Client
 		void					setStatus(int status);
 		void					setPwd(bool pwd);
 		void					setIsAuthenticated(bool authenticate);
-		void					setLastExpediteur(Client* expediteur);
-		void					setLastRecipient(Client* recipient);
-		void					setActiveChannel(Channel* active);
 		void					setAwayMessage(std::string awayMessage);
 		void					addChannel(Channel* channel, std::string channelName);
 		void					append(std::string buffer);
 		void					clearBuffer(void);
 		void					removeChannel(std::string channelName);
 		void					removeFromAllChannels(void);
+		void					leaveChannels(Server *server);
 };
 
 #endif

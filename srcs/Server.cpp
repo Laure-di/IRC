@@ -313,6 +313,8 @@ void	Server::executeCommands(std::string buffer, Client *client)
 	transformCmdsToUpper(&commandsList);
 	for (size_t i = 0; i < commandsList.size(); i++)
 	{
+		if (client)
+		{
 		if (!isClientFullyRegister(client) && !isRegistrationCmd(commandsList[i].command))
 			return this->sendMsg(ERR_NOTREGISTERED, client->getFd());
 		if (_cmdDict.find(commandsList[i].command) != _cmdDict.end())
@@ -330,6 +332,7 @@ void	Server::executeCommands(std::string buffer, Client *client)
 		if (i == commandsList.size())
 			break;
 		it++;
+		}
 	};
 #ifdef DEBUG
 	//	printAllCmds(commandsList);
@@ -607,16 +610,17 @@ void	Server::deleteAllChannels(void)
 	}
 }
 
+
 void	Server::clearServer(void)
 {
 	struct epoll_event	ev;
 
-	deleteAllChannels();
 	if (!this->_clients.empty())
 	{
 		std::map<int, Client*>::const_iterator it_end = this->_clients.end();
 		for (std::map<int, Client*>::const_iterator it_begin = this->_clients.begin(); it_begin != it_end; it_begin++)
 		{
+			it_begin->second->leaveChannels(this);
 			try
 			{
 				if (epoll_ctl(this->_pollFd, EPOLL_CTL_DEL, it_begin->second->getFd(), &ev) == -1)
@@ -635,6 +639,7 @@ void	Server::clearServer(void)
 			}
 		}
 	}
+	deleteAllChannels();
 	if (close(this->_listenSocket) == -1)
 		std::cerr << "close issue" << std::endl;
 	if (close(this->_pollFd) == -1)
@@ -652,9 +657,9 @@ void	Server::deleteClient(int socket)
 		std::cerr << "Something went wrong, we can't find the client to delete" << std::endl;
 		return ;
 	}
-
 	it->second->removeFromAllChannels();
 	delete it->second;
+	it->second = NULL;
 	_clients.erase(it->first);
 	if (epoll_ctl(this->_pollFd, EPOLL_CTL_DEL, socket, &ev) == -1)
 		throw serverError("epoll_ctl:", strerror(errno));
