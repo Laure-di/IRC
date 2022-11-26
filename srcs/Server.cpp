@@ -558,7 +558,7 @@ void Server::createAndBind(char *port)
 	}
 	freeaddrinfo(result);
 #ifdef DEBUG
-	std::cout << "Socket created" << std::endl;
+	std::cout << "Socket created" << std::endl << std::endl;
 #endif
 }
 
@@ -637,7 +637,6 @@ void Server::deleteClient(int socket)
 		throw serverError("epoll_ctl:", strerror(errno));
 	if (close(socket) == -1)
 		throw serverError("close", strerror(errno));
-	std::cout << "Connection close by client" << std::endl;
 }
 
 /**
