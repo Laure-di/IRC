@@ -42,7 +42,7 @@ DEP	=	${OBJS:.o=.d}
 #                FLAGS                #
 #######################################
 
-FLAGS = -Wall -Wextra -Werror -MMD -MP -std=c++98 -I $(INC) -g3
+FLAGS = -Wall -Wextra -Werror -MMD -MP -std=c++98 -I $(INC) -g3 -DDEBUG
 
 #######################################
 #                RULES                #

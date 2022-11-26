@@ -161,13 +161,6 @@ std::string Server::getMessageOfTheDay(void)
 
 /* SETTER */
 
-void Server::createNewChannel(int creator, std::string name)
-{
-	// Add creation of channel
-	(void)creator;
-	(void)name;
-}
-
 void Server::addNicknameUnavailable(std::string nickname)
 {
 	_nicknameUnavailable[nickname] = time(NULL);
@@ -207,8 +200,8 @@ void Server::shapeMessageOftheDay(std::string fileName, int socket)
 /*************************************************************************/
 
 /**
- ** Utils method
- **/
+ * Utils method
+ */
 
 void Server::sendMsg(NumericReplies reply, const int fd)
 {
@@ -292,9 +285,8 @@ void Server::printCurrentLocaltime(int socket)
 }
 
 /**
- ** Execution Commands method
- **/
-
+ * Execution Commands method
+ */
 void Server::executeCommands(std::string buffer, Client *client)
 {
 	std::vector<std::string>        listOfCommands = splitCmd(buffer, "\r\n");
@@ -330,8 +322,8 @@ void Server::executeCommands(std::string buffer, Client *client)
 }
 
 /**
- ** Communication with server methods
- **/
+ * Communication with server methods
+ */
 
 /**
  * @brief https://support.sas.com/documentation/onlinedoc/ccompiler/doc750/html/lr2/zockname.htm
@@ -358,7 +350,7 @@ void Server::_acceptNewClient(int listenSocket, int pollfd)
 	if (epoll_ctl(pollfd, EPOLL_CTL_ADD, client_fd, &ev) == -1)
 		throw serverError("epoll_ctl", strerror(errno));
 #ifdef DEBUG
-	std::cout << "Nouvelle connexion on fd " + client_fd << std::endl;
+	std::cout << "Nouvelle connexion sur le fd " << client_fd << std::endl << std::endl;
 #endif
 }
 
@@ -414,7 +406,7 @@ int Server::_handleMessage(epoll_event ep_event)
 	memset(buffer, 0, BUFFER_SIZE);
 	numbytes = recv(ep_event.data.fd, buffer, BUFFER_SIZE, 0);
 #ifdef DEBUG
-	std::cout << "Received from fd " << std::hex << ep_event.data.fd << " :\n---------------\n"
+	std::cout << "Received from fd " << ep_event.data.fd << " :\n---------------\n"
 			  << buffer << "---------------\n\n";
 #endif
 	if (numbytes <= 0)
@@ -423,10 +415,6 @@ int Server::_handleMessage(epoll_event ep_event)
 	{
 		buffer[numbytes] = '\0';
 		currentClient->append(buffer);
-#ifdef DEBUG
-		std::cout << "Client Buffer " << currentClient->getBuffer() << " :\n---------------\n"
-				  << "---------------\n\n";
-#endif
 		if (isCmdFull(currentClient->getBuffer()))
 		{
 			this->executeCommands(currentClient->getBuffer(), currentClient);
@@ -481,7 +469,9 @@ void Server::execute(void)
 					{
 						Client *userToDel = this->getClientByFd(this->_ep_event[i].data.fd);
 						this->deleteClient(userToDel->getFd());
-						std::cerr << "Socket closed by client" << std::endl;
+#ifdef DEBUG
+						std::cout << "Connection to fd " << _ep_event[i].data.fd << " closed by client" << std::endl;
+#endif
 					}
 				}
 			}
@@ -491,8 +481,8 @@ void Server::execute(void)
 }
 
 /**
- ** Serveur initialization method
- **/
+ * Serveur initialization method
+ */
 
 void Server::createCmdDict(void)
 {
@@ -573,8 +563,8 @@ void Server::createAndBind(char *port)
 }
 
 /**
- **	Quit && Exit method
- **/
+ *	Quit && Exit method
+ */
 
 Channel *Server::addChannel(std::string name, Client *creator)
 {
