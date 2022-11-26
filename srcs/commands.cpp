@@ -186,7 +186,7 @@ void squit(Server *server, int socket, Commands command)
 		return (server->sendMsg(ERR_NOPRIVILEGES, socket));
 	if (command.params.size() != 2)
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
-	if (server->getHostname().compare(command.params[0]) != 0 && server->getHostname().compare("127.0.0.1"))
+	if (server->getHostname().compare(command.params[0]) != 0 && command.params[0].compare("127.0.0.1"))
 		return (server->sendMsg(ERR_NOSUCHSERVER(command.params[0]), socket));
 	std::vector<std::string> msg;
 	msg.push_back("terminate the connection with the comment :" + command.params[1]);
@@ -754,7 +754,7 @@ void kill(Server *server, int socket, Commands command)
 	if (command.params.size() < 2)
 		return (server->sendMsg(ERR_NEEDMOREPARAMS(command.command), socket));
 	std::string nickname = command.params[0];
-	if (server->getHostname().compare(nickname) == 0 && nickname != "127.0.0.1")
+	if (server->getHostname().compare(nickname) == 0 || nickname.compare("127.0.0.1") == 0)
 		return (server->sendMsg(ERR_CANTKILLSERVER, socket));
 	Client *victim = server->getClientByNickname(nickname);
 	if (server->getClientByNickname(nickname) == NULL)
